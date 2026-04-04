@@ -45,6 +45,21 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
 /* ────────────────────────────────────────
    Glass Morphism 컴포넌트 클래스
 ──────────────────────────────────────── */
