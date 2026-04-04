@@ -5,24 +5,53 @@ import type { Post } from '@/types'
 export default async function NoticePage() {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('posts')
-    .select('id, title, content, created_at, is_pinned, profiles(display_name)')
-    .eq('type', 'notice')
-    .order('is_pinned', { ascending: false })
-    .order('created_at', { ascending: false })
+  const [
+    { data },
+    {
+      data: { user },
+    },
+  ] = await Promise.all([
+    supabase
+      .from('posts')
+      .select('id, title, content, created_at, is_pinned, profiles(display_name)')
+      .eq('type', 'notice')
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false }),
+    supabase.auth.getUser(),
+  ])
+
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.role === 'admin'
+  }
 
   const notices = (data ?? []) as unknown as Post[]
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}>
-          공지사항
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
-          파충류가게 공지입니다.
-        </p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}>
+            공지사항
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+            파충류가게 공지입니다.
+          </p>
+        </div>
+        {isAdmin && (
+          <Link
+            href="/admin/notices/new"
+            className="px-4 py-2 rounded-lg text-sm font-medium"
+            style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
+          >
+            공지 추가
+          </Link>
+        )}
       </div>
 
       {notices.length === 0 ? (
