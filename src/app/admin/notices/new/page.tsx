@@ -37,7 +37,6 @@ export default function NewNoticePage() {
     }
 
     router.push('/notice')
-    router.refresh()
   }
 
   return (

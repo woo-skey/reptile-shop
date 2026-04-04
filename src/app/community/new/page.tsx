@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,30 +16,49 @@ export default function NewPostPage() {
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [previews])
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).slice(0, 4)
     setImages(files)
     setPreviews(files.map((f) => URL.createObjectURL(f)))
   }
 
-  const uploadImages = async (): Promise<string[]> => {
-    const paths: string[] = []
-    for (const file of images) {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type }),
-      })
-      const { signedUrl, path } = await res.json()
-      await fetch(signedUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      })
-      paths.push(path)
+  const uploadSingleImage = async (file: File): Promise<string> => {
+    const prepareRes = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+    })
+
+    if (!prepareRes.ok) {
+      const data = await prepareRes.json().catch(() => ({ error: '이미지 업로드 준비에 실패했습니다.' }))
+      throw new Error(data.error ?? '이미지 업로드 준비에 실패했습니다.')
     }
-    return paths
+
+    const { signedUrl, path } = (await prepareRes.json()) as { signedUrl?: string; path?: string }
+    if (!signedUrl || !path) {
+      throw new Error('이미지 업로드 URL을 가져오지 못했습니다.')
+    }
+
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type },
+      body: file,
+    })
+
+    if (!uploadRes.ok) {
+      throw new Error('이미지 업로드에 실패했습니다.')
+    }
+
+    return path
   }
+
+  const uploadImages = async (): Promise<string[]> => Promise.all(images.map((file) => uploadSingleImage(file)))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,14 +70,6 @@ export default function NewPostPage() {
       const imagePaths = images.length > 0 ? await uploadImages() : []
 
       const supabase = createClient()
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single()
-
-      if (!profile) throw new Error('프로필을 찾을 수 없습니다.')
-
       const { error: insertError } = await supabase.from('posts').insert({
         author_id: user.id,
         type: 'community',
@@ -70,7 +81,6 @@ export default function NewPostPage() {
       if (insertError) throw insertError
 
       router.push('/community')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '게시글 작성에 실패했습니다.')
       setLoading(false)

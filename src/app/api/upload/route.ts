@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
   if (!filename || !contentType) {
     return NextResponse.json({ error: '파일 정보가 없습니다.' }, { status: 400 })
   }
+  if (typeof contentType !== 'string' || !contentType.startsWith('image/')) {
+    return NextResponse.json({ error: '이미지 파일만 업로드할 수 있습니다.' }, { status: 400 })
+  }
 
   // service_role로 signed URL 생성
   const adminClient = createSupabaseClient(
@@ -38,7 +41,9 @@ export async function POST(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const path = `${user.id}/${Date.now()}_${filename}`
+  const safeFilename =
+    typeof filename === 'string' ? filename.replace(/[^a-zA-Z0-9._-]/g, '_') : 'upload'
+  const path = `${user.id}/${Date.now()}_${safeFilename}`
   const { data, error } = await adminClient.storage
     .from('post-images')
     .createSignedUploadUrl(path)

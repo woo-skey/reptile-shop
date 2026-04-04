@@ -78,7 +78,6 @@ export default function NewMenuItemPage() {
     }
 
     router.push('/admin/menu')
-    router.refresh()
   }
 
   const inputCls = 'glass-input w-full px-3 py-2 text-sm'

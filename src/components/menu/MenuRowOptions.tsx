@@ -27,9 +27,10 @@ export default function MenuRowOptions({ activeRows }: { activeRows: 'all' | '2'
     const params = new URLSearchParams(searchParams.toString())
     if (key === 'all') params.delete('rows')
     else params.set('rows', key)
+    const nextHref = params.toString() ? `/menu?${params.toString()}` : '/menu'
 
     startTransition(() => {
-      router.push(`/menu?${params.toString()}`)
+      router.replace(nextHref, { scroll: false })
     })
   }
 

@@ -16,8 +16,15 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
 
   if (!popup) return null
 
-  const hiddenByStorage =
-    typeof window === 'undefined' ? true : localStorage.getItem(STORAGE_KEY + popup.id) === '1'
+  let hiddenByStorage = false
+  if (typeof window !== 'undefined') {
+    try {
+      hiddenByStorage = localStorage.getItem(STORAGE_KEY + popup.id) === '1'
+    } catch {
+      hiddenByStorage = false
+    }
+  }
+
   const hiddenInSession = Boolean(sessionHidden[popup.id])
   if (hiddenByStorage || hiddenInSession) return null
 
@@ -26,8 +33,10 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
   }
 
   const handleDontShowAgain = () => {
-    if (typeof window !== 'undefined') {
+    try {
       localStorage.setItem(STORAGE_KEY + popup.id, '1')
+    } catch {
+      // noop
     }
     setSessionHidden((prev) => ({ ...prev, [popup.id]: true }))
   }

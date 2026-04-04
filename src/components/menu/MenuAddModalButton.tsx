@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MenuCategory } from '@/types'
 
@@ -43,6 +43,12 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
+
   const set = (k: string, v: string | boolean) => setForm((prev) => ({ ...prev, [k]: v }))
 
   const needsSub = category === 'wine' || category === 'whisky' || category === 'cocktail'
@@ -70,6 +76,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     })
     setImageFile(null)
     setPreview('')
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   const close = () => {

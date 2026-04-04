@@ -31,8 +31,10 @@ export default function MenuTabs({ activeTab }: { activeTab: string }) {
 
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', key)
+    const nextHref = `/menu?${params.toString()}`
+
     startTransition(() => {
-      router.push(`/menu?${params.toString()}`)
+      router.replace(nextHref, { scroll: false })
     })
   }
 

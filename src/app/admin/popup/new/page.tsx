@@ -34,7 +34,6 @@ export default function NewPopupPage() {
     }
 
     router.push('/admin/popup')
-    router.refresh()
   }
 
   return (

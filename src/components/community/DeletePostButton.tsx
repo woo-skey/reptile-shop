@@ -12,9 +12,13 @@ export default function DeletePostButton({ postId, redirectTo }: { postId: strin
     if (!confirm('게시글을 삭제하시겠습니까?')) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.from('posts').delete().eq('id', postId)
+    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    if (error) {
+      alert(error.message)
+      setLoading(false)
+      return
+    }
     router.push(redirectTo)
-    router.refresh()
   }
 
   return (
