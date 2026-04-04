@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const ROW_OPTIONS = [
@@ -12,23 +13,36 @@ const ROW_OPTIONS = [
 export default function MenuRowOptions({ activeRows }: { activeRows: 'all' | '2' | '3' | '5' }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  const [optimisticRows, setOptimisticRows] = useState(activeRows)
+
+  useEffect(() => {
+    setOptimisticRows(activeRows)
+  }, [activeRows])
 
   const handleOption = (key: 'all' | '2' | '3' | '5') => {
+    if (key === optimisticRows) return
+    setOptimisticRows(key)
+
     const params = new URLSearchParams(searchParams.toString())
     if (key === 'all') params.delete('rows')
     else params.set('rows', key)
-    router.push(`/menu?${params.toString()}`)
+
+    startTransition(() => {
+      router.push(`/menu?${params.toString()}`)
+    })
   }
 
   return (
     <div className="flex gap-1 flex-wrap">
       {ROW_OPTIONS.map(({ key, label }) => {
-        const active = activeRows === key
+        const active = optimisticRows === key
         return (
           <button
             key={key}
             onClick={() => handleOption(key)}
-            className="px-2.5 py-1 text-xs rounded-md border transition-all"
+            disabled={isPending}
+            className="px-2.5 py-1 text-xs rounded-md border transition-all disabled:opacity-70"
             style={{
               backgroundColor: active ? 'rgba(69,97,50,0.7)' : 'transparent',
               color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.6)',
