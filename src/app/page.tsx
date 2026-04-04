@@ -74,21 +74,20 @@ export default async function HomePage() {
     <>
       <HomePopup popup={activePopup ?? null} />
 
-      <section className="w-full">
-        <div
-          className="w-full aspect-[3/1] overflow-hidden border-y"
-          style={{ borderColor: 'rgba(201, 162, 39, 0.25)', backgroundColor: '#1A1A0F' }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={MAIN_HERO_IMAGE}
-            alt="메인 배너"
-            className="w-full h-full object-cover object-center"
-          />
-        </div>
-      </section>
-
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+        <section>
+          <div
+            className="w-full aspect-[3/1] overflow-hidden border-y"
+            style={{ borderColor: 'rgba(201, 162, 39, 0.25)', backgroundColor: '#1A1A0F' }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={MAIN_HERO_IMAGE}
+              alt="메인 배너"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+        </section>
         <section className="grid md:grid-cols-2 gap-6 items-start">
           <div className="glass-card p-5 md:p-6">
             <div className="flex items-center justify-between mb-4">
