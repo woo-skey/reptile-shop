@@ -77,7 +77,7 @@ export default async function HomePage() {
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
         <section>
           <div
-            className="w-full aspect-[4/1] overflow-hidden border-y"
+            className="w-full aspect-[5/1] overflow-hidden border-y"
             style={{ borderColor: 'rgba(201, 162, 39, 0.25)', backgroundColor: '#1A1A0F' }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -89,7 +89,7 @@ export default async function HomePage() {
           </div>
         </section>
         <section className="grid md:grid-cols-2 gap-6 items-start">
-          <div className="glass-card p-5 md:p-6">
+          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 메인 메뉴
@@ -100,11 +100,13 @@ export default async function HomePage() {
             </div>
 
             {menus.length === 0 ? (
-              <p className="py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                등록된 메뉴가 없습니다.
-              </p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                  등록된 메뉴가 없습니다.
+                </p>
+              </div>
             ) : (
-              <div className="divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
                 {menus.map((item) => (
                   <Link
                     key={item.id}
@@ -128,7 +130,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6">
+          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 이벤트
@@ -139,11 +141,13 @@ export default async function HomePage() {
             </div>
 
             {events.length === 0 ? (
-              <p className="py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                등록된 이벤트가 없습니다.
-              </p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                  등록된 이벤트가 없습니다.
+                </p>
+              </div>
             ) : (
-              <div className="divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
                 {events.map((item) => (
                   <Link
                     key={item.id}
@@ -169,7 +173,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6">
+          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
@@ -180,11 +184,13 @@ export default async function HomePage() {
             </div>
 
             {posts.length === 0 ? (
-              <p className="py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                아직 게시글이 없습니다.
-              </p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                  아직 게시글이 없습니다.
+                </p>
+              </div>
             ) : (
-              <div className="divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
                 {posts.map((post) => (
                   <Link
                     key={post.id}
@@ -203,7 +209,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6">
+          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 공지사항
@@ -214,11 +220,13 @@ export default async function HomePage() {
             </div>
 
             {notices.length === 0 ? (
-              <p className="py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                등록된 공지가 없습니다.
-              </p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                  등록된 공지가 없습니다.
+                </p>
+              </div>
             ) : (
-              <div className="divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
                 {notices.map((notice) => (
                   <Link
                     key={notice.id}
