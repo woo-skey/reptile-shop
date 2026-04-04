@@ -11,14 +11,14 @@ const limitRows = (items: MenuItem[], rowLimit?: number | null) => {
 
 function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm border-collapse">
+    <div className="overflow-x-auto -mx-2 px-2">
+      <table className="w-full min-w-[640px] md:min-w-0 text-sm border-collapse">
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(201,162,39,0.25)' }}>
             {headers.map((h) => (
               <th
                 key={h}
-                className="text-left py-2.5 px-3 text-xs font-semibold"
+                className="text-left py-2.5 px-2 md:px-3 text-xs font-semibold"
                 style={{ color: '#C9A227', whiteSpace: 'nowrap' }}
               >
                 {h}
@@ -65,7 +65,7 @@ function Row({ cells }: { cells: (ReactNode | null | undefined)[] }) {
       {cells.map((c, i) => (
         <td
           key={i}
-          className="py-3 px-3 align-top text-sm"
+          className="py-3 px-2 md:px-3 align-top text-xs sm:text-sm"
           style={{ color: 'var(--foreground)', opacity: c == null || c === '' ? 0.35 : 0.85 }}
         >
           {c ?? '-'}

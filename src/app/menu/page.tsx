@@ -65,7 +65,7 @@ export default async function MenuPage({
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-8">
         <h1
-          className="text-2xl font-bold"
+          className="text-xl sm:text-2xl font-bold"
           style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
         >
           Menu
@@ -79,7 +79,7 @@ export default async function MenuPage({
         <MenuTabs activeTab={activeTab} />
       </Suspense>
 
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex flex-wrap items-center gap-3 mb-3">
         <h2
           className="text-base font-semibold"
           style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}

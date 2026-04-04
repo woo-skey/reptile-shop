@@ -86,6 +86,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   }
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (preview) URL.revokeObjectURL(preview)
     const file = e.target.files?.[0]
     setImageFile(file ?? null)
     setPreview(file ? URL.createObjectURL(file) : '')
@@ -173,7 +174,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-xs px-3 py-1.5 rounded-lg"
+        className="w-full sm:w-auto text-xs px-3 py-1.5 rounded-lg"
         style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
       >
         {addLabel}
@@ -181,12 +182,12 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center px-4 py-6 overflow-y-auto"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
           onClick={close}
         >
           <div
-            className="glass-card w-full max-w-xl p-6 md:p-7"
+            className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -208,7 +209,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
                   사진
                 </label>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -321,7 +322,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {needsAbv && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
@@ -426,11 +427,11 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
               {error && <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">{error}</p>}
 
-              <div className="flex gap-3 pt-1">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
                   style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
                 >
                   {loading ? '등록 중...' : '등록하기'}
@@ -438,7 +439,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                 <button
                   type="button"
                   onClick={close}
-                  className="px-5 py-2.5 rounded-lg text-sm"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm"
                   style={{ color: 'var(--foreground)', opacity: 0.6, border: '1px solid rgba(255,255,255,0.15)' }}
                 >
                   취소

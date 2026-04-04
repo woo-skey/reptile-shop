@@ -35,26 +35,28 @@ export default function MenuRowOptions({ activeRows }: { activeRows: 'all' | '2'
   }
 
   return (
-    <div className="flex gap-1 flex-wrap">
-      {ROW_OPTIONS.map(({ key, label }) => {
-        const active = optimisticRows === key
-        return (
-          <button
-            key={key}
-            onClick={() => handleOption(key)}
-            disabled={isPending}
-            className="px-2.5 py-1 text-xs rounded-md border transition-all disabled:opacity-70"
-            style={{
-              backgroundColor: active ? 'rgba(69,97,50,0.7)' : 'transparent',
-              color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.6)',
-              borderColor: active ? '#C9A227' : 'rgba(201, 162, 39, 0.2)',
-              fontWeight: active ? 600 : 400,
-            }}
-          >
-            {label}
-          </button>
-        )
-      })}
+    <div className="-mx-1 px-1 overflow-x-auto">
+      <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
+        {ROW_OPTIONS.map(({ key, label }) => {
+          const active = optimisticRows === key
+          return (
+            <button
+              key={key}
+              onClick={() => handleOption(key)}
+              disabled={isPending}
+              className="shrink-0 px-2.5 py-1 text-xs rounded-md border transition-all disabled:opacity-70"
+              style={{
+                backgroundColor: active ? 'rgba(69,97,50,0.7)' : 'transparent',
+                color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.6)',
+                borderColor: active ? '#C9A227' : 'rgba(201, 162, 39, 0.2)',
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
