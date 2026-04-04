@@ -24,6 +24,34 @@ export interface Post {
   profiles?: Pick<Profile, 'username' | 'display_name'>
 }
 
+export type MenuCategory = 'event' | 'food' | 'signature' | 'cocktail' | 'beer' | 'wine' | 'whisky' | 'shochu' | 'spirits'
+
+export interface MenuItem {
+  id: string
+  category: MenuCategory
+  subcategory: string | null
+  name: string
+  description: string | null
+  note: string | null
+  abv: number | null
+  volume_ml: number | null
+  price: number | null
+  price_glass: number | null
+  price_bottle: number | null
+  sort_order: number
+  is_available: boolean
+  created_at: string
+}
+
+export interface Popup {
+  id: string
+  title: string
+  content: string | null
+  image_url: string | null
+  is_active: boolean
+  created_at: string
+}
+
 export interface Comment {
   id: string
   post_id: string

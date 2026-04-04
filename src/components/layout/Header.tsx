@@ -6,11 +6,18 @@ import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 
-const navLinks = [
-  { href: '/', label: '홈' },
-  { href: '/menu', label: '메뉴' },
-  { href: '/community', label: '커뮤니티' },
-  { href: '/notice', label: '공지' },
+type NavLink = {
+  href: string
+  label: string
+  isActive?: (pathname: string) => boolean
+}
+
+const navLinks: NavLink[] = [
+  { href: '/', label: '홈', isActive: (pathname) => pathname === '/' },
+  { href: '/menu', label: '메뉴', isActive: (pathname) => pathname.startsWith('/menu') },
+  { href: '/menu?tab=event', label: '이벤트', isActive: (pathname) => pathname.startsWith('/menu') },
+  { href: '/community', label: '커뮤니티', isActive: (pathname) => pathname.startsWith('/community') },
+  { href: '/notice', label: '공지', isActive: (pathname) => pathname.startsWith('/notice') },
 ]
 
 export default function Header() {
@@ -37,7 +44,6 @@ export default function Header() {
       }}
     >
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        {/* 로고 */}
         <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold"
@@ -47,10 +53,9 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* 데스크탑 네비 */}
         <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map(({ href, label }) => {
-            const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          {navLinks.map(({ href, label, isActive }) => {
+            const active = isActive ? isActive(pathname) : false
             return (
               <Link
                 key={href}
@@ -76,10 +81,8 @@ export default function Header() {
           )}
         </nav>
 
-        {/* 우측 버튼 */}
         <div className="flex items-center gap-3">
           {loading ? (
-            /* 로딩 중 skeleton — 깜빡임 방지 */
             <div className="w-16 h-6 rounded-md animate-pulse" style={{ backgroundColor: 'rgba(201,162,39,0.1)' }} />
           ) : user ? (
             <>
@@ -114,7 +117,6 @@ export default function Header() {
             </Link>
           )}
 
-          {/* 모바일 햄버거 */}
           <button
             className="md:hidden p-1"
             onClick={() => setMenuOpen((v) => !v)}
@@ -132,7 +134,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 모바일 메뉴 */}
       {menuOpen && (
         <div
           className="md:hidden border-t px-4 py-3 space-y-2"
