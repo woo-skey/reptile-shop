@@ -77,7 +77,7 @@ export default async function HomePage() {
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
         <section>
           <div
-            className="w-full aspect-[3/1] overflow-hidden border-y"
+            className="w-full aspect-[4/1] overflow-hidden border-y"
             style={{ borderColor: 'rgba(201, 162, 39, 0.25)', backgroundColor: '#1A1A0F' }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
