@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function NewNoticePage() {
@@ -20,17 +19,19 @@ export default function NewNoticePage() {
     setError('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error: insertError } = await supabase.from('posts').insert({
-      author_id: user.id,
-      type: 'notice',
-      title,
-      content,
-      is_pinned: isPinned,
+    const res = await fetch('/api/admin/notices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        content,
+        isPinned,
+      }),
     })
 
-    if (insertError) {
-      setError(insertError.message)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: '공지 저장에 실패했습니다.' }))
+      setError(data.error ?? '공지 저장에 실패했습니다.')
       setLoading(false)
       return
     }

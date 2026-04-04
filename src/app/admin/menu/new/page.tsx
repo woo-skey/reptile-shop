@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
 const CATEGORIES = [
@@ -52,23 +51,32 @@ export default function NewMenuItemPage() {
     setError('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error: err } = await supabase.from('menu_items').insert({
-      category,
-      subcategory:  form.subcategory || null,
-      name:         form.name,
-      description:  form.description || null,
-      note:         form.note || null,
-      abv:          form.abv ? parseFloat(form.abv) : null,
-      volume_ml:    form.volume_ml ? parseInt(form.volume_ml) : null,
-      price:        form.price ? parseInt(form.price) : null,
-      price_glass:  form.price_glass ? parseInt(form.price_glass) : null,
-      price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
-      sort_order:   parseInt(form.sort_order) || 0,
-      is_available: form.is_available,
+    const res = await fetch('/api/admin/menu-items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        category,
+        subcategory: form.subcategory || null,
+        name: form.name,
+        description: form.description || null,
+        note: form.note || null,
+        abv: form.abv ? parseFloat(form.abv) : null,
+        volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
+        price: form.price ? parseInt(form.price) : null,
+        price_glass: form.price_glass ? parseInt(form.price_glass) : null,
+        price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
+        sort_order: parseInt(form.sort_order) || 0,
+        is_available: form.is_available,
+      }),
     })
 
-    if (err) { setError(err.message); setLoading(false); return }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: '메뉴 저장에 실패했습니다.' }))
+      setError(data.error ?? '메뉴 저장에 실패했습니다.')
+      setLoading(false)
+      return
+    }
+
     router.push('/admin/menu')
     router.refresh()
   }
