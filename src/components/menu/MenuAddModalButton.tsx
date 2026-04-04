@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MenuCategory } from '@/types'
 
@@ -21,6 +21,8 @@ const CATEGORY_LABEL: Record<MenuCategory, string> = {
 
 export default function MenuAddModalButton({ category }: { category: MenuCategory }) {
   const router = useRouter()
+  const fileRef = useRef<HTMLInputElement>(null)
+
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
     subcategory: '',
@@ -34,7 +36,10 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     price_bottle: '',
     sort_order: '0',
     is_available: true,
+    image_url: '',
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -61,7 +66,10 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
       price_bottle: '',
       sort_order: '0',
       is_available: true,
+      image_url: '',
     })
+    setImageFile(null)
+    setPreview('')
   }
 
   const close = () => {
@@ -70,40 +78,84 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     setLoading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    setImageFile(file ?? null)
+    setPreview(file ? URL.createObjectURL(file) : '')
+  }
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: '사진 업로드 준비에 실패했습니다.' }))
+      throw new Error(data.error ?? '사진 업로드 준비에 실패했습니다.')
+    }
+
+    const { signedUrl, path } = await res.json()
+
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': imageFile.type },
+      body: imageFile,
+    })
+
+    if (!uploadRes.ok) {
+      throw new Error('사진 업로드에 실패했습니다.')
+    }
+
+    return path as string
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const res = await fetch('/api/admin/menu-items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        category,
-        subcategory: form.subcategory || null,
-        name: form.name,
-        description: form.description || null,
-        note: form.note || null,
-        abv: form.abv ? parseFloat(form.abv) : null,
-        volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
-        price: form.price ? parseInt(form.price) : null,
-        price_glass: form.price_glass ? parseInt(form.price_glass) : null,
-        price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
-        sort_order: parseInt(form.sort_order) || 0,
-        is_available: form.is_available,
-      }),
-    })
+    try {
+      const uploadedPath = await uploadImage()
+      const imageUrl = uploadedPath || form.image_url || null
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: '등록에 실패했습니다.' }))
-      setError(data.error ?? '등록에 실패했습니다.')
+      const res = await fetch('/api/admin/menu-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category,
+          subcategory: form.subcategory || null,
+          name: form.name,
+          description: form.description || null,
+          note: form.note || null,
+          abv: form.abv ? parseFloat(form.abv) : null,
+          volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
+          price: form.price ? parseInt(form.price) : null,
+          price_glass: form.price_glass ? parseInt(form.price_glass) : null,
+          price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
+          sort_order: parseInt(form.sort_order) || 0,
+          is_available: form.is_available,
+          image_url: imageUrl,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: '등록에 실패했습니다.' }))
+        setError(data.error ?? '등록에 실패했습니다.')
+        setLoading(false)
+        return
+      }
+
+      reset()
+      close()
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '등록에 실패했습니다.')
       setLoading(false)
-      return
     }
-
-    reset()
-    close()
-    router.refresh()
   }
 
   const inputCls = 'glass-input w-full px-3 py-2 text-sm'
@@ -145,6 +197,49 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                  사진
+                </label>
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="px-3 py-1.5 text-xs rounded-md border"
+                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+                  >
+                    파일 선택
+                  </button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                    또는 이미지 URL 입력
+                  </span>
+                </div>
+                <input
+                  type="url"
+                  value={form.image_url}
+                  onChange={(e) => set('image_url', e.target.value)}
+                  placeholder="https://..."
+                  className={inputCls}
+                  style={{ color: 'var(--foreground)' }}
+                />
+                {preview && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview}
+                    alt="미리보기"
+                    className="mt-2 w-20 h-20 object-cover rounded"
+                    style={{ border: '1px solid rgba(201,162,39,0.3)' }}
+                  />
+                )}
+              </div>
+
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>

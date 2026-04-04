@@ -30,6 +30,7 @@ export interface MenuItem {
   id: string
   category: MenuCategory
   subcategory: string | null
+  image_url?: string | null
   name: string
   description: string | null
   note: string | null

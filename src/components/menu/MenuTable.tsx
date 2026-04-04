@@ -1,13 +1,15 @@
+import { Fragment, type ReactNode } from 'react'
 import type { MenuItem } from '@/types'
 
-const fmt = (n: number | null) =>
-  n != null ? n.toLocaleString('ko-KR') + '원' : '-'
+const fmt = (n: number | null) => (n != null ? `${n.toLocaleString('ko-KR')}원` : '-')
+const abvStr = (n: number | null) => (n != null ? `${n}%` : '-')
 
-const abvStr = (n: number | null) =>
-  n != null ? `${n}%` : '-'
+const limitRows = (items: MenuItem[], rowLimit?: number | null) => {
+  if (!rowLimit || rowLimit <= 0) return items
+  return items.slice(0, rowLimit)
+}
 
-/* ─── 공통 테이블 래퍼 ─── */
-function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
+function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
@@ -30,14 +32,42 @@ function Table({ headers, children }: { headers: string[]; children: React.React
   )
 }
 
-function Row({ cells }: { cells: (string | null | undefined)[] }) {
+function NameCell({ item }: { item: MenuItem }) {
+  const hasExternalImage = Boolean(item.image_url?.startsWith('http'))
+
   return (
-    <tr
-      className="transition-colors hover:bg-white/5"
-      style={{ borderBottom: '1px solid rgba(201,162,39,0.08)' }}
-    >
+    <div className="flex items-center gap-2 min-w-0">
+      {hasExternalImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.image_url ?? ''}
+          alt={item.name}
+          className="w-8 h-8 rounded object-cover shrink-0"
+          style={{ border: '1px solid rgba(201,162,39,0.25)' }}
+        />
+      ) : item.image_url ? (
+        <span
+          className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
+          style={{ color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' }}
+        >
+          IMG
+        </span>
+      ) : null}
+
+      <span className="truncate">{item.name}</span>
+    </div>
+  )
+}
+
+function Row({ cells }: { cells: (ReactNode | null | undefined)[] }) {
+  return (
+    <tr className="transition-colors hover:bg-white/5" style={{ borderBottom: '1px solid rgba(201,162,39,0.08)' }}>
       {cells.map((c, i) => (
-        <td key={i} className="py-3 px-3 align-top text-sm" style={{ color: 'var(--foreground)', opacity: c ? 0.85 : 0.3 }}>
+        <td
+          key={i}
+          className="py-3 px-3 align-top text-sm"
+          style={{ color: 'var(--foreground)', opacity: c == null || c === '' ? 0.35 : 0.85 }}
+        >
           {c ?? '-'}
         </td>
       ))}
@@ -45,7 +75,6 @@ function Row({ cells }: { cells: (string | null | undefined)[] }) {
   )
 }
 
-/* ─── 서브카테고리 제목 ─── */
 function SubHead({ label }: { label: string }) {
   return (
     <tr>
@@ -61,7 +90,6 @@ function SubHead({ label }: { label: string }) {
   )
 }
 
-/* ─── 빈 상태 ─── */
 function Empty() {
   return (
     <tr>
@@ -72,43 +100,54 @@ function Empty() {
   )
 }
 
-/* ─────────────────────────────────────────
-   카테고리별 렌더러
-───────────────────────────────────────── */
-
-function EventTable({ items }: { items: MenuItem[] }) {
+function EventTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
   return (
     <Table headers={['메뉴', '설명', '가격']}>
-      {items.length === 0 ? <Empty /> : items.map((item) => (
-        <Row key={item.id} cells={[item.name, item.description, fmt(item.price)]} />
-      ))}
+      {limited.length === 0 ? (
+        <Empty />
+      ) : (
+        limited.map((item) => (
+          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, fmt(item.price)]} />
+        ))
+      )}
     </Table>
   )
 }
 
-function FoodTable({ items }: { items: MenuItem[] }) {
+function FoodTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
   return (
     <Table headers={['메뉴', '설명', '비고', '가격']}>
-      {items.length === 0 ? <Empty /> : items.map((item) => (
-        <Row key={item.id} cells={[item.name, item.description, item.note, fmt(item.price)]} />
-      ))}
+      {limited.length === 0 ? (
+        <Empty />
+      ) : (
+        limited.map((item) => (
+          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, item.note, fmt(item.price)]} />
+        ))
+      )}
     </Table>
   )
 }
 
-function SignatureTable({ items }: { items: MenuItem[] }) {
+function SignatureTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
   return (
     <Table headers={['메뉴', '설명', '도수', '가격']}>
-      {items.length === 0 ? <Empty /> : items.map((item) => (
-        <Row key={item.id} cells={[item.name, item.description, abvStr(item.abv), fmt(item.price)]} />
-      ))}
+      {limited.length === 0 ? (
+        <Empty />
+      ) : (
+        limited.map((item) => (
+          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)]} />
+        ))
+      )}
     </Table>
   )
 }
 
-function CocktailTable({ items }: { items: MenuItem[] }) {
-  // subcategory = 가격 티어 (예: '12000', '15000')
-  const groups = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
+function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
+  const groups = limited.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const key = item.subcategory ?? '기타'
     if (!acc[key]) acc[key] = []
     acc[key].push(item)
@@ -116,68 +155,82 @@ function CocktailTable({ items }: { items: MenuItem[] }) {
   }, {})
 
   const sortedKeys = Object.keys(groups).sort((a, b) => {
-    const na = parseInt(a), nb = parseInt(b)
-    if (!isNaN(na) && !isNaN(nb)) return na - nb
+    const na = parseInt(a)
+    const nb = parseInt(b)
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
     return a.localeCompare(b)
   })
 
   return (
     <Table headers={['메뉴', '설명', '도수', '가격']}>
-      {items.length === 0 ? (
+      {limited.length === 0 ? (
         <Empty />
       ) : (
         sortedKeys.map((key) => (
-          <>
-            <SubHead key={`head-${key}`} label={isNaN(parseInt(key)) ? key : fmt(parseInt(key))} />
+          <Fragment key={`group-${key}`}>
+            <SubHead label={Number.isNaN(parseInt(key)) ? key : fmt(parseInt(key))} />
             {groups[key].map((item) => (
-              <Row key={item.id} cells={[item.name, item.description, abvStr(item.abv), fmt(item.price)]} />
+              <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)]} />
             ))}
-          </>
+          </Fragment>
         ))
       )}
     </Table>
   )
 }
 
-function BeerTable({ items }: { items: MenuItem[] }) {
+function BeerTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
   return (
     <Table headers={['메뉴', '설명', '도수', '용량', '가격']}>
-      {items.length === 0 ? <Empty /> : items.map((item) => (
-        <Row key={item.id} cells={[
-          item.name,
-          item.description,
-          abvStr(item.abv),
-          item.volume_ml != null ? `${item.volume_ml}ml` : '-',
-          fmt(item.price),
-        ]} />
-      ))}
+      {limited.length === 0 ? (
+        <Empty />
+      ) : (
+        limited.map((item) => (
+          <Row
+            key={item.id}
+            cells={[
+              <NameCell key="name" item={item} />,
+              item.description,
+              abvStr(item.abv),
+              item.volume_ml != null ? `${item.volume_ml}ml` : '-',
+              fmt(item.price),
+            ]}
+          />
+        ))
+      )}
     </Table>
   )
 }
 
 const WINE_SUBS = [
-  { key: 'red',       label: 'Red' },
-  { key: 'white',     label: 'White' },
+  { key: 'red', label: 'Red' },
+  { key: 'white', label: 'White' },
   { key: 'sparkling', label: 'Sparkling' },
 ]
 
-function WineTable({ items }: { items: MenuItem[] }) {
-  const bySubcat = (sub: string) => items.filter((i) => i.subcategory === sub)
+function WineTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
+  const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
+
   return (
     <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
-      {items.length === 0 ? (
+      {limited.length === 0 ? (
         <Empty />
       ) : (
         WINE_SUBS.map(({ key, label }) => {
           const rows = bySubcat(key)
           if (rows.length === 0) return null
           return (
-            <>
-              <SubHead key={`head-${key}`} label={label} />
+            <Fragment key={`group-${key}`}>
+              <SubHead label={label} />
               {rows.map((item) => (
-                <Row key={item.id} cells={[item.name, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]} />
+                <Row
+                  key={item.id}
+                  cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+                />
               ))}
-            </>
+            </Fragment>
           )
         })
       )}
@@ -187,28 +240,33 @@ function WineTable({ items }: { items: MenuItem[] }) {
 
 const WHISKY_SUBS = [
   { key: 'single_malt', label: 'Single Malt' },
-  { key: 'blended',     label: 'Blended' },
-  { key: 'bourbon',     label: 'Bourbon' },
-  { key: 'tennessee',   label: 'Tennessee' },
+  { key: 'blended', label: 'Blended' },
+  { key: 'bourbon', label: 'Bourbon' },
+  { key: 'tennessee', label: 'Tennessee' },
 ]
 
-function WhiskyTable({ items }: { items: MenuItem[] }) {
-  const bySubcat = (sub: string) => items.filter((i) => i.subcategory === sub)
+function WhiskyTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
+  const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
+
   return (
     <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
-      {items.length === 0 ? (
+      {limited.length === 0 ? (
         <Empty />
       ) : (
         WHISKY_SUBS.map(({ key, label }) => {
           const rows = bySubcat(key)
           if (rows.length === 0) return null
           return (
-            <>
-              <SubHead key={`head-${key}`} label={label} />
+            <Fragment key={`group-${key}`}>
+              <SubHead label={label} />
               {rows.map((item) => (
-                <Row key={item.id} cells={[item.name, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]} />
+                <Row
+                  key={item.id}
+                  cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+                />
               ))}
-            </>
+            </Fragment>
           )
         })
       )}
@@ -216,28 +274,53 @@ function WhiskyTable({ items }: { items: MenuItem[] }) {
   )
 }
 
-function GlassBottleTable({ items }: { items: MenuItem[] }) {
+function GlassBottleTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+  const limited = limitRows(items, rowLimit)
   return (
     <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
-      {items.length === 0 ? <Empty /> : items.map((item) => (
-        <Row key={item.id} cells={[item.name, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]} />
-      ))}
+      {limited.length === 0 ? (
+        <Empty />
+      ) : (
+        limited.map((item) => (
+          <Row
+            key={item.id}
+            cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+          />
+        ))
+      )}
     </Table>
   )
 }
 
-/* ─── 메인 익스포트 ─── */
-export default function MenuTable({ items, category }: { items: MenuItem[]; category: string }) {
+export default function MenuTable({
+  items,
+  category,
+  rowLimit,
+}: {
+  items: MenuItem[]
+  category: string
+  rowLimit?: number | null
+}) {
   switch (category) {
-    case 'event':     return <EventTable items={items} />
-    case 'food':      return <FoodTable items={items} />
-    case 'signature': return <SignatureTable items={items} />
-    case 'cocktail':  return <CocktailTable items={items} />
-    case 'beer':      return <BeerTable items={items} />
-    case 'wine':      return <WineTable items={items} />
-    case 'whisky':    return <WhiskyTable items={items} />
-    case 'shochu':    return <GlassBottleTable items={items} />
-    case 'spirits':   return <GlassBottleTable items={items} />
-    default:          return null
+    case 'event':
+      return <EventTable items={items} rowLimit={rowLimit} />
+    case 'food':
+      return <FoodTable items={items} rowLimit={rowLimit} />
+    case 'signature':
+      return <SignatureTable items={items} rowLimit={rowLimit} />
+    case 'cocktail':
+      return <CocktailTable items={items} rowLimit={rowLimit} />
+    case 'beer':
+      return <BeerTable items={items} rowLimit={rowLimit} />
+    case 'wine':
+      return <WineTable items={items} rowLimit={rowLimit} />
+    case 'whisky':
+      return <WhiskyTable items={items} rowLimit={rowLimit} />
+    case 'shochu':
+      return <GlassBottleTable items={items} rowLimit={rowLimit} />
+    case 'spirits':
+      return <GlassBottleTable items={items} rowLimit={rowLimit} />
+    default:
+      return null
   }
 }

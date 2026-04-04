@@ -1,31 +1,36 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import MenuTabs from '@/components/menu/MenuTabs'
+import MenuRowOptions from '@/components/menu/MenuRowOptions'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
 import type { MenuCategory, MenuItem } from '@/types'
 
 const TAB_LABELS: Record<MenuCategory, string> = {
-  event:     'Event / New',
-  food:      'Food',
+  event: 'Event / New',
+  food: 'Food',
   signature: 'Signature',
-  cocktail:  'Cocktail',
-  beer:      'Beer',
-  wine:      'Wine',
-  whisky:    'Whisky',
-  shochu:    'Shochu',
-  spirits:   'Spirits',
+  cocktail: 'Cocktail',
+  beer: 'Beer',
+  wine: 'Wine',
+  whisky: 'Whisky',
+  shochu: 'Shochu',
+  spirits: 'Spirits',
 }
 
 export default async function MenuPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; rows?: string }>
 }) {
-  const { tab } = await searchParams
+  const { tab, rows } = await searchParams
+
   const activeTab = (Object.keys(TAB_LABELS) as MenuCategory[]).includes((tab ?? '') as MenuCategory)
     ? (tab as MenuCategory)
     : 'event'
+
+  const activeRows = rows === '2' || rows === '3' || rows === '5' ? rows : 'all'
+  const rowLimit = activeRows === 'all' ? null : parseInt(activeRows)
 
   const supabase = await createClient()
   const [
@@ -58,7 +63,6 @@ export default async function MenuPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      {/* 헤더 */}
       <div className="mb-8">
         <h1
           className="text-2xl font-bold"
@@ -71,13 +75,11 @@ export default async function MenuPage({
         </p>
       </div>
 
-      {/* 탭 */}
       <Suspense>
         <MenuTabs activeTab={activeTab} />
       </Suspense>
 
-      {/* 현재 탭 제목 */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-3">
         <h2
           className="text-base font-semibold"
           style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
@@ -88,9 +90,14 @@ export default async function MenuPage({
         {isAdmin && <MenuAddModalButton category={activeTab} />}
       </div>
 
-      {/* 테이블 */}
+      <div className="mb-6">
+        <Suspense>
+          <MenuRowOptions activeRows={activeRows} />
+        </Suspense>
+      </div>
+
       <div className="glass-card px-4 py-2">
-        <MenuTable items={items} category={activeTab} />
+        <MenuTable items={items} category={activeTab} rowLimit={rowLimit} />
       </div>
     </div>
   )

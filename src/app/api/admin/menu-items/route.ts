@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '메뉴 이름을 입력해주세요.' }, { status: 400 })
   }
 
-  const { error } = await supabase.from('menu_items').insert({
+  const payload: Record<string, unknown> = {
     category,
     subcategory: body.subcategory ?? null,
     name,
@@ -60,9 +60,23 @@ export async function POST(request: NextRequest) {
     price_bottle: body.price_bottle ?? null,
     sort_order: body.sort_order ?? 0,
     is_available: body.is_available ?? true,
-  })
+  }
+
+  const imageUrl = typeof body.image_url === 'string' ? body.image_url.trim() : ''
+  if (imageUrl) payload.image_url = imageUrl
+
+  const { error } = await supabase.from('menu_items').insert(payload)
 
   if (error) {
+    if (error.message.includes('menu_items.image_url')) {
+      return NextResponse.json(
+        {
+          error:
+            '메뉴 사진 저장 컬럼이 아직 없습니다. SQL Editor에서 image_url 컬럼 추가 SQL을 먼저 실행해주세요.',
+        },
+        { status: 400 }
+      )
+    }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
