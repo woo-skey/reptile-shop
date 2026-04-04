@@ -1,29 +1,38 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import HomePopup from '@/components/HomePopup'
 import type { Post } from '@/types'
 
 export default async function HomePage() {
   const supabase = await createClient()
 
-  const { data: recentPosts } = await supabase
-    .from('posts')
-    .select('id, title, created_at, type, profiles(display_name, username)')
-    .eq('type', 'community')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  const { data: recentNotices } = await supabase
-    .from('posts')
-    .select('id, title, created_at, profiles(display_name, username)')
-    .eq('type', 'notice')
-    .order('created_at', { ascending: false })
-    .limit(3)
+  const [
+    { data: { user } },
+    { data: recentPosts },
+    { data: recentNotices },
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase
+      .from('posts')
+      .select('id, title, created_at, type, profiles(display_name, username)')
+      .eq('type', 'community')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('posts')
+      .select('id, title, created_at, profiles(display_name, username)')
+      .eq('type', 'notice')
+      .order('created_at', { ascending: false })
+      .limit(3),
+  ])
 
   const posts = (recentPosts ?? []) as unknown as Post[]
   const notices = (recentNotices ?? []) as unknown as Post[]
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
+      <HomePopup />
+
       {/* 히어로 */}
       <section className="text-center mb-16">
         <p
@@ -38,22 +47,15 @@ export default async function HomePage() {
         >
           파충류가게
         </h1>
-        <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="flex items-center justify-center gap-3 mb-8">
           <div className="h-px w-16" style={{ backgroundColor: '#C9A227', opacity: 0.4 }} />
           <span className="text-xs tracking-widest" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
             단골들만의 공간
           </span>
           <div className="h-px w-16" style={{ backgroundColor: '#C9A227', opacity: 0.4 }} />
         </div>
-        <p
-          className="text-base max-w-md mx-auto leading-relaxed"
-          style={{ color: 'var(--foreground)', opacity: 0.65, fontFamily: 'var(--font-noto-serif-kr)' }}
-        >
-          오랜 단골들이 모이는 곳.<br />
-          이야기를 나누고, 추억을 쌓는 공간.
-        </p>
 
-        <div className="mt-8 flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <Link
             href="/community"
             className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
@@ -61,13 +63,15 @@ export default async function HomePage() {
           >
             커뮤니티 보기
           </Link>
-          <Link
-            href="/signup"
-            className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
-            style={{ color: '#C9A227', border: '1px solid rgba(201, 162, 39, 0.4)' }}
-          >
-            가입하기
-          </Link>
+          {!user && (
+            <Link
+              href="/signup"
+              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
+              style={{ color: '#C9A227', border: '1px solid rgba(201, 162, 39, 0.4)' }}
+            >
+              가입하기
+            </Link>
+          )}
         </div>
       </section>
 

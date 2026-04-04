@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 
 const navLinks = [
   { href: '/', label: '홈' },
+  { href: '/menu', label: '메뉴' },
   { href: '/community', label: '커뮤니티' },
   { href: '/notice', label: '공지' },
 ]
@@ -15,7 +16,7 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, profile, isAdmin } = useAuth()
+  const { user, profile, isAdmin, loading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
@@ -77,7 +78,10 @@ export default function Header() {
 
         {/* 우측 버튼 */}
         <div className="flex items-center gap-3">
-          {user ? (
+          {loading ? (
+            /* 로딩 중 skeleton — 깜빡임 방지 */
+            <div className="w-16 h-6 rounded-md animate-pulse" style={{ backgroundColor: 'rgba(201,162,39,0.1)' }} />
+          ) : user ? (
             <>
               <Link
                 href="/mypage"
