@@ -89,13 +89,13 @@ export default async function HomePage() {
           </div>
         </section>
         <section className="grid md:grid-cols-2 gap-6 items-start">
-          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 메인 메뉴
               </h2>
-              <Link href="/menu" className="text-xs" style={{ color: '#C9A227', opacity: 0.85 }}>
-                전체보기
+              <Link href="/menu" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+                +
               </Link>
             </div>
 
@@ -106,7 +106,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-hidden divide-y divide-[rgba(201,162,39,0.1)]">
                 {menus.map((item) => (
                   <Link
                     key={item.id}
@@ -130,13 +130,13 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 이벤트
               </h2>
-              <Link href="/menu?tab=event" className="text-xs" style={{ color: '#C9A227', opacity: 0.85 }}>
-                전체보기
+              <Link href="/menu?tab=event" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+                +
               </Link>
             </div>
 
@@ -147,7 +147,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-hidden divide-y divide-[rgba(201,162,39,0.1)]">
                 {events.map((item) => (
                   <Link
                     key={item.id}
@@ -173,13 +173,13 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
               </h2>
-              <Link href="/community" className="text-xs" style={{ color: '#C9A227', opacity: 0.85 }}>
-                전체보기
+              <Link href="/community" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+                +
               </Link>
             </div>
 
@@ -190,7 +190,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-hidden divide-y divide-[rgba(201,162,39,0.1)]">
                 {posts.map((post) => (
                   <Link
                     key={post.id}
@@ -209,13 +209,13 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[320px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 공지사항
               </h2>
-              <Link href="/notice" className="text-xs" style={{ color: '#C9A227', opacity: 0.85 }}>
-                전체보기
+              <Link href="/notice" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+                +
               </Link>
             </div>
 
@@ -226,7 +226,7 @@ export default async function HomePage() {
                 </p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-[rgba(201,162,39,0.1)]">
+              <div className="flex-1 min-h-0 overflow-hidden divide-y divide-[rgba(201,162,39,0.1)]">
                 {notices.map((notice) => (
                   <Link
                     key={notice.id}
