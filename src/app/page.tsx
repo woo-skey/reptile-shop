@@ -1,65 +1,148 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import type { Post } from '@/types'
 
-export default function Home() {
+export default async function HomePage() {
+  const supabase = await createClient()
+
+  const { data: recentPosts } = await supabase
+    .from('posts')
+    .select('id, title, created_at, type, profiles(display_name, username)')
+    .eq('type', 'community')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const { data: recentNotices } = await supabase
+    .from('posts')
+    .select('id, title, created_at, profiles(display_name, username)')
+    .eq('type', 'notice')
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  const posts = (recentPosts ?? []) as unknown as Post[]
+  const notices = (recentNotices ?? []) as unknown as Post[]
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="max-w-5xl mx-auto px-4 py-12">
+      {/* 히어로 */}
+      <section className="text-center mb-16">
+        <p
+          className="text-sm tracking-[0.3em] uppercase mb-3"
+          style={{ color: '#C9A227', fontFamily: 'var(--font-im-fell)', opacity: 0.8 }}
+        >
+          Since whenever
+        </p>
+        <h1
+          className="text-5xl md:text-6xl font-bold mb-4"
+          style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
+        >
+          파충류가게
+        </h1>
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="h-px w-16" style={{ backgroundColor: '#C9A227', opacity: 0.4 }} />
+          <span className="text-xs tracking-widest" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+            단골들만의 공간
+          </span>
+          <div className="h-px w-16" style={{ backgroundColor: '#C9A227', opacity: 0.4 }} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <p
+          className="text-base max-w-md mx-auto leading-relaxed"
+          style={{ color: 'var(--foreground)', opacity: 0.65, fontFamily: 'var(--font-noto-serif-kr)' }}
+        >
+          오랜 단골들이 모이는 곳.<br />
+          이야기를 나누고, 추억을 쌓는 공간.
+        </p>
+
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <Link
+            href="/community"
+            className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
+            style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            커뮤니티 보기
+          </Link>
+          <Link
+            href="/signup"
+            className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"
+            style={{ color: '#C9A227', border: '1px solid rgba(201, 162, 39, 0.4)' }}
           >
-            Documentation
-          </a>
+            가입하기
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* 콘텐츠 그리드 */}
+      <div className="grid md:grid-cols-3 gap-6 items-start">
+        {/* 최근 게시글 */}
+        <div className="md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
+            </h2>
+            <Link href="/community" className="text-xs" style={{ color: '#C9A227', opacity: 0.8 }}>
+              전체보기
+            </Link>
+          </div>
+
+          <div className="glass-card divide-y divide-[rgba(201,162,39,0.1)]">
+            {posts.length === 0 ? (
+              <p className="px-5 py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                아직 게시글이 없습니다.
+              </p>
+            ) : (
+              posts.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/community/${post.id}`}
+                  className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-white/5"
+                >
+                  <span className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.85 }}>
+                    {post.title}
+                  </span>
+                  <span className="text-xs ml-4 shrink-0" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+                    {new Date(post.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* 공지 */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: '#C9A227' }}>·</span> 공지사항
+            </h2>
+            <Link href="/notice" className="text-xs" style={{ color: '#C9A227', opacity: 0.8 }}>
+              전체보기
+            </Link>
+          </div>
+
+          <div className="glass-card divide-y divide-[rgba(201,162,39,0.1)]">
+            {notices.length === 0 ? (
+              <p className="px-5 py-8 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+                공지가 없습니다.
+              </p>
+            ) : (
+              notices.map((notice) => (
+                <Link
+                  key={notice.id}
+                  href={`/notice/${notice.id}`}
+                  className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-white/5"
+                >
+                  <span className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.85 }}>
+                    {notice.title}
+                  </span>
+                  <span className="text-xs ml-4 shrink-0" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+                    {new Date(notice.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }

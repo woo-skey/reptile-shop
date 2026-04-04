@@ -1,26 +1,130 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ────────────────────────────────────────
+   다크모드: class 전략 (next-themes)
+   html.dark 클래스 기반
+──────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
 
+/* ────────────────────────────────────────
+   테마 토큰 정의 (Tailwind v4 @theme)
+──────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* 파충류가게 컬러 팔레트 */
+  --color-reptile-green:  #456132;
+  --color-reptile-gold:   #C9A227;
+  --color-reptile-yellow: #F5D76E;
+  --color-reptile-cream:  #F5F0E8;
+  --color-reptile-dark:   #1A1A0F;
+
+  /* 배경 / 전경 (라이트) */
+  --color-background: #F5F0E8;
+  --color-foreground: #1A1A0F;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ────────────────────────────────────────
+   다크모드 CSS 변수 오버라이드
+──────────────────────────────────────── */
+:root {
+  --background: #F5F0E8;
+  --foreground: #1A1A0F;
 }
 
+:root.dark {
+  --background: #1A1A0F;
+  --foreground: #F5F0E8;
+}
+
+/* ────────────────────────────────────────
+   베이스 스타일
+──────────────────────────────────────── */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Noto Serif KR", Georgia, serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ────────────────────────────────────────
+   Glass Morphism 컴포넌트 클래스
+──────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  border-radius: 0.75rem;
+}
+
+:root.dark .glass-card {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(201, 162, 39, 0.15);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+:root.dark .glass-input {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(201, 162, 39, 0.2);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: rgba(201, 162, 39, 0.6);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.15);
+}
+
+/* ────────────────────────────────────────
+   앤틱 텍스처 오버레이 (선택적)
+──────────────────────────────────────── */
+.antique-overlay {
+  position: relative;
+}
+
+.antique-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ────────────────────────────────────────
+   골드 테두리 유틸
+──────────────────────────────────────── */
+.gold-border {
+  border: 1px solid rgba(201, 162, 39, 0.4);
+}
+
+.gold-border-strong {
+  border: 1px solid #C9A227;
+}
+
+/* ────────────────────────────────────────
+   스크롤바 스타일
+──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.4);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 162, 39, 0.7);
 }
