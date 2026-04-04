@@ -94,7 +94,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 메인 메뉴
               </h2>
-              <Link href="/menu" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+              <Link href="/menu" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
               </Link>
             </div>
@@ -135,7 +135,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 이벤트
               </h2>
-              <Link href="/menu?tab=event" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+              <Link href="/menu?tab=event" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
               </Link>
             </div>
@@ -178,7 +178,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
               </h2>
-              <Link href="/community" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+              <Link href="/community" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
               </Link>
             </div>
@@ -214,7 +214,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 공지사항
               </h2>
-              <Link href="/notice" className="text-base leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+              <Link href="/notice" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
               </Link>
             </div>
