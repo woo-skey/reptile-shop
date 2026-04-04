@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
@@ -9,22 +9,24 @@ import { createClient } from '@/lib/supabase/client'
 type NavLink = {
   href: string
   label: string
-  isActive?: (pathname: string) => boolean
+  isActive?: (pathname: string, tab: string | null) => boolean
 }
 
 const navLinks: NavLink[] = [
   { href: '/', label: '홈', isActive: (pathname) => pathname === '/' },
-  { href: '/menu', label: '메뉴', isActive: (pathname) => pathname.startsWith('/menu') },
-  { href: '/menu?tab=event', label: '이벤트', isActive: (pathname) => pathname.startsWith('/menu') },
+  { href: '/menu', label: '메뉴', isActive: (pathname, tab) => pathname.startsWith('/menu') && tab !== 'event' },
+  { href: '/menu?tab=event', label: '이벤트', isActive: (pathname, tab) => pathname.startsWith('/menu') && tab === 'event' },
   { href: '/community', label: '커뮤니티', isActive: (pathname) => pathname.startsWith('/community') },
   { href: '/notice', label: '공지', isActive: (pathname) => pathname.startsWith('/notice') },
 ]
 
 export default function Header() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { user, profile, isAdmin, loading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const currentTab = searchParams.get('tab')
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -55,7 +57,7 @@ export default function Header() {
 
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map(({ href, label, isActive }) => {
-            const active = isActive ? isActive(pathname) : false
+            const active = isActive ? isActive(pathname, currentTab) : false
             return (
               <Link
                 key={href}

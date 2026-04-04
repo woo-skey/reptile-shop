@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 interface PopupData {
   id: string
@@ -12,25 +12,24 @@ interface PopupData {
 const STORAGE_KEY = 'reptile_popup_hidden_v'
 
 export default function HomePopup({ popup }: { popup: PopupData | null }) {
-  const [visible, setVisible] = useState(false)
+  const [sessionHidden, setSessionHidden] = useState<Record<string, boolean>>({})
 
-  useEffect(() => {
-    if (!popup) return
-    if (typeof window !== 'undefined') {
-      const hidden = localStorage.getItem(STORAGE_KEY + popup.id)
-      if (!hidden) setVisible(true)
-    }
-  }, [popup])
+  if (!popup) return null
 
-  if (!popup || !visible) return null
+  const hiddenByStorage =
+    typeof window === 'undefined' ? true : localStorage.getItem(STORAGE_KEY + popup.id) === '1'
+  const hiddenInSession = Boolean(sessionHidden[popup.id])
+  if (hiddenByStorage || hiddenInSession) return null
 
-  const handleClose = () => setVisible(false)
+  const handleClose = () => {
+    setSessionHidden((prev) => ({ ...prev, [popup.id]: true }))
+  }
 
   const handleDontShowAgain = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY + popup.id, '1')
     }
-    setVisible(false)
+    setSessionHidden((prev) => ({ ...prev, [popup.id]: true }))
   }
 
   return (
