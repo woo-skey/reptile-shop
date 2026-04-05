@@ -5,8 +5,6 @@ export type ViewMode = 'list' | 'photo'
 export const TAB_LABELS: Record<MenuCategory, string> = {
   event: 'Event / New',
   food: 'Food',
-  non_alcohol: 'Non-Alcohol',
-  beverage: 'Beverage',
   signature: 'Signature',
   cocktail: 'Cocktail',
   beer: 'Beer',
@@ -14,4 +12,6 @@ export const TAB_LABELS: Record<MenuCategory, string> = {
   whisky: 'Whisky',
   shochu: 'Shochu',
   spirits: 'Spirits',
+  non_alcohol: 'Non-Alcohol',
+  beverage: 'Beverage',
 }

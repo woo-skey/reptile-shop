@@ -16,6 +16,15 @@ const VALID_CATEGORIES: MenuCategory[] = [
   'spirits',
 ]
 
+const isImageColumnMissingError = (message: string) => {
+  const normalized = message.toLowerCase()
+  return normalized.includes('image_url') && (
+    normalized.includes('schema cache') ||
+    normalized.includes('column') ||
+    normalized.includes('menu_items.image_url')
+  )
+}
+
 async function assertAdmin() {
   const supabase = await createClient()
 
@@ -66,7 +75,11 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
     price_bottle: body.price_bottle ?? null,
     sort_order: body.sort_order ?? 0,
     is_available: body.is_available ?? true,
-    image_url: imageUrl || null,
+  }
+
+  // image_url 컬럼이 없는 구버전 스키마 호환을 위해, 값이 있을 때만 추가
+  if (imageUrl) {
+    payload.image_url = imageUrl
   }
 
   return { error: null, payload }
@@ -82,18 +95,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: payloadError ?? '잘못된 요청입니다.' }, { status: 400 })
   }
 
-  const { error } = await admin.supabase.from('menu_items').insert(payload)
+  let { error } = await admin.supabase.from('menu_items').insert(payload)
+
+  if (error && isImageColumnMissingError(error.message) && Object.prototype.hasOwnProperty.call(payload, 'image_url')) {
+    const fallbackPayload = { ...payload }
+    delete fallbackPayload.image_url
+    const retry = await admin.supabase.from('menu_items').insert(fallbackPayload)
+    error = retry.error
+  }
 
   if (error) {
-    if (error.message.includes('menu_items.image_url')) {
-      return NextResponse.json(
-        {
-          error:
-            '메뉴 사진 저장 컬럼이 아직 없습니다. SQL Editor에서 image_url 컬럼 추가 SQL을 먼저 실행해주세요.',
-        },
-        { status: 400 }
-      )
-    }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
@@ -115,10 +126,20 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: payloadError ?? '잘못된 요청입니다.' }, { status: 400 })
   }
 
-  const { error } = await admin.supabase
+  let { error } = await admin.supabase
     .from('menu_items')
     .update(payload)
     .eq('id', id)
+
+  if (error && isImageColumnMissingError(error.message) && Object.prototype.hasOwnProperty.call(payload, 'image_url')) {
+    const fallbackPayload = { ...payload }
+    delete fallbackPayload.image_url
+    const retry = await admin.supabase
+      .from('menu_items')
+      .update(fallbackPayload)
+      .eq('id', id)
+    error = retry.error
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

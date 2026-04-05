@@ -7,8 +7,6 @@ import type { MenuCategory, MenuItem } from '@/types'
 const CATEGORIES: { value: MenuCategory; label: string }[] = [
   { value: 'event', label: 'Event / New' },
   { value: 'food', label: 'Food' },
-  { value: 'non_alcohol', label: 'Non-Alcohol' },
-  { value: 'beverage', label: 'Beverage' },
   { value: 'signature', label: 'Signature' },
   { value: 'cocktail', label: 'Cocktail' },
   { value: 'beer', label: 'Beer' },
@@ -16,6 +14,8 @@ const CATEGORIES: { value: MenuCategory; label: string }[] = [
   { value: 'whisky', label: 'Whisky' },
   { value: 'shochu', label: 'Shochu' },
   { value: 'spirits', label: 'Spirits' },
+  { value: 'non_alcohol', label: 'Non-Alcohol' },
+  { value: 'beverage', label: 'Beverage' },
 ]
 
 const WINE_SUBS = ['red', 'white', 'sparkling']

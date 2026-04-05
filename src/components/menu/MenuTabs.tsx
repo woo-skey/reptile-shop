@@ -5,8 +5,6 @@ import type { MenuCategory } from '@/types'
 const TABS = [
   { key: 'event', label: 'Event / New' },
   { key: 'food', label: 'Food' },
-  { key: 'non_alcohol', label: 'Non-Alcohol' },
-  { key: 'beverage', label: 'Beverage' },
   { key: 'signature', label: 'Signature' },
   { key: 'cocktail', label: 'Cocktail' },
   { key: 'beer', label: 'Beer' },
@@ -14,6 +12,8 @@ const TABS = [
   { key: 'whisky', label: 'Whisky' },
   { key: 'shochu', label: 'Shochu' },
   { key: 'spirits', label: 'Spirits' },
+  { key: 'non_alcohol', label: 'Non-Alcohol' },
+  { key: 'beverage', label: 'Beverage' },
 ] as const
 
 export default function MenuTabs({
