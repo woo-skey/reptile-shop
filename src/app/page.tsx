@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
+import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
 import type { Post, MenuItem } from '@/types'
@@ -54,10 +55,10 @@ export default async function HomePage() {
     supabase
       .from('menu_items')
       .select('id, name, category, price')
-      .neq('category', 'event')
-      .neq('category', 'event_post')
+      .eq('category', 'food')
       .eq('is_available', true)
-      .order('created_at', { ascending: false })
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
       .limit(4),
     supabase
       .from('popups')
@@ -72,10 +73,18 @@ export default async function HomePage() {
   const notices = (recentNotices ?? []) as unknown as Post[]
   const events = (eventItems ?? []) as unknown as MenuItem[]
   const menus = (mainMenuItems ?? []) as unknown as MenuItem[]
+  const storageAdminClient = createPostImagesAdminClient()
+
+  const popup = activePopup
+    ? {
+        ...activePopup,
+        image_url: await toRenderablePostImageUrl(activePopup.image_url, storageAdminClient),
+      }
+    : null
 
   return (
     <>
-      <HomePopup popup={activePopup ?? null} />
+      <HomePopup popup={popup} />
 
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
         <section>

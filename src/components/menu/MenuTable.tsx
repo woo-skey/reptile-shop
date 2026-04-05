@@ -38,7 +38,8 @@ const cocktailTierOrder = (tier: string) => {
   return amount
 }
 
-const getDisplayImage = (imageUrl: string | null | undefined) => {
+const getDisplayImage = (item: MenuItem) => {
+  const imageUrl = item.image_url ?? ((item.category === 'event' || item.category === 'event_post') ? item.note : null)
   if (!imageUrl) return null
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) {
     return imageUrl
@@ -210,7 +211,7 @@ function PhotoGrid({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 py-2">
       {items.map((item) => {
-        const imageSrc = getDisplayImage(item.image_url)
+        const imageSrc = getDisplayImage(item)
         return (
           <article
             key={item.id}
@@ -302,7 +303,7 @@ function CocktailPhotoGrid({
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {groups[tier].map((item) => {
-              const imageSrc = getDisplayImage(item.image_url)
+              const imageSrc = getDisplayImage(item)
               return (
                 <article
                   key={item.id}

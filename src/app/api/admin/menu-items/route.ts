@@ -213,7 +213,18 @@ export async function POST(request: NextRequest) {
 
   if (error && isImageColumnMissingError(error.message) && Object.prototype.hasOwnProperty.call(payload, 'image_url')) {
     const fallbackPayload = { ...payload }
+    const imageCandidate = typeof fallbackPayload.image_url === 'string'
+      ? fallbackPayload.image_url.trim()
+      : null
     delete fallbackPayload.image_url
+
+    if (
+      (fallbackPayload.category === 'event' || fallbackPayload.category === 'event_post') &&
+      !fallbackPayload.note &&
+      imageCandidate
+    ) {
+      fallbackPayload.note = imageCandidate
+    }
 
     const retry = await admin.adminClient
       .from('menu_items')
@@ -254,7 +265,18 @@ export async function PATCH(request: NextRequest) {
 
   if (error && isImageColumnMissingError(error.message) && Object.prototype.hasOwnProperty.call(payload, 'image_url')) {
     const fallbackPayload = { ...payload }
+    const imageCandidate = typeof fallbackPayload.image_url === 'string'
+      ? fallbackPayload.image_url.trim()
+      : null
     delete fallbackPayload.image_url
+
+    if (
+      (fallbackPayload.category === 'event' || fallbackPayload.category === 'event_post') &&
+      !fallbackPayload.note &&
+      imageCandidate
+    ) {
+      fallbackPayload.note = imageCandidate
+    }
 
     const retry = await admin.adminClient
       .from('menu_items')

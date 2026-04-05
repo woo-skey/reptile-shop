@@ -1,5 +1,6 @@
 import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
+import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import MenuClientPage from '@/components/menu/MenuClientPage'
 import type { MenuItem } from '@/types'
 
@@ -16,7 +17,20 @@ export default async function MenuPage() {
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
 
-  const items = (data ?? []) as MenuItem[]
+  const rawItems = (data ?? []) as MenuItem[]
+  const storageAdminClient = createPostImagesAdminClient()
+
+  const items = await Promise.all(
+    rawItems.map(async (item) => {
+      if (item.category !== 'event') return item
+
+      const imageUrl = await toRenderablePostImageUrl(item.image_url ?? item.note, storageAdminClient)
+      return {
+        ...item,
+        image_url: imageUrl,
+      }
+    })
+  )
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">

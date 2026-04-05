@@ -15,7 +15,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('menu_items')
-    .select('id, name, description, image_url, sort_order, created_at')
+    .select('id, name, description, note, image_url, sort_order, created_at')
     .eq('category', 'event_post')
     .eq('is_available', true)
     .order('sort_order', { ascending: true })
@@ -24,7 +24,7 @@ export async function GET() {
   if (error && isImageColumnMissingError(error.message)) {
     const fallback = await supabase
       .from('menu_items')
-      .select('id, name, description, sort_order, created_at')
+      .select('id, name, description, note, sort_order, created_at')
       .eq('category', 'event_post')
       .eq('is_available', true)
       .order('sort_order', { ascending: true })
@@ -34,7 +34,7 @@ export async function GET() {
       return NextResponse.json({ error: fallback.error.message }, { status: 500 })
     }
 
-    const items = (fallback.data ?? []).map((item) => ({ ...item, image_url: null }))
+    const items = (fallback.data ?? []).map((item) => ({ ...item, image_url: item.note ?? null }))
     return NextResponse.json({ items })
   }
 
@@ -42,5 +42,10 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ items: data ?? [] })
+  const items = (data ?? []).map((item) => ({
+    ...item,
+    image_url: item.image_url ?? item.note ?? null,
+  }))
+
+  return NextResponse.json({ items })
 }
