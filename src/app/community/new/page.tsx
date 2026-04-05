@@ -81,6 +81,7 @@ export default function NewPostPage() {
       if (insertError) throw insertError
 
       router.push('/community')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '게시글 작성에 실패했습니다.')
       setLoading(false)

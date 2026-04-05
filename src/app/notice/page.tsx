@@ -1,9 +1,12 @@
 import Link from 'next/link'
+import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import NoticeCreateLink from '@/components/notice/NoticeCreateLink'
 import type { Post } from '@/types'
 
 export default async function NoticePage() {
+  await connection()
+
   const supabase = createPublicClient()
 
   const { data } = await supabase

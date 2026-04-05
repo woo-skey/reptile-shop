@@ -20,7 +20,7 @@ export default function CommunityWriteLink({ variant }: Props) {
         className="inline-block mt-4 text-sm underline"
         style={{ color: '#C9A227' }}
       >
-        湲?곌린
+        글쓰기
       </Link>
     )
   }
@@ -32,7 +32,7 @@ export default function CommunityWriteLink({ variant }: Props) {
       className="px-4 py-2 rounded-lg text-sm font-medium"
       style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
     >
-      湲?곌린
+      글쓰기
     </Link>
   )
 }
