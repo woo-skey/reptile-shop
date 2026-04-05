@@ -55,8 +55,9 @@ export default function MenuClientPage({
   const pendingOrderRef = useRef<MenuItem[] | null>(null)
   const savingRef = useRef(false)
 
-  const canUsePhotoView = activeTab === 'event' || activeTab === 'food'
-  const effectiveViewMode: ViewMode = canUsePhotoView ? viewMode : 'list'
+  const isEventTab = activeTab === 'event'
+  const isFoodTab = activeTab === 'food'
+  const effectiveViewMode: ViewMode = isEventTab ? 'photo' : (isFoodTab ? viewMode : 'list')
 
   useEffect(() => {
     setMenuItems(items)
@@ -69,17 +70,17 @@ export default function MenuClientPage({
   }, [])
 
   useEffect(() => {
-    if (!canUsePhotoView && viewMode !== 'list') {
+    if (!isFoodTab && viewMode !== 'list') {
       setViewMode('list')
     }
-  }, [canUsePhotoView, viewMode])
+  }, [isFoodTab, viewMode])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     params.set('tab', activeTab)
     params.delete('rows')
     params.delete('event_view')
-    if (canUsePhotoView && viewMode === 'photo') {
+    if (isFoodTab && viewMode === 'photo') {
       params.set('view', 'photo')
     } else {
       params.delete('view')
@@ -87,7 +88,7 @@ export default function MenuClientPage({
 
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, canUsePhotoView, viewMode])
+  }, [activeTab, isFoodTab, viewMode])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -211,7 +212,7 @@ export default function MenuClientPage({
       <MenuTabs activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="flex flex-wrap items-center gap-3 mb-3">
-        {canUsePhotoView && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}
+        {isFoodTab && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}
         <h2
           className="text-base font-semibold"
           style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
