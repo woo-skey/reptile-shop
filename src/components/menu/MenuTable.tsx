@@ -127,11 +127,11 @@ function SubHead({ label, colSpan }: { label: string; colSpan: number }) {
   )
 }
 
-function Empty({ colSpan }: { colSpan: number }) {
+function Empty({ colSpan, message = '등록된 메뉴가 없습니다.' }: { colSpan: number; message?: string }) {
   return (
     <tr>
       <td colSpan={colSpan} className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-        등록된 메뉴가 없습니다.
+        {message}
       </td>
     </tr>
   )
@@ -191,16 +191,18 @@ function PhotoGrid({
   isAdmin,
   onItemUpdated,
   onItemDeleted,
+  emptyMessage = '등록된 메뉴가 없습니다.',
 }: {
   items: MenuItem[]
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
+  emptyMessage?: string
 }) {
   if (items.length === 0) {
     return (
       <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-        등록된 메뉴가 없습니다.
+        {emptyMessage}
       </div>
     )
   }
@@ -367,7 +369,7 @@ function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: 
   return (
     <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty colSpan={headers.length} />
+        <Empty colSpan={headers.length} message="등록된 이벤트가 없습니다." />
       ) : (
         limited.map((item) => (
           <Row
@@ -650,7 +652,15 @@ export default function MenuTable({
       return <CocktailPhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} onItemDeleted={onItemDeleted} />
     }
 
-    return <PhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} onItemDeleted={onItemDeleted} />
+    return (
+      <PhotoGrid
+        items={items}
+        isAdmin={isAdmin}
+        onItemUpdated={onItemUpdated}
+        onItemDeleted={onItemDeleted}
+        emptyMessage={category === 'event' ? '등록된 이벤트가 없습니다.' : undefined}
+      />
+    )
   }
 
   const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated, onItemDeleted }
