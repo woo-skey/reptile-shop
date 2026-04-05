@@ -134,7 +134,7 @@ export default async function HomePage() {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 이벤트
               </h2>
-              <Link href="/menu?tab=event" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
+              <Link href="/event" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
               </Link>
             </div>
@@ -150,7 +150,7 @@ export default async function HomePage() {
                 {events.map((item) => (
                   <Link
                     key={item.id}
-                    href="/menu?tab=event"
+                    href="/event"
                     className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded"
                   >
                     <div className="min-w-0">

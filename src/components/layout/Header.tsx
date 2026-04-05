@@ -14,13 +14,13 @@ type NavLink = {
 
 const navLinks: NavLink[] = [
   { href: '/', label: '홈', isActive: (pathname) => pathname === '/' },
-  { href: '/menu', label: '메뉴', isActive: (pathname, tab) => pathname.startsWith('/menu') && tab !== 'event' },
-  { href: '/menu?tab=event', label: '이벤트', isActive: (pathname, tab) => pathname.startsWith('/menu') && tab === 'event' },
+  { href: '/menu', label: '메뉴', isActive: (pathname) => pathname.startsWith('/menu') },
+  { href: '/event', label: '이벤트', isActive: (pathname) => pathname.startsWith('/event') },
   { href: '/community', label: '커뮤니티', isActive: (pathname) => pathname.startsWith('/community') },
   { href: '/notice', label: '공지', isActive: (pathname) => pathname.startsWith('/notice') },
 ]
 
-const PREFETCH_ROUTES = ['/', '/menu', '/menu?tab=event', '/community', '/notice'] as const
+const PREFETCH_ROUTES = ['/', '/menu', '/event', '/community', '/notice'] as const
 
 export default function Header() {
   const pathname = usePathname()
