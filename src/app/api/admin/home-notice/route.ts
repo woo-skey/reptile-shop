@@ -2,15 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { BannerAlign } from '@/types'
+import type { BannerAlign, BannerTextSize } from '@/types'
+import { DEFAULT_HOME_NOTICE_META, serializeHomeNoticeMeta } from '@/lib/homeNoticeMeta'
 
 const HOME_NOTICE_KEY = 'main'
 const ALIGN_OPTIONS: BannerAlign[] = ['left', 'center', 'right']
+const SIZE_OPTIONS: BannerTextSize[] = ['md', 'lg', 'xl']
 
 const toTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 const toBannerAlign = (value: unknown): BannerAlign => {
   const raw = typeof value === 'string' ? value.trim().toLowerCase() : ''
-  return ALIGN_OPTIONS.includes(raw as BannerAlign) ? (raw as BannerAlign) : 'center'
+  return ALIGN_OPTIONS.includes(raw as BannerAlign) ? (raw as BannerAlign) : DEFAULT_HOME_NOTICE_META.align
+}
+const toBannerTextSize = (value: unknown): BannerTextSize => {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  return SIZE_OPTIONS.includes(raw as BannerTextSize) ? (raw as BannerTextSize) : DEFAULT_HOME_NOTICE_META.size
 }
 
 const isHomeNoticeTableMissingError = (message: string) => {
@@ -93,6 +99,7 @@ export async function PUT(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const content = toTrimmedString((body as Record<string, unknown>).content)
   const align = toBannerAlign((body as Record<string, unknown>).align)
+  const size = toBannerTextSize((body as Record<string, unknown>).size)
 
   if (!content) {
     return NextResponse.json({ error: '내용을 입력해주세요.' }, { status: 400 })
@@ -103,8 +110,8 @@ export async function PUT(request: NextRequest) {
     .upsert(
       {
         key: HOME_NOTICE_KEY,
-        // title 컬럼은 화면 제목 대신 정렬값(left/center/right) 저장 용도로 사용한다.
-        title: align,
+        // title 컬럼은 화면 제목 대신 배너 메타데이터(정렬/글자크기) 저장 용도로 사용한다.
+        title: serializeHomeNoticeMeta({ align, size }),
         content,
       },
       { onConflict: 'key' }
@@ -129,7 +136,7 @@ export async function DELETE() {
     .upsert(
       {
         key: HOME_NOTICE_KEY,
-        title: 'center',
+        title: serializeHomeNoticeMeta(DEFAULT_HOME_NOTICE_META),
         content: '',
       },
       { onConflict: 'key' }

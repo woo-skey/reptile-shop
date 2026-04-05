@@ -1,6 +1,7 @@
 import HomeNoticeBannerForm from '@/components/admin/HomeNoticeBannerForm'
 import { createClient } from '@/lib/supabase/server'
-import type { BannerAlign, HomeNoticeBanner } from '@/types'
+import { parseHomeNoticeMeta } from '@/lib/homeNoticeMeta'
+import type { HomeNoticeBanner } from '@/types'
 
 const isHomeNoticeTableMissingError = (message: string) => {
   const normalized = message.toLowerCase()
@@ -9,11 +10,6 @@ const isHomeNoticeTableMissingError = (message: string) => {
     normalized.includes('schema cache') ||
     normalized.includes('relation')
   )
-}
-
-const toBannerAlign = (value: string | null | undefined): BannerAlign => {
-  if (value === 'left' || value === 'center' || value === 'right') return value
-  return 'center'
 }
 
 export default async function AdminHomeNoticePage() {
@@ -53,6 +49,7 @@ export default async function AdminHomeNoticePage() {
   }
 
   const banner = (data ?? null) as HomeNoticeBanner | null
+  const meta = parseHomeNoticeMeta(banner?.title)
 
   return (
     <div className="space-y-4">
@@ -67,7 +64,8 @@ export default async function AdminHomeNoticePage() {
 
       <HomeNoticeBannerForm
         initialContent={banner?.content ?? ''}
-        initialAlign={toBannerAlign(banner?.title)}
+        initialAlign={meta.align}
+        initialSize={meta.size}
       />
     </div>
   )

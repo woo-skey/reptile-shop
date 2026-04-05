@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { BannerAlign } from '@/types'
+import { HOME_NOTICE_TEXT_SIZE_CLASS } from '@/lib/homeNoticeMeta'
+import type { BannerAlign, BannerTextSize } from '@/types'
 
 const ALIGN_OPTIONS: { key: BannerAlign; label: string }[] = [
   { key: 'left', label: '왼쪽' },
@@ -9,23 +10,32 @@ const ALIGN_OPTIONS: { key: BannerAlign; label: string }[] = [
   { key: 'right', label: '오른쪽' },
 ]
 
-const ALIGN_PREVIEW_CLASS: Record<BannerAlign, string> = {
+const ALIGN_CLASS: Record<BannerAlign, string> = {
   left: 'text-left',
   center: 'text-center',
   right: 'text-right',
 }
 
+const SIZE_OPTIONS: { key: BannerTextSize; label: string }[] = [
+  { key: 'md', label: '기본' },
+  { key: 'lg', label: '크게' },
+  { key: 'xl', label: '아주 크게' },
+]
+
 export default function HomeNoticeBannerForm({
   initialContent,
   initialAlign,
+  initialSize,
 }: {
   initialContent: string
   initialAlign: BannerAlign
+  initialSize: BannerTextSize
 }) {
   const clearSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [content, setContent] = useState(initialContent)
   const [align, setAlign] = useState<BannerAlign>(initialAlign)
+  const [size, setSize] = useState<BannerTextSize>(initialSize)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -40,7 +50,7 @@ export default function HomeNoticeBannerForm({
 
   useEffect(() => {
     setSaved(false)
-  }, [content, align])
+  }, [content, align, size])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +62,7 @@ export default function HomeNoticeBannerForm({
       const response = await fetch('/api/admin/home-notice', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, align }),
+        body: JSON.stringify({ content, align, size }),
       })
 
       const data = await response.json().catch(() => ({}))
@@ -93,6 +103,7 @@ export default function HomeNoticeBannerForm({
 
       setContent('')
       setAlign('center')
+      setSize('lg')
     } catch {
       setError('네트워크 오류로 처리에 실패했습니다.')
     } finally {
@@ -160,6 +171,32 @@ export default function HomeNoticeBannerForm({
       </div>
 
       <div>
+        <label className="block text-xs font-medium mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
+          글자 크기
+        </label>
+        <div className="inline-flex items-center rounded-lg border overflow-hidden" style={{ borderColor: 'rgba(201,162,39,0.3)' }}>
+          {SIZE_OPTIONS.map((option) => {
+            const active = size === option.key
+            return (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setSize(option.key)}
+                className="px-3 py-1.5 text-xs border-r last:border-r-0 transition-colors"
+                style={{
+                  borderColor: 'rgba(201,162,39,0.25)',
+                  backgroundColor: active ? 'rgba(69,97,50,0.35)' : 'transparent',
+                  color: active ? '#F5F0E8' : 'rgba(245,240,232,0.65)',
+                }}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div>
         <p className="text-xs mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
           미리보기
         </p>
@@ -171,7 +208,7 @@ export default function HomeNoticeBannerForm({
           }}
         >
           <p
-            className={`w-full text-sm sm:text-lg font-semibold truncate ${ALIGN_PREVIEW_CLASS[align]}`}
+            className={`w-full font-semibold truncate ${HOME_NOTICE_TEXT_SIZE_CLASS[size]} ${ALIGN_CLASS[align]}`}
             style={{ color: 'var(--foreground)', opacity: 0.86 }}
           >
             {content.trim() || '내용을 입력하면 이렇게 노출됩니다.'}

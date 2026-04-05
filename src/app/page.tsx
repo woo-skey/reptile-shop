@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
+import { HOME_NOTICE_TEXT_SIZE_CLASS, parseHomeNoticeMeta } from '@/lib/homeNoticeMeta'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
 import type { BannerAlign, HomeNoticeBanner, Post, MenuItem } from '@/types'
@@ -26,11 +27,6 @@ const NOTICE_ALIGN_CLASS: Record<BannerAlign, { row: string; text: string }> = {
   left: { row: 'justify-start', text: 'text-left' },
   center: { row: 'justify-center', text: 'text-center' },
   right: { row: 'justify-end', text: 'text-right' },
-}
-
-const toBannerAlign = (value: string | null | undefined): BannerAlign => {
-  if (value === 'left' || value === 'center' || value === 'right') return value
-  return 'center'
 }
 
 export default async function HomePage() {
@@ -95,7 +91,7 @@ export default async function HomePage() {
     ? null
     : ((homeNoticeData ?? null) as HomeNoticeBanner | null)
   const hasHomeNotice = Boolean(homeNotice?.content?.trim())
-  const homeNoticeAlign = toBannerAlign(homeNotice?.title)
+  const homeNoticeMeta = parseHomeNoticeMeta(homeNotice?.title)
   const storageAdminClient = createPostImagesAdminClient()
 
   const popup = activePopup
@@ -127,14 +123,14 @@ export default async function HomePage() {
         {hasHomeNotice && homeNotice && (
           <section>
             <div
-              className={`w-full aspect-[27/2] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden ${NOTICE_ALIGN_CLASS[homeNoticeAlign].row}`}
+              className={`w-full aspect-[27/2] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden ${NOTICE_ALIGN_CLASS[homeNoticeMeta.align].row}`}
               style={{
                 borderColor: 'rgba(201,162,39,0.25)',
                 background: 'linear-gradient(90deg, rgba(69,97,50,0.24), rgba(26,26,15,0.65))',
               }}
             >
               <p
-                className={`w-full text-sm sm:text-lg font-semibold truncate ${NOTICE_ALIGN_CLASS[homeNoticeAlign].text}`}
+                className={`w-full font-semibold truncate ${HOME_NOTICE_TEXT_SIZE_CLASS[homeNoticeMeta.size]} ${NOTICE_ALIGN_CLASS[homeNoticeMeta.align].text}`}
                 style={{ color: 'var(--foreground)', opacity: 0.86 }}
               >
                 {homeNotice.content}

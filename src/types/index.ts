@@ -74,6 +74,7 @@ export interface HomeNoticeBanner {
 }
 
 export type BannerAlign = 'left' | 'center' | 'right'
+export type BannerTextSize = 'md' | 'lg' | 'xl'
 
 export interface Comment {
   id: string
