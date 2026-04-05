@@ -78,6 +78,10 @@ export default function MenuClientPage({
     setMenuItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
   }
 
+  const handleItemDeleted = (deletedId: string) => {
+    setMenuItems((prev) => prev.filter((item) => item.id !== deletedId))
+  }
+
   return (
     <>
       <MenuTabs activeTab={activeTab} onChange={setActiveTab} />
@@ -104,6 +108,7 @@ export default function MenuClientPage({
           viewMode={activeView}
           isAdmin={isAdmin}
           onItemUpdated={handleItemUpdated}
+          onItemDeleted={handleItemDeleted}
         />
       </div>
     </>

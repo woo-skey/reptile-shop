@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -234,6 +234,29 @@ export async function PATCH(request: NextRequest) {
       .eq('id', id)
     error = retry.error
   }
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
+
+export async function DELETE(request: NextRequest) {
+  const admin = await assertAdmin()
+  if (admin.errorResponse) return admin.errorResponse
+
+  const body = await request.json().catch(() => ({}))
+  const id = toTrimmedString((body as Record<string, unknown>).id)
+
+  if (!id) {
+    return NextResponse.json({ error: '삭제할 메뉴 ID가 필요합니다.' }, { status: 400 })
+  }
+
+  const { error } = await admin.adminClient
+    .from('menu_items')
+    .delete()
+    .eq('id', id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

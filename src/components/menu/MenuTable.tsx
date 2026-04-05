@@ -133,16 +133,18 @@ function EditCell({
   item,
   isAdmin,
   onItemUpdated,
+  onItemDeleted,
 }: {
   item: MenuItem
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
+  onItemDeleted?: (deletedId: string) => void
 }) {
   if (!isAdmin || !onItemUpdated) return null
 
   return (
     <div className="flex justify-end">
-      <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+      <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
     </div>
   )
 }
@@ -151,10 +153,20 @@ const withEditCell = (
   cells: (ReactNode | null | undefined)[],
   item: MenuItem,
   isAdmin: boolean,
-  onItemUpdated?: (updated: MenuItem) => void
+  onItemUpdated?: (updated: MenuItem) => void,
+  onItemDeleted?: (deletedId: string) => void
 ) => {
   if (!isAdmin || !onItemUpdated) return cells
-  return [...cells, <EditCell key={`edit-${item.id}`} item={item} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />]
+  return [
+    ...cells,
+    <EditCell
+      key={`edit-${item.id}`}
+      item={item}
+      isAdmin={isAdmin}
+      onItemUpdated={onItemUpdated}
+      onItemDeleted={onItemDeleted}
+    />,
+  ]
 }
 
 const formatPhotoPrice = (item: MenuItem) => {
@@ -170,10 +182,12 @@ function PhotoGrid({
   items,
   isAdmin,
   onItemUpdated,
+  onItemDeleted,
 }: {
   items: MenuItem[]
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
+  onItemDeleted?: (deletedId: string) => void
 }) {
   if (items.length === 0) {
     return (
@@ -195,7 +209,7 @@ function PhotoGrid({
           >
             {isAdmin && onItemUpdated && (
               <div className="absolute top-2 right-2 z-10">
-                <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+                <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
               </div>
             )}
 
@@ -237,10 +251,12 @@ function CocktailPhotoGrid({
   items,
   isAdmin,
   onItemUpdated,
+  onItemDeleted,
 }: {
   items: MenuItem[]
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
+  onItemDeleted?: (deletedId: string) => void
 }) {
   if (items.length === 0) {
     return (
@@ -285,7 +301,7 @@ function CocktailPhotoGrid({
                 >
                   {isAdmin && onItemUpdated && (
                     <div className="absolute top-2 right-2 z-10">
-                      <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+                      <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
                     </div>
                   )}
 
@@ -333,9 +349,10 @@ type TableRendererProps = {
   rowLimit?: number | null
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
+  onItemDeleted?: (deletedId: string) => void
 }
 
-function EventTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '가격'], isAdmin)
 
@@ -347,7 +364,7 @@ function EventTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPr
         limited.map((item) => (
           <Row
             key={item.id}
-            cells={withEditCell([<NameCell key="name" item={item} />, item.description, fmt(item.price)], item, isAdmin, onItemUpdated)}
+            cells={withEditCell([<NameCell key="name" item={item} />, item.description, fmt(item.price)], item, isAdmin, onItemUpdated, onItemDeleted)}
           />
         ))
       )}
@@ -355,7 +372,7 @@ function EventTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPr
   )
 }
 
-function FoodTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function FoodTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '비고', '가격'], isAdmin)
 
@@ -371,7 +388,8 @@ function FoodTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPro
               [<NameCell key="name" item={item} />, item.description, item.note, fmt(item.price)],
               item,
               isAdmin,
-              onItemUpdated
+              onItemUpdated,
+              onItemDeleted
             )}
           />
         ))
@@ -380,7 +398,7 @@ function FoodTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPro
   )
 }
 
-function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '가격'], isAdmin)
 
@@ -396,7 +414,8 @@ function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRender
               [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)],
               item,
               isAdmin,
-              onItemUpdated
+              onItemUpdated,
+              onItemDeleted
             )}
           />
         ))
@@ -405,7 +424,7 @@ function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRender
   )
 }
 
-function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const groups = limited.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const key = item.subcategory?.trim() || ''
@@ -436,7 +455,8 @@ function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendere
                   [<NameCell key="name" item={item} />, item.description, abvStr(item.abv)],
                   item,
                   isAdmin,
-                  onItemUpdated
+                  onItemUpdated,
+                  onItemDeleted
                 )}
               />
             ))}
@@ -447,7 +467,7 @@ function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendere
   )
 }
 
-function BeerTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function BeerTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '용량', '가격'], isAdmin)
 
@@ -469,7 +489,8 @@ function BeerTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPro
               ],
               item,
               isAdmin,
-              onItemUpdated
+              onItemUpdated,
+              onItemDeleted
             )}
           />
         ))
@@ -484,7 +505,7 @@ const WINE_SUBS = [
   { key: 'sparkling', label: 'Sparkling' },
 ]
 
-function WineTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function WineTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
@@ -513,7 +534,8 @@ function WineTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererPro
                     ],
                     item,
                     isAdmin,
-                    onItemUpdated
+                    onItemUpdated,
+                    onItemDeleted
                   )}
                 />
               ))}
@@ -532,7 +554,7 @@ const WHISKY_SUBS = [
   { key: 'tennessee', label: 'Tennessee' },
 ]
 
-function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
@@ -561,7 +583,8 @@ function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererP
                     ],
                     item,
                     isAdmin,
-                    onItemUpdated
+                    onItemUpdated,
+                    onItemDeleted
                   )}
                 />
               ))}
@@ -573,7 +596,7 @@ function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererP
   )
 }
 
-function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
+function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
 
@@ -589,7 +612,8 @@ function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRend
               [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)],
               item,
               isAdmin,
-              onItemUpdated
+              onItemUpdated,
+              onItemDeleted
             )}
           />
         ))
@@ -604,22 +628,24 @@ export default function MenuTable({
   viewMode,
   isAdmin = false,
   onItemUpdated,
+  onItemDeleted,
 }: {
   items: MenuItem[]
   category: MenuCategory
   viewMode: ViewMode
   isAdmin?: boolean
   onItemUpdated?: (updated: MenuItem) => void
+  onItemDeleted?: (deletedId: string) => void
 }) {
   if (viewMode === 'photo') {
     if (category === 'cocktail') {
-      return <CocktailPhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />
+      return <CocktailPhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} onItemDeleted={onItemDeleted} />
     }
 
-    return <PhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />
+    return <PhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} onItemDeleted={onItemDeleted} />
   }
 
-  const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated }
+  const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated, onItemDeleted }
 
   switch (category) {
     case 'event':

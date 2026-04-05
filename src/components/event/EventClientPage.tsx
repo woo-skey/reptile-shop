@@ -51,6 +51,10 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
     setEventItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
   }
 
+  const handleItemDeleted = (deletedId: string) => {
+    setEventItems((prev) => prev.filter((item) => item.id !== deletedId))
+  }
+
   return (
     <>
       <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -75,6 +79,7 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
           viewMode={activeView}
           isAdmin={isAdmin}
           onItemUpdated={handleItemUpdated}
+          onItemDeleted={handleItemDeleted}
         />
       </div>
     </>
