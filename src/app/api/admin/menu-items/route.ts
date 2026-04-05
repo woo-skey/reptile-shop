@@ -219,6 +219,17 @@ export async function POST(request: NextRequest) {
     delete fallbackPayload.image_url
 
     if (
+      imageCandidate &&
+      fallbackPayload.category !== 'event' &&
+      fallbackPayload.category !== 'event_post'
+    ) {
+      return NextResponse.json(
+        { error: "현재 DB에 image_url 컬럼이 없어 이벤트 외 메뉴 이미지를 저장할 수 없습니다. image_url 컬럼을 추가해 주세요." },
+        { status: 400 }
+      )
+    }
+
+    if (
       (fallbackPayload.category === 'event' || fallbackPayload.category === 'event_post') &&
       !fallbackPayload.note &&
       imageCandidate
@@ -269,6 +280,17 @@ export async function PATCH(request: NextRequest) {
       ? fallbackPayload.image_url.trim()
       : null
     delete fallbackPayload.image_url
+
+    if (
+      imageCandidate &&
+      fallbackPayload.category !== 'event' &&
+      fallbackPayload.category !== 'event_post'
+    ) {
+      return NextResponse.json(
+        { error: "현재 DB에 image_url 컬럼이 없어 이벤트 외 메뉴 이미지를 저장할 수 없습니다. image_url 컬럼을 추가해 주세요." },
+        { status: 400 }
+      )
+    }
 
     if (
       (fallbackPayload.category === 'event' || fallbackPayload.category === 'event_post') &&

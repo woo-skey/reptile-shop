@@ -22,9 +22,11 @@ export default async function MenuPage() {
 
   const items = await Promise.all(
     rawItems.map(async (item) => {
-      if (item.category !== 'event') return item
+      const sourceImage = item.category === 'event'
+        ? (item.image_url ?? item.note)
+        : item.image_url
 
-      const imageUrl = await toRenderablePostImageUrl(item.image_url ?? item.note, storageAdminClient)
+      const imageUrl = await toRenderablePostImageUrl(sourceImage, storageAdminClient)
       return {
         ...item,
         image_url: imageUrl,
