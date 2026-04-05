@@ -264,103 +264,6 @@ function PhotoGrid({
   )
 }
 
-function CocktailPhotoGrid({
-  items,
-  isAdmin,
-  onItemUpdated,
-  onItemDeleted,
-}: {
-  items: MenuItem[]
-  isAdmin: boolean
-  onItemUpdated?: (updated: MenuItem) => void
-  onItemDeleted?: (deletedId: string) => void
-}) {
-  if (items.length === 0) {
-    return (
-      <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-        등록된 메뉴가 없습니다.
-      </div>
-    )
-  }
-
-  const groups = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    const key = item.subcategory?.trim() || ''
-    if (!acc[key]) acc[key] = []
-    acc[key].push(item)
-    return acc
-  }, {})
-
-  const sortedKeys = Object.keys(groups).sort((a, b) => {
-    const diff = cocktailTierOrder(a) - cocktailTierOrder(b)
-    if (diff !== 0) return diff
-    return a.localeCompare(b)
-  })
-
-  return (
-    <div className="space-y-10 py-2">
-      {sortedKeys.map((tier) => (
-        <section key={`cocktail-tier-${tier}`} className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
-              {normalizeCocktailTierLabel(tier)}
-            </h3>
-            <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(201,162,39,0.3)' }} />
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups[tier].map((item) => {
-              const imageSrc = getDisplayImage(item)
-              return (
-                <article
-                  key={item.id}
-                  className="relative rounded-2xl overflow-hidden border"
-                  style={{ borderColor: 'rgba(201,162,39,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }}
-                >
-                  {isAdmin && onItemUpdated && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
-                    </div>
-                  )}
-
-                  <div
-                    className="aspect-square border-b flex items-center justify-center"
-                    style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.05)' }}
-                  >
-                    {imageSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageSrc} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                        이미지 (1:1)
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="px-3 py-2.5 min-h-[70px]">
-                    <p className="text-sm truncate font-semibold" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
-                      {item.name}
-                    </p>
-                    {item.description && (
-                      <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
-                        {item.description}
-                      </p>
-                    )}
-                    {item.abv != null && (
-                      <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
-                        ABV {item.abv}%
-                      </p>
-                    )}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </section>
-      ))}
-    </div>
-  )
-}
-
 type TableRendererProps = {
   items: MenuItem[]
   rowLimit?: number | null
@@ -674,11 +577,8 @@ export default function MenuTable({
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
 }) {
-  if (viewMode === 'photo') {
-    if (category === 'cocktail') {
-      return <CocktailPhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} onItemDeleted={onItemDeleted} />
-    }
-
+  const canUsePhotoView = category === 'event' || category === 'food'
+  if (viewMode === 'photo' && canUsePhotoView) {
     return (
       <PhotoGrid
         items={items}
