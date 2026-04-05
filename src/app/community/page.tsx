@@ -15,8 +15,7 @@ export default async function CommunityPage() {
   const posts = (data ?? []) as unknown as Post[]
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      {/* 헤더 */}
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}>
@@ -29,7 +28,6 @@ export default async function CommunityPage() {
         <CommunityWriteLink variant="header" />
       </div>
 
-      {/* 게시글 목록 */}
       {posts.length === 0 ? (
         <div className="glass-card py-16 text-center">
           <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>

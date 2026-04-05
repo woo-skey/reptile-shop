@@ -42,7 +42,7 @@ export default function NewPopupPage() {
         팝업 생성
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
             제목

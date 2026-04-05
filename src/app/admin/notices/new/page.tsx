@@ -45,7 +45,7 @@ export default function NewNoticePage() {
         공지 작성
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
             제목

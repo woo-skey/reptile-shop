@@ -31,7 +31,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <Link
         href="/notice"
         className="text-xs mb-6 inline-flex items-center gap-1"

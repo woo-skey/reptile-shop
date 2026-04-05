@@ -88,7 +88,7 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <h1
         className="text-2xl font-bold mb-8"
         style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
@@ -127,7 +127,6 @@ export default function NewPostPage() {
           />
         </div>
 
-        {/* 이미지 업로드 */}
         <div>
           <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
             사진 첨부 <span style={{ color: 'var(--foreground)', opacity: 0.4 }}>(최대 4장)</span>

@@ -86,7 +86,7 @@ export default function NewMenuItemPage() {
   const labelCls = 'block text-xs font-medium mb-1 opacity-60'
 
   return (
-    <div className="max-w-lg">
+    <div className="w-full">
       <h2 className="text-base font-semibold mb-6" style={{ color: 'var(--foreground)' }}>
         메뉴 아이템 추가
       </h2>

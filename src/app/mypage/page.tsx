@@ -26,7 +26,7 @@ export default async function MyPage() {
   const posts = (postsData ?? []) as unknown as Post[]
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <h1
         className="text-2xl font-bold mb-8"
         style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
@@ -34,10 +34,8 @@ export default async function MyPage() {
         마이페이지
       </h1>
 
-      {/* 프로필 카드 */}
       <div className="glass-card px-6 py-6 mb-6">
         <div className="flex items-center gap-4">
-          {/* 아바타 */}
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold shrink-0"
             style={{ backgroundColor: '#456132', color: '#F5D76E', border: '2px solid #C9A227' }}
@@ -60,7 +58,6 @@ export default async function MyPage() {
         </div>
       </div>
 
-      {/* 내 게시글 */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>

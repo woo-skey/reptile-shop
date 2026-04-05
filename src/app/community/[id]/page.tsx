@@ -29,7 +29,6 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 이미지 signed URL 생성
   const imageUrls: string[] = []
   if (post.image_urls?.length > 0) {
     for (const path of post.image_urls) {
@@ -43,8 +42,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const canDelete = user?.id === post.author_id
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      {/* 게시글 */}
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <article className="glass-card px-6 py-8 mb-6">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
@@ -60,7 +58,6 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
           {canDelete && <DeletePostButton postId={post.id} redirectTo="/community" />}
         </div>
 
-        {/* 이미지 */}
         {imageUrls.length > 0 && (
           <div className="flex flex-wrap gap-3 mb-6">
             {imageUrls.map((url, i) => (
@@ -84,7 +81,6 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
         </div>
       </article>
 
-      {/* 댓글 */}
       <CommentSection postId={post.id} initialComments={comments} currentUserId={user?.id} />
     </div>
   )

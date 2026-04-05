@@ -1,6 +1,6 @@
 export default function NoticeLoading() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, idx) => (
           <div key={idx} className="glass-card p-5 animate-pulse">
@@ -12,3 +12,4 @@ export default function NoticeLoading() {
     </div>
   )
 }
+
