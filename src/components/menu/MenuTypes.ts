@@ -2,7 +2,9 @@ import type { MenuCategory } from '@/types'
 
 export type ViewMode = 'list' | 'photo'
 
-export const TAB_LABELS: Record<MenuCategory, string> = {
+export type MenuTabCategory = Exclude<MenuCategory, 'event_post'>
+
+export const TAB_LABELS: Record<MenuTabCategory, string> = {
   event: 'Event / New',
   food: 'Food',
   signature: 'Signature',

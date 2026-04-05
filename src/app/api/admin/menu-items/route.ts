@@ -6,6 +6,7 @@ import type { MenuCategory } from '@/types'
 
 const VALID_CATEGORIES: MenuCategory[] = [
   'event',
+  'event_post',
   'food',
   'non_alcohol',
   'beverage',
@@ -201,13 +202,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: payloadError ?? '잘못된 요청입니다.' }, { status: 400 })
   }
 
-  let { error } = await admin.adminClient.from('menu_items').insert(payload)
+  let {
+    data: insertedItem,
+    error,
+  } = await admin.adminClient
+    .from('menu_items')
+    .insert(payload)
+    .select('*')
+    .single()
 
   if (error && isImageColumnMissingError(error.message) && Object.prototype.hasOwnProperty.call(payload, 'image_url')) {
     const fallbackPayload = { ...payload }
     delete fallbackPayload.image_url
 
-    const retry = await admin.adminClient.from('menu_items').insert(fallbackPayload)
+    const retry = await admin.adminClient
+      .from('menu_items')
+      .insert(fallbackPayload)
+      .select('*')
+      .single()
+    insertedItem = retry.data
     error = retry.error
   }
 
@@ -215,7 +228,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, item: insertedItem })
 }
 
 export async function PATCH(request: NextRequest) {

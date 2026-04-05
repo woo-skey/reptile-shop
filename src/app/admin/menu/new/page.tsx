@@ -41,7 +41,7 @@ export default function NewMenuItemPage() {
   const needsAbv    = !['food', 'event', 'non_alcohol', 'beverage'].includes(category)
   const needsVol    = category === 'beer'
   const needsGlass  = ['wine', 'whisky', 'shochu', 'spirits'].includes(category)
-  const needsPrice  = !needsGlass && category !== 'cocktail'
+  const needsPrice  = !needsGlass && category !== 'cocktail' && category !== 'event'
 
   const subOptions =
     category === 'wine' ? WINE_SUBS :
@@ -64,7 +64,7 @@ export default function NewMenuItemPage() {
         note: form.note || null,
         abv: form.abv ? parseFloat(form.abv) : null,
         volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
-        price: category === 'cocktail' ? null : (form.price ? parseInt(form.price) : null),
+        price: category === 'cocktail' || category === 'event' ? null : (form.price ? parseInt(form.price) : null),
         price_glass: form.price_glass ? parseInt(form.price_glass) : null,
         price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
         sort_order: parseInt(form.sort_order) || 0,

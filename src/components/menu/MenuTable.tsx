@@ -364,12 +364,32 @@ type TableRendererProps = {
 
 function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
-  const headers = headersWithEdit(['메뉴', '설명', '가격'], isAdmin)
+  const headers = headersWithEdit(['제목', '내용'], isAdmin)
 
   return (
     <Table headers={headers}>
       {limited.length === 0 ? (
         <Empty colSpan={headers.length} message="등록된 이벤트가 없습니다." />
+      ) : (
+        limited.map((item) => (
+          <Row
+            key={item.id}
+            cells={withEditCell([<NameCell key="name" item={item} />, item.description], item, isAdmin, onItemUpdated, onItemDeleted)}
+          />
+        ))
+      )}
+    </Table>
+  )
+}
+
+function SimplePriceTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+  const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '가격'], isAdmin)
+
+  return (
+    <Table headers={headers}>
+      {limited.length === 0 ? (
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
           <Row
@@ -671,9 +691,9 @@ export default function MenuTable({
     case 'food':
       return <FoodTable {...commonProps} />
     case 'non_alcohol':
-      return <EventTable {...commonProps} />
+      return <SimplePriceTable {...commonProps} />
     case 'beverage':
-      return <EventTable {...commonProps} />
+      return <SimplePriceTable {...commonProps} />
     case 'signature':
       return <SignatureTable {...commonProps} />
     case 'cocktail':

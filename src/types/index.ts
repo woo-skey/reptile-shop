@@ -26,6 +26,7 @@ export interface Post {
 
 export type MenuCategory =
   | 'event'
+  | 'event_post'
   | 'food'
   | 'non_alcohol'
   | 'beverage'

@@ -11,6 +11,7 @@ export default async function MenuPage() {
     .from('menu_items')
     .select('*')
     .eq('is_available', true)
+    .neq('category', 'event_post')
     .order('category', { ascending: true })
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })

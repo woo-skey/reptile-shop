@@ -11,7 +11,7 @@ export default async function EventPage() {
     .from('menu_items')
     .select('*')
     .eq('is_available', true)
-    .eq('category', 'event')
+    .eq('category', 'event_post')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
 

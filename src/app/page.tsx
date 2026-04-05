@@ -46,8 +46,8 @@ export default async function HomePage() {
       .limit(4),
     supabase
       .from('menu_items')
-      .select('id, name, description, price')
-      .eq('category', 'event')
+      .select('id, name, description, created_at')
+      .eq('category', 'event_post')
       .eq('is_available', true)
       .order('sort_order', { ascending: true })
       .limit(4),
@@ -55,6 +55,7 @@ export default async function HomePage() {
       .from('menu_items')
       .select('id, name, category, price')
       .neq('category', 'event')
+      .neq('category', 'event_post')
       .eq('is_available', true)
       .order('created_at', { ascending: false })
       .limit(4),
@@ -167,7 +168,7 @@ export default async function HomePage() {
                       )}
                     </div>
                     <span className="text-xs shrink-0 ml-4" style={{ color: '#C9A227', opacity: 0.9 }}>
-                      {item.price != null ? `${item.price.toLocaleString()}원` : '-'}
+                      {new Date(item.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                     </span>
                   </Link>
                 ))}

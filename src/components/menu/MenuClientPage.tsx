@@ -5,19 +5,19 @@ import MenuTabs from '@/components/menu/MenuTabs'
 import MenuRowOptions from '@/components/menu/MenuRowOptions'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
-import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
+import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
-import type { MenuCategory, MenuItem } from '@/types'
+import type { MenuItem } from '@/types'
 
-const TAB_KEYS = Object.keys(TAB_LABELS) as MenuCategory[]
+const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
 
 const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
   const viewFromUrl = params.get('view')
 
-  const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuCategory)
-    ? (tabFromUrl as MenuCategory)
+  const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
+    ? (tabFromUrl as MenuTabCategory)
     : 'event'
 
   const view = viewFromUrl === 'photo' ? 'photo' : 'list'
@@ -30,12 +30,12 @@ export default function MenuClientPage({
   initialView,
 }: {
   items: MenuItem[]
-  initialTab: MenuCategory
+  initialTab: MenuTabCategory
   initialView: ViewMode
 }) {
   const { isAdmin } = useAuth()
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
-  const [activeTab, setActiveTab] = useState<MenuCategory>(() => {
+  const [activeTab, setActiveTab] = useState<MenuTabCategory>(() => {
     if (typeof window === 'undefined') return initialTab
     return parseStateFromUrl().tab
   })

@@ -1,6 +1,6 @@
 'use client'
 
-import type { MenuCategory } from '@/types'
+import type { MenuTabCategory } from '@/components/menu/MenuTypes'
 
 const TABS = [
   { key: 'event', label: 'Event / New' },
@@ -20,10 +20,10 @@ export default function MenuTabs({
   activeTab,
   onChange,
 }: {
-  activeTab: MenuCategory
-  onChange: (tab: MenuCategory) => void
+  activeTab: MenuTabCategory
+  onChange: (tab: MenuTabCategory) => void
 }) {
-  const handleTab = (key: MenuCategory) => {
+  const handleTab = (key: MenuTabCategory) => {
     if (key === activeTab) return
     onChange(key)
   }
@@ -32,7 +32,7 @@ export default function MenuTabs({
     <div className="mb-8 -mx-1 px-1 overflow-x-auto">
       <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
         {TABS.map(({ key, label }) => {
-          const tabKey = key as MenuCategory
+          const tabKey = key as MenuTabCategory
           const active = activeTab === tabKey
           return (
             <button

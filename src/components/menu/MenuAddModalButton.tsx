@@ -2,12 +2,15 @@
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { MenuCategory } from '@/types'
+import type { MenuItem } from '@/types'
+import type { MenuTabCategory } from '@/components/menu/MenuTypes'
 
 const WINE_SUBS = ['red', 'white', 'sparkling']
 const WHISKY_SUBS = ['single_malt', 'blended', 'bourbon', 'tennessee']
 
-const CATEGORY_LABEL: Record<MenuCategory, string> = {
+type EventPostOption = Pick<MenuItem, 'id' | 'name' | 'description' | 'image_url' | 'sort_order'>
+
+const CATEGORY_LABEL: Record<MenuTabCategory, string> = {
   event: '이벤트',
   food: '메뉴',
   non_alcohol: '메뉴',
@@ -21,7 +24,7 @@ const CATEGORY_LABEL: Record<MenuCategory, string> = {
   spirits: '메뉴',
 }
 
-export default function MenuAddModalButton({ category }: { category: MenuCategory }) {
+export default function MenuAddModalButton({ category }: { category: MenuTabCategory }) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -42,14 +45,53 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
+  const [eventSourceId, setEventSourceId] = useState('')
+  const [eventSourceOptions, setEventSourceOptions] = useState<EventPostOption[]>([])
+  const [eventSourceLoading, setEventSourceLoading] = useState(false)
+  const [eventSourceError, setEventSourceError] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const isEventCategory = category === 'event'
 
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview)
     }
   }, [preview])
+
+  useEffect(() => {
+    if (!open || !isEventCategory) return
+
+    let alive = true
+
+    fetch('/api/event-posts')
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ error: '이벤트 목록을 불러오지 못했습니다.' }))
+          throw new Error(data.error ?? '이벤트 목록을 불러오지 못했습니다.')
+        }
+
+        const data = await res.json()
+        return Array.isArray(data.items) ? (data.items as EventPostOption[]) : []
+      })
+      .then((items) => {
+        if (!alive) return
+        setEventSourceOptions(items)
+      })
+      .catch((err) => {
+        if (!alive) return
+        setEventSourceOptions([])
+        setEventSourceError(err instanceof Error ? err.message : '이벤트 목록을 불러오지 못했습니다.')
+      })
+      .finally(() => {
+        if (!alive) return
+        setEventSourceLoading(false)
+      })
+
+    return () => {
+      alive = false
+    }
+  }, [open, isEventCategory])
 
   const set = (k: string, v: string | boolean) => setForm((prev) => ({ ...prev, [k]: v }))
 
@@ -58,7 +100,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(category)
   const needsVol = category === 'beer'
   const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(category)
-  const needsPrice = !needsGlass && category !== 'cocktail'
+  const needsPrice = !needsGlass && category !== 'cocktail' && category !== 'event'
   const subOptions = category === 'wine' ? WINE_SUBS : category === 'whisky' ? WHISKY_SUBS : []
 
   const reset = () => {
@@ -78,6 +120,8 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     })
     setImageFile(null)
     setPreview('')
+    setEventSourceId('')
+    setEventSourceError('')
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -85,6 +129,20 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     setOpen(false)
     setError('')
     setLoading(false)
+    setEventSourceError('')
+  }
+
+  const handleOpen = () => {
+    setOpen(true)
+    setError('')
+    if (isEventCategory) {
+      setEventSourceId('')
+      setEventSourceOptions([])
+      setEventSourceError('')
+      setEventSourceLoading(true)
+    } else {
+      setEventSourceLoading(false)
+    }
   }
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +150,23 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     const file = e.target.files?.[0]
     setImageFile(file ?? null)
     setPreview(file ? URL.createObjectURL(file) : '')
+  }
+
+  const handleEventSourceChange = (eventId: string) => {
+    setEventSourceId(eventId)
+
+    if (!eventId) return
+
+    const selected = eventSourceOptions.find((item) => item.id === eventId)
+    if (!selected) return
+
+    setForm((prev) => ({
+      ...prev,
+      name: selected.name,
+      description: selected.description ?? '',
+      image_url: selected.image_url ?? '',
+      sort_order: String(selected.sort_order ?? 0),
+    }))
   }
 
   const uploadImage = async (): Promise<string | null> => {
@@ -143,7 +218,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
           note: form.note || null,
           abv: form.abv ? parseFloat(form.abv) : null,
           volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
-          price: category === 'cocktail' ? null : (form.price ? parseInt(form.price) : null),
+          price: category === 'cocktail' || category === 'event' ? null : (form.price ? parseInt(form.price) : null),
           price_glass: form.price_glass ? parseInt(form.price_glass) : null,
           price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
           sort_order: parseInt(form.sort_order) || 0,
@@ -175,7 +250,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
         className="w-full sm:w-auto text-xs px-3 py-1.5 rounded-lg"
         style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
       >
@@ -207,6 +282,34 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isEventCategory && (
+                <div>
+                  <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                    이벤트 탭에서 불러오기
+                  </label>
+                  <select
+                    value={eventSourceId}
+                    onChange={(e) => handleEventSourceChange(e.target.value)}
+                    className={inputCls}
+                    style={{ color: 'var(--foreground)' }}
+                    disabled={eventSourceLoading}
+                  >
+                    <option value="">직접 입력</option>
+                    {eventSourceOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+                    이벤트 탭에서 작성한 제목/내용/이미지를 메뉴 이벤트로 가져올 수 있습니다.
+                  </p>
+                  {eventSourceError && (
+                    <p className="text-xs mt-1 text-red-400">{eventSourceError}</p>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
                   사진
@@ -284,7 +387,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  이름 *
+                  {isEventCategory ? '제목 *' : '이름 *'}
                 </label>
                 <input
                   required
@@ -298,12 +401,12 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  설명
+                  {isEventCategory ? '내용' : '설명'}
                 </label>
                 <textarea
                   value={form.description}
                   onChange={(e) => set('description', e.target.value)}
-                  rows={2}
+                  rows={isEventCategory ? 5 : 2}
                   className={`${inputCls} resize-none`}
                   style={{ color: 'var(--foreground)' }}
                 />
@@ -423,7 +526,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                   onChange={(e) => set('is_available', e.target.checked)}
                 />
                 <label htmlFor="modal-avail" className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
-                  메뉴에 노출
+                  {isEventCategory ? '메뉴 이벤트 탭에 노출' : '메뉴에 노출'}
                 </label>
               </div>
 

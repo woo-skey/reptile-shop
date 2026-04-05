@@ -17,7 +17,8 @@ export default async function AdminMenuPage() {
     .order('category')
     .order('sort_order')
 
-  const items = (data ?? []) as MenuItem[]
+  const allItems = (data ?? []) as MenuItem[]
+  const items = allItems.filter((item) => item.category !== 'event' && item.category !== 'event_post')
 
   return (
     <div>
@@ -33,6 +34,10 @@ export default async function AdminMenuPage() {
           메뉴 추가
         </Link>
       </div>
+
+      <p className="text-xs mb-3" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+        이벤트는 이벤트 탭과 메뉴의 Event/New 탭에서 별도로 관리됩니다.
+      </p>
 
       <div className="glass-card divide-y divide-[rgba(201,162,39,0.1)]">
         {items.length === 0 ? (

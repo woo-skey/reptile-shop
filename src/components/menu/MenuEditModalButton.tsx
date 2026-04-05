@@ -76,7 +76,7 @@ export default function MenuEditModalButton({
   const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(currentCategory)
   const needsVol = currentCategory === 'beer'
   const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(currentCategory)
-  const needsPrice = !needsGlass && currentCategory !== 'cocktail'
+  const needsPrice = !needsGlass && currentCategory !== 'cocktail' && currentCategory !== 'event'
   const subOptions = currentCategory === 'wine' ? WINE_SUBS : currentCategory === 'whisky' ? WHISKY_SUBS : []
 
   const close = () => {
@@ -139,7 +139,7 @@ export default function MenuEditModalButton({
         note: form.note || null,
         abv: toNumberOrNull(form.abv, parseFloat),
         volume_ml: toNumberOrNull(form.volume_ml, parseInt),
-        price: currentCategory === 'cocktail' ? null : toNumberOrNull(form.price, parseInt),
+        price: currentCategory === 'cocktail' || currentCategory === 'event' ? null : toNumberOrNull(form.price, parseInt),
         price_glass: toNumberOrNull(form.price_glass, parseInt),
         price_bottle: toNumberOrNull(form.price_bottle, parseInt),
         sort_order: toNumberOrNull(form.sort_order, parseInt) ?? 0,
