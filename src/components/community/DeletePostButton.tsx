@@ -11,19 +11,24 @@ export default function DeletePostButton({ postId, redirectTo }: { postId: strin
     if (!confirm('게시글을 삭제하시겠습니까?')) return
     setLoading(true)
 
-    const res = await fetch(`/api/posts/${postId}`, {
-      method: 'DELETE',
-    })
+    try {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      })
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: '게시글 삭제에 실패했습니다.' }))
-      alert(data.error ?? '게시글 삭제에 실패했습니다.')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: '게시글 삭제에 실패했습니다.' }))
+        alert(data.error ?? '게시글 삭제에 실패했습니다.')
+        return
+      }
+
+      router.push(redirectTo)
+      router.refresh()
+    } catch {
+      alert('네트워크 오류로 게시글 삭제에 실패했습니다.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    router.push(redirectTo)
-    router.refresh()
   }
 
   return (
