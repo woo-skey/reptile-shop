@@ -52,6 +52,7 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const isEventCategory = category === 'event'
+  const supportsImage = category === 'event' || category === 'food'
 
   useEffect(() => {
     return () => {
@@ -204,8 +205,8 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
     setLoading(true)
 
     try {
-      const uploadedPath = await uploadImage()
-      const imageUrl = uploadedPath || form.image_url || null
+      const uploadedPath = supportsImage ? await uploadImage() : null
+      const imageUrl = supportsImage ? (uploadedPath || form.image_url || null) : null
 
       const res = await fetch('/api/admin/menu-items', {
         method: 'POST',
@@ -310,48 +311,50 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
                 </div>
               )}
 
-              <div>
-                <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  사진
-                </label>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="px-3 py-1.5 text-xs rounded-md border"
-                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
-                  >
-                    파일 선택
-                  </button>
+              {supportsImage && (
+                <div>
+                  <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                    사진
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="px-3 py-1.5 text-xs rounded-md border"
+                      style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+                    >
+                      파일 선택
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                    <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                      또는 이미지 URL 입력
+                    </span>
+                  </div>
                   <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
+                    type="url"
+                    value={form.image_url}
+                    onChange={(e) => set('image_url', e.target.value)}
+                    placeholder="https://..."
+                    className={inputCls}
+                    style={{ color: 'var(--foreground)' }}
                   />
-                  <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                    또는 이미지 URL 입력
-                  </span>
+                  {preview && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={preview}
+                      alt="미리보기"
+                      className="mt-2 w-20 h-20 object-cover rounded"
+                      style={{ border: '1px solid rgba(201,162,39,0.3)' }}
+                    />
+                  )}
                 </div>
-                <input
-                  type="url"
-                  value={form.image_url}
-                  onChange={(e) => set('image_url', e.target.value)}
-                  placeholder="https://..."
-                  className={inputCls}
-                  style={{ color: 'var(--foreground)' }}
-                />
-                {preview && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={preview}
-                    alt="미리보기"
-                    className="mt-2 w-20 h-20 object-cover rounded"
-                    style={{ border: '1px solid rgba(201,162,39,0.3)' }}
-                  />
-                )}
-              </div>
+              )}
 
               {needsSub && (
                 <div>

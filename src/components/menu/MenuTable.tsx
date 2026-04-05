@@ -71,19 +71,25 @@ function Table({ headers, children }: { headers: string[]; children: ReactNode }
 }
 
 function NameCell({ item }: { item: MenuItem }) {
-  const hasExternalImage = Boolean(item.image_url?.startsWith('http'))
+  const supportsImage = item.category === 'event' || item.category === 'food'
+  const imageUrl = supportsImage
+    ? (item.image_url ?? (item.category === 'event' ? item.note : null))
+    : null
+  const hasExternalImage = Boolean(
+    imageUrl?.startsWith('http://') || imageUrl?.startsWith('https://') || imageUrl?.startsWith('/')
+  )
 
   return (
     <div className="flex items-center gap-2 min-w-0">
       {hasExternalImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={item.image_url ?? ''}
+          src={imageUrl ?? ''}
           alt={item.name}
           className="w-8 h-8 rounded object-cover shrink-0"
           style={{ border: '1px solid rgba(201,162,39,0.25)' }}
         />
-      ) : item.image_url ? (
+      ) : imageUrl ? (
         <span
           className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
           style={{ color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' }}

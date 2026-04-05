@@ -71,6 +71,7 @@ export default function MenuEditModalButton({
   const set = (k: string, v: string | boolean) => setForm((prev) => ({ ...prev, [k]: v }))
 
   const currentCategory = form.category
+  const supportsImage = currentCategory === 'event' || currentCategory === 'food'
   const needsSub = currentCategory === 'wine' || currentCategory === 'whisky' || currentCategory === 'cocktail'
   const needsNote = currentCategory === 'food'
   const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(currentCategory)
@@ -127,8 +128,8 @@ export default function MenuEditModalButton({
     setLoading(true)
 
     try {
-      const uploadedPath = await uploadImage()
-      const imageUrl = uploadedPath || form.image_url || null
+      const uploadedPath = supportsImage ? await uploadImage() : null
+      const imageUrl = supportsImage ? (uploadedPath || form.image_url || null) : null
 
       const payload = {
         id: item.id,
@@ -270,48 +271,50 @@ export default function MenuEditModalButton({
                 </select>
               </div>
 
-              <div>
-                <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  Image
-                </label>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="px-3 py-1.5 text-xs rounded-md border"
-                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
-                  >
-                    Choose file
-                  </button>
+              {supportsImage && (
+                <div>
+                  <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                    Image
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="px-3 py-1.5 text-xs rounded-md border"
+                      style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+                    >
+                      Choose file
+                    </button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                    <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                      or image URL
+                    </span>
+                  </div>
                   <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
+                    type="url"
+                    value={form.image_url}
+                    onChange={(e) => set('image_url', e.target.value)}
+                    placeholder="https://..."
+                    className={inputCls}
+                    style={{ color: 'var(--foreground)' }}
                   />
-                  <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                    or image URL
-                  </span>
+                  {(preview || form.image_url) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={preview || form.image_url}
+                      alt="preview"
+                      className="mt-2 w-20 h-20 object-cover rounded"
+                      style={{ border: '1px solid rgba(201,162,39,0.3)' }}
+                    />
+                  )}
                 </div>
-                <input
-                  type="url"
-                  value={form.image_url}
-                  onChange={(e) => set('image_url', e.target.value)}
-                  placeholder="https://..."
-                  className={inputCls}
-                  style={{ color: 'var(--foreground)' }}
-                />
-                {(preview || form.image_url) && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={preview || form.image_url}
-                    alt="preview"
-                    className="mt-2 w-20 h-20 object-cover rounded"
-                    style={{ border: '1px solid rgba(201,162,39,0.3)' }}
-                  />
-                )}
-              </div>
+              )}
 
               {needsSub && (
                 <div>

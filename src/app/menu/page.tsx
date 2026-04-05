@@ -48,7 +48,7 @@ export default async function MenuPage() {
         </p>
       </div>
 
-      <MenuClientPage items={items} initialTab="event" initialView="list" />
+      <MenuClientPage items={items} initialTab="event" />
     </div>
   )
 }

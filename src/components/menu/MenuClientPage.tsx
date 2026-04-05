@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import MenuTabs from '@/components/menu/MenuTabs'
-import MenuRowOptions from '@/components/menu/MenuRowOptions'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
-import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
+import { TAB_LABELS, type MenuTabCategory } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
 import type { MenuItem } from '@/types'
 
@@ -14,27 +13,20 @@ const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
 const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
-  const viewFromUrl = params.get('view')
-  const eventViewFromUrl = params.get('event_view')
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
     ? (tabFromUrl as MenuTabCategory)
     : 'event'
 
-  const menuView = viewFromUrl === 'photo' ? 'photo' : 'list'
-  const eventView = eventViewFromUrl === 'list' ? 'list' : 'photo'
-
-  return { tab, menuView: menuView as ViewMode, eventView: eventView as ViewMode }
+  return { tab }
 }
 
 export default function MenuClientPage({
   items,
   initialTab,
-  initialView,
 }: {
   items: MenuItem[]
   initialTab: MenuTabCategory
-  initialView: ViewMode
 }) {
   const { isAdmin } = useAuth()
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
@@ -42,51 +34,26 @@ export default function MenuClientPage({
     if (typeof window === 'undefined') return initialTab
     return parseStateFromUrl().tab
   })
-  const [menuView, setMenuView] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') return initialView
-    return parseStateFromUrl().menuView
-  })
-  const [eventView, setEventView] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') return 'photo'
-    return parseStateFromUrl().eventView
-  })
 
   useEffect(() => {
     setMenuItems(items)
   }, [items])
 
-  const activeView = activeTab === 'event' ? eventView : menuView
-
-  const handleViewChange = (nextView: ViewMode) => {
-    if (activeTab === 'event') {
-      setEventView(nextView)
-      return
-    }
-
-    setMenuView(nextView)
-  }
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     params.set('tab', activeTab)
     params.delete('rows')
-
-    if (menuView === 'list') params.delete('view')
-    else params.set('view', menuView)
-
-    if (eventView === 'photo') params.delete('event_view')
-    else params.set('event_view', eventView)
+    params.delete('view')
+    params.delete('event_view')
 
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, menuView, eventView])
+  }, [activeTab])
 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseStateFromUrl()
       setActiveTab(parsed.tab)
-      setMenuView(parsed.menuView)
-      setEventView(parsed.eventView)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -121,15 +88,11 @@ export default function MenuClientPage({
         {isAdmin && <MenuAddModalButton category={activeTab} />}
       </div>
 
-      <div className="mb-6">
-        <MenuRowOptions activeMode={activeView} onChange={handleViewChange} />
-      </div>
-
       <div className="glass-card px-4 py-2">
         <MenuTable
           items={filteredItems}
           category={activeTab}
-          viewMode={activeView}
+          viewMode="list"
           isAdmin={isAdmin}
           onItemUpdated={handleItemUpdated}
           onItemDeleted={handleItemDeleted}
