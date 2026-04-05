@@ -14,20 +14,28 @@ const limitRows = (items: MenuItem[], rowLimit?: number | null) => {
 const headersWithEdit = (headers: string[], isAdmin: boolean) =>
   isAdmin ? [...headers, ''] : headers
 
+const parseCocktailTierAmount = (rawTier: string) => {
+  const numericText = rawTier.replace(/,/g, '').match(/\d+/)?.[0]
+  if (!numericText) return null
+
+  const value = Number.parseInt(numericText, 10)
+  return Number.isNaN(value) ? null : value
+}
+
 const normalizeCocktailTierLabel = (rawTier: string) => {
   const tier = rawTier.trim()
-  if (!tier) return '가격#기타'
-  if (tier.startsWith('가격#')) return tier
-  if (tier.startsWith('#')) return `가격${tier}`
-  if (/^\d+$/.test(tier)) return `가격#${tier}`
-  return tier
+  if (!tier) return '기타'
+
+  const amount = parseCocktailTierAmount(tier)
+  if (amount == null) return tier
+
+  return `${amount.toLocaleString('ko-KR')}원`
 }
 
 const cocktailTierOrder = (tier: string) => {
-  const match = tier.match(/\d+/)
-  if (!match) return Number.MAX_SAFE_INTEGER
-  const value = Number.parseInt(match[0], 10)
-  return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value
+  const amount = parseCocktailTierAmount(tier)
+  if (amount == null) return Number.MAX_SAFE_INTEGER
+  return amount
 }
 
 const getDisplayImage = (imageUrl: string | null | undefined) => {

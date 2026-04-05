@@ -111,7 +111,7 @@ export default function NewMenuItemPage() {
         {needsSub && (
           <div>
             <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-              {category === 'cocktail' ? '가격 그룹 (예: #1)' : '서브카테고리'}
+              {category === 'cocktail' ? '가격 (예: 12000)' : '서브카테고리'}
             </label>
             {subOptions.length > 0 ? (
               <select
@@ -128,7 +128,7 @@ export default function NewMenuItemPage() {
                 type="text"
                 value={form.subcategory}
                 onChange={(e) => set('subcategory', e.target.value)}
-                placeholder="예: #1"
+                placeholder="예: 12000"
                 className={inputCls}
                 style={{ color: 'var(--foreground)' }}
               />

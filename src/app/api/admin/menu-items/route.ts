@@ -37,6 +37,19 @@ const toNullableText = (value: unknown) => {
   return text.length > 0 ? text : null
 }
 
+const toNullableCocktailPrice = (value: unknown) => {
+  const text = toTrimmedString(value)
+  if (!text) return null
+
+  const numericText = text.replace(/,/g, '').match(/\d+/)?.[0]
+  if (!numericText) return null
+
+  const parsed = Number.parseInt(numericText, 10)
+  if (Number.isNaN(parsed)) return null
+
+  return String(parsed)
+}
+
 const toNullableNumber = (value: unknown, integer = false) => {
   if (value == null) return null
 
@@ -128,7 +141,9 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
     return { error: '메뉴 이름을 입력해주세요.', payload: null }
   }
 
-  let subcategory = toNullableText(body.subcategory)
+  let subcategory = category === 'cocktail'
+    ? toNullableCocktailPrice(body.subcategory)
+    : toNullableText(body.subcategory)
   if (category === 'cocktail' && !subcategory) {
     const fallbackTier = toNullableNumber(body.price, true)
     if (fallbackTier != null) {
@@ -137,7 +152,7 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
   }
 
   if (category === 'cocktail' && !subcategory) {
-    return { error: '칵테일은 가격 그룹을 입력해주세요.', payload: null }
+    return { error: '칵테일은 가격(원)을 입력해주세요.', payload: null }
   }
 
   if (category === 'wine' && subcategory && !WINE_SUBS.has(subcategory)) {

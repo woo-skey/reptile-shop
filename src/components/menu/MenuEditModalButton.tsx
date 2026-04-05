@@ -316,7 +316,7 @@ export default function MenuEditModalButton({
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    {currentCategory === 'cocktail' ? 'Price Group (e.g. #1)' : 'Subcategory'}
+                    {currentCategory === 'cocktail' ? '가격 (예: 12000)' : 'Subcategory'}
                   </label>
                   {subOptions.length > 0 ? (
                     <select
@@ -337,7 +337,7 @@ export default function MenuEditModalButton({
                       type="text"
                       value={form.subcategory}
                       onChange={(e) => set('subcategory', e.target.value)}
-                      placeholder="e.g. #1"
+                      placeholder="예: 12000"
                       className={inputCls}
                       style={{ color: 'var(--foreground)' }}
                     />
