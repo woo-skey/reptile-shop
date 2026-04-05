@@ -5,6 +5,8 @@ export type RowOptionKey = 'all' | '2' | '3' | '5'
 export const TAB_LABELS: Record<MenuCategory, string> = {
   event: 'Event / New',
   food: 'Food',
+  non_alcohol: 'Non-Alcohol',
+  beverage: 'Beverage',
   signature: 'Signature',
   cocktail: 'Cocktail',
   beer: 'Beer',

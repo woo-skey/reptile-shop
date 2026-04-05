@@ -306,6 +306,10 @@ export default function MenuTable({
       return <EventTable items={items} rowLimit={rowLimit} />
     case 'food':
       return <FoodTable items={items} rowLimit={rowLimit} />
+    case 'non_alcohol':
+      return <EventTable items={items} rowLimit={rowLimit} />
+    case 'beverage':
+      return <EventTable items={items} rowLimit={rowLimit} />
     case 'signature':
       return <SignatureTable items={items} rowLimit={rowLimit} />
     case 'cocktail':

@@ -24,7 +24,18 @@ export interface Post {
   profiles?: Pick<Profile, 'username' | 'display_name'>
 }
 
-export type MenuCategory = 'event' | 'food' | 'signature' | 'cocktail' | 'beer' | 'wine' | 'whisky' | 'shochu' | 'spirits'
+export type MenuCategory =
+  | 'event'
+  | 'food'
+  | 'non_alcohol'
+  | 'beverage'
+  | 'signature'
+  | 'cocktail'
+  | 'beer'
+  | 'wine'
+  | 'whisky'
+  | 'shochu'
+  | 'spirits'
 
 export interface MenuItem {
   id: string

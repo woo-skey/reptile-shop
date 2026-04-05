@@ -2,43 +2,57 @@
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { MenuCategory } from '@/types'
+import type { MenuCategory, MenuItem } from '@/types'
+
+const CATEGORIES: { value: MenuCategory; label: string }[] = [
+  { value: 'event', label: 'Event / New' },
+  { value: 'food', label: 'Food' },
+  { value: 'non_alcohol', label: 'Non-Alcohol' },
+  { value: 'beverage', label: 'Beverage' },
+  { value: 'signature', label: 'Signature' },
+  { value: 'cocktail', label: 'Cocktail' },
+  { value: 'beer', label: 'Beer' },
+  { value: 'wine', label: 'Wine' },
+  { value: 'whisky', label: 'Whisky' },
+  { value: 'shochu', label: 'Shochu' },
+  { value: 'spirits', label: 'Spirits' },
+]
 
 const WINE_SUBS = ['red', 'white', 'sparkling']
 const WHISKY_SUBS = ['single_malt', 'blended', 'bourbon', 'tennessee']
 
-const CATEGORY_LABEL: Record<MenuCategory, string> = {
-  event: '이벤트',
-  food: '메뉴',
-  non_alcohol: '메뉴',
-  beverage: '메뉴',
-  signature: '메뉴',
-  cocktail: '메뉴',
-  beer: '메뉴',
-  wine: '메뉴',
-  whisky: '메뉴',
-  shochu: '메뉴',
-  spirits: '메뉴',
+const toNumberOrNull = (value: string, parser: (input: string) => number) => {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const parsed = parser(trimmed)
+  return Number.isNaN(parsed) ? null : parsed
 }
 
-export default function MenuAddModalButton({ category }: { category: MenuCategory }) {
+export default function MenuEditModalButton({
+  item,
+  onUpdated,
+}: {
+  item: MenuItem
+  onUpdated: (updated: MenuItem) => void
+}) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
-    subcategory: '',
-    name: '',
-    description: '',
-    note: '',
-    abv: '',
-    volume_ml: '',
-    price: '',
-    price_glass: '',
-    price_bottle: '',
-    sort_order: '0',
-    is_available: true,
-    image_url: '',
+    category: item.category,
+    subcategory: item.subcategory ?? '',
+    name: item.name,
+    description: item.description ?? '',
+    note: item.note ?? '',
+    abv: item.abv != null ? String(item.abv) : '',
+    volume_ml: item.volume_ml != null ? String(item.volume_ml) : '',
+    price: item.price != null ? String(item.price) : '',
+    price_glass: item.price_glass != null ? String(item.price_glass) : '',
+    price_bottle: item.price_bottle != null ? String(item.price_bottle) : '',
+    sort_order: String(item.sort_order),
+    is_available: item.is_available,
+    image_url: item.image_url ?? '',
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
@@ -53,33 +67,14 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
   const set = (k: string, v: string | boolean) => setForm((prev) => ({ ...prev, [k]: v }))
 
-  const needsSub = category === 'wine' || category === 'whisky' || category === 'cocktail'
-  const needsNote = category === 'food'
-  const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(category)
-  const needsVol = category === 'beer'
-  const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(category)
+  const currentCategory = form.category
+  const needsSub = currentCategory === 'wine' || currentCategory === 'whisky' || currentCategory === 'cocktail'
+  const needsNote = currentCategory === 'food'
+  const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(currentCategory)
+  const needsVol = currentCategory === 'beer'
+  const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(currentCategory)
   const needsPrice = !needsGlass
-  const subOptions = category === 'wine' ? WINE_SUBS : category === 'whisky' ? WHISKY_SUBS : []
-
-  const reset = () => {
-    setForm({
-      subcategory: '',
-      name: '',
-      description: '',
-      note: '',
-      abv: '',
-      volume_ml: '',
-      price: '',
-      price_glass: '',
-      price_bottle: '',
-      sort_order: '0',
-      is_available: true,
-      image_url: '',
-    })
-    setImageFile(null)
-    setPreview('')
-    if (fileRef.current) fileRef.current.value = ''
-  }
+  const subOptions = currentCategory === 'wine' ? WINE_SUBS : currentCategory === 'whisky' ? WHISKY_SUBS : []
 
   const close = () => {
     setOpen(false)
@@ -109,7 +104,6 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
     }
 
     const { signedUrl, path } = await res.json()
-
     const uploadRes = await fetch(signedUrl, {
       method: 'PUT',
       headers: { 'Content-Type': imageFile.type },
@@ -132,54 +126,72 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
       const uploadedPath = await uploadImage()
       const imageUrl = uploadedPath || form.image_url || null
 
+      const payload = {
+        id: item.id,
+        category: form.category,
+        subcategory: form.subcategory || null,
+        name: form.name,
+        description: form.description || null,
+        note: form.note || null,
+        abv: toNumberOrNull(form.abv, parseFloat),
+        volume_ml: toNumberOrNull(form.volume_ml, parseInt),
+        price: toNumberOrNull(form.price, parseInt),
+        price_glass: toNumberOrNull(form.price_glass, parseInt),
+        price_bottle: toNumberOrNull(form.price_bottle, parseInt),
+        sort_order: toNumberOrNull(form.sort_order, parseInt) ?? 0,
+        is_available: form.is_available,
+        image_url: imageUrl,
+      }
+
       const res = await fetch('/api/admin/menu-items', {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          category,
-          subcategory: form.subcategory || null,
-          name: form.name,
-          description: form.description || null,
-          note: form.note || null,
-          abv: form.abv ? parseFloat(form.abv) : null,
-          volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
-          price: form.price ? parseInt(form.price) : null,
-          price_glass: form.price_glass ? parseInt(form.price_glass) : null,
-          price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
-          sort_order: parseInt(form.sort_order) || 0,
-          is_available: form.is_available,
-          image_url: imageUrl,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: '등록에 실패했습니다.' }))
-        setError(data.error ?? '등록에 실패했습니다.')
+        const data = await res.json().catch(() => ({ error: '수정에 실패했습니다.' }))
+        setError(data.error ?? '수정에 실패했습니다.')
         setLoading(false)
         return
       }
 
-      reset()
+      onUpdated({
+        ...item,
+        category: payload.category,
+        subcategory: payload.subcategory,
+        name: payload.name,
+        description: payload.description,
+        note: payload.note,
+        abv: payload.abv,
+        volume_ml: payload.volume_ml,
+        price: payload.price,
+        price_glass: payload.price_glass,
+        price_bottle: payload.price_bottle,
+        sort_order: payload.sort_order,
+        is_available: payload.is_available,
+        image_url: payload.image_url,
+      })
+
       close()
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '등록에 실패했습니다.')
+      setError(err instanceof Error ? err.message : '수정에 실패했습니다.')
       setLoading(false)
     }
   }
 
   const inputCls = 'glass-input w-full px-3 py-2 text-sm'
   const labelCls = 'block text-xs font-medium mb-1 opacity-60'
-  const addLabel = category === 'event' ? '이벤트 추가' : '메뉴 추가'
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full sm:w-auto text-xs px-3 py-1.5 rounded-lg"
-        style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
+        className="text-xs px-2.5 py-1 rounded-md border"
+        style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
       >
-        {addLabel}
+        수정
       </button>
 
       {open && (
@@ -195,7 +207,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
           >
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-                {CATEGORY_LABEL[category]} 등록
+                메뉴 수정
               </h3>
               <button
                 onClick={close}
@@ -207,6 +219,24 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                  카테고리
+                </label>
+                <select
+                  value={form.category}
+                  onChange={(e) => set('category', e.target.value)}
+                  className={inputCls}
+                  style={{ color: 'var(--foreground)' }}
+                >
+                  {CATEGORIES.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
                   사진
@@ -239,10 +269,10 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                   className={inputCls}
                   style={{ color: 'var(--foreground)' }}
                 />
-                {preview && (
+                {(preview || form.image_url) && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={preview}
+                    src={preview || form.image_url}
                     alt="미리보기"
                     className="mt-2 w-20 h-20 object-cover rounded"
                     style={{ border: '1px solid rgba(201,162,39,0.3)' }}
@@ -253,7 +283,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    {category === 'cocktail' ? '가격 티어 (예: 12000)' : '서브 카테고리'}
+                    {currentCategory === 'cocktail' ? '가격 티어 (예: 12000)' : '서브 카테고리'}
                   </label>
                   {subOptions.length > 0 ? (
                     <select
@@ -417,12 +447,12 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
 
               <div className="flex items-center gap-2">
                 <input
-                  id="modal-avail"
+                  id={`modal-avail-${item.id}`}
                   type="checkbox"
                   checked={form.is_available}
                   onChange={(e) => set('is_available', e.target.checked)}
                 />
-                <label htmlFor="modal-avail" className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
+                <label htmlFor={`modal-avail-${item.id}`} className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
                   메뉴에 노출
                 </label>
               </div>
@@ -436,7 +466,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                   className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
                   style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
                 >
-                  {loading ? '등록 중...' : '등록하기'}
+                  {loading ? '수정 중...' : '수정하기'}
                 </button>
                 <button
                   type="button"

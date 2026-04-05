@@ -4,7 +4,7 @@ import DeleteMenuItemButton from '@/components/admin/DeleteMenuItemButton'
 import type { MenuItem } from '@/types'
 
 const CATEGORY_LABEL: Record<string, string> = {
-  event: 'Event/New', food: 'Food', signature: 'Signature',
+  event: 'Event/New', food: 'Food', non_alcohol: 'Non-Alcohol', beverage: 'Beverage', signature: 'Signature',
   cocktail: 'Cocktail', beer: 'Beer', wine: 'Wine',
   whisky: 'Whisky', shochu: 'Shochu', spirits: 'Spirits',
 }

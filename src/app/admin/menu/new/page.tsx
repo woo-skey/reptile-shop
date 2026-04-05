@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth'
 const CATEGORIES = [
   { value: 'event',     label: 'Event / New' },
   { value: 'food',      label: 'Food' },
+  { value: 'non_alcohol', label: 'Non-Alcohol' },
+  { value: 'beverage',  label: 'Beverage' },
   { value: 'signature', label: 'Signature' },
   { value: 'cocktail',  label: 'Cocktail' },
   { value: 'beer',      label: 'Beer' },
@@ -36,7 +38,7 @@ export default function NewMenuItemPage() {
 
   const needsSub    = category === 'wine' || category === 'whisky' || category === 'cocktail'
   const needsNote   = category === 'food'
-  const needsAbv    = !['food', 'event'].includes(category)
+  const needsAbv    = !['food', 'event', 'non_alcohol', 'beverage'].includes(category)
   const needsVol    = category === 'beer'
   const needsGlass  = ['wine', 'whisky', 'shochu', 'spirits'].includes(category)
   const needsPrice  = !needsGlass

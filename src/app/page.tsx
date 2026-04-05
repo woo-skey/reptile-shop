@@ -5,6 +5,8 @@ import type { Post, MenuItem } from '@/types'
 
 const MENU_LABELS: Record<string, string> = {
   food: 'Food',
+  non_alcohol: 'Non-Alcohol',
+  beverage: 'Beverage',
   signature: 'Signature',
   cocktail: 'Cocktail',
   beer: 'Beer',

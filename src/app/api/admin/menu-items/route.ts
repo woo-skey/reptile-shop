@@ -5,6 +5,8 @@ import type { MenuCategory } from '@/types'
 const VALID_CATEGORIES: MenuCategory[] = [
   'event',
   'food',
+  'non_alcohol',
+  'beverage',
   'signature',
   'cocktail',
   'beer',
@@ -14,7 +16,7 @@ const VALID_CATEGORIES: MenuCategory[] = [
   'spirits',
 ]
 
-export async function POST(request: NextRequest) {
+async function assertAdmin() {
   const supabase = await createClient()
 
   const {
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 })
+    return { errorResponse: NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 }) }
   }
 
   const { data: profile } = await supabase
@@ -32,20 +34,24 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (profile?.role !== 'admin') {
-    return NextResponse.json({ error: '관리자만 메뉴를 추가할 수 있습니다.' }, { status: 403 })
+    return { errorResponse: NextResponse.json({ error: '관리자만 메뉴를 관리할 수 있습니다.' }, { status: 403 }) }
   }
 
-  const body = await request.json()
+  return { supabase, errorResponse: null }
+}
 
+const parseMenuPayload = (body: Record<string, unknown>) => {
   const category = body.category as MenuCategory
   if (!VALID_CATEGORIES.includes(category)) {
-    return NextResponse.json({ error: '잘못된 카테고리입니다.' }, { status: 400 })
+    return { error: '잘못된 카테고리입니다.', payload: null }
   }
 
   const name = typeof body.name === 'string' ? body.name.trim() : ''
   if (!name) {
-    return NextResponse.json({ error: '메뉴 이름을 입력해주세요.' }, { status: 400 })
+    return { error: '메뉴 이름을 입력해주세요.', payload: null }
   }
+
+  const imageUrl = typeof body.image_url === 'string' ? body.image_url.trim() : ''
 
   const payload: Record<string, unknown> = {
     category,
@@ -60,12 +66,23 @@ export async function POST(request: NextRequest) {
     price_bottle: body.price_bottle ?? null,
     sort_order: body.sort_order ?? 0,
     is_available: body.is_available ?? true,
+    image_url: imageUrl || null,
   }
 
-  const imageUrl = typeof body.image_url === 'string' ? body.image_url.trim() : ''
-  if (imageUrl) payload.image_url = imageUrl
+  return { error: null, payload }
+}
 
-  const { error } = await supabase.from('menu_items').insert(payload)
+export async function POST(request: NextRequest) {
+  const admin = await assertAdmin()
+  if (admin.errorResponse) return admin.errorResponse
+
+  const body = await request.json()
+  const { error: payloadError, payload } = parseMenuPayload(body as Record<string, unknown>)
+  if (payloadError || !payload) {
+    return NextResponse.json({ error: payloadError ?? '잘못된 요청입니다.' }, { status: 400 })
+  }
+
+  const { error } = await admin.supabase.from('menu_items').insert(payload)
 
   if (error) {
     if (error.message.includes('menu_items.image_url')) {
@@ -77,6 +94,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
+}
+
+export async function PATCH(request: NextRequest) {
+  const admin = await assertAdmin()
+  if (admin.errorResponse) return admin.errorResponse
+
+  const body = await request.json()
+  const id = typeof body.id === 'string' ? body.id : ''
+  if (!id) {
+    return NextResponse.json({ error: '수정할 메뉴 ID가 필요합니다.' }, { status: 400 })
+  }
+
+  const { error: payloadError, payload } = parseMenuPayload(body as Record<string, unknown>)
+  if (payloadError || !payload) {
+    return NextResponse.json({ error: payloadError ?? '잘못된 요청입니다.' }, { status: 400 })
+  }
+
+  const { error } = await admin.supabase
+    .from('menu_items')
+    .update(payload)
+    .eq('id', id)
+
+  if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
