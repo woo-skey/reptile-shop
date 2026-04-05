@@ -15,13 +15,16 @@ const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
   const viewFromUrl = params.get('view')
+  const eventViewFromUrl = params.get('event_view')
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
     ? (tabFromUrl as MenuTabCategory)
     : 'event'
 
-  const view = viewFromUrl === 'photo' ? 'photo' : 'list'
-  return { tab, view: view as ViewMode }
+  const menuView = viewFromUrl === 'photo' ? 'photo' : 'list'
+  const eventView = eventViewFromUrl === 'list' ? 'list' : 'photo'
+
+  return { tab, menuView: menuView as ViewMode, eventView: eventView as ViewMode }
 }
 
 export default function MenuClientPage({
@@ -39,30 +42,51 @@ export default function MenuClientPage({
     if (typeof window === 'undefined') return initialTab
     return parseStateFromUrl().tab
   })
-  const [activeView, setActiveView] = useState<ViewMode>(() => {
+  const [menuView, setMenuView] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') return initialView
-    return parseStateFromUrl().view
+    return parseStateFromUrl().menuView
+  })
+  const [eventView, setEventView] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return 'photo'
+    return parseStateFromUrl().eventView
   })
 
   useEffect(() => {
     setMenuItems(items)
   }, [items])
 
+  const activeView = activeTab === 'event' ? eventView : menuView
+
+  const handleViewChange = (nextView: ViewMode) => {
+    if (activeTab === 'event') {
+      setEventView(nextView)
+      return
+    }
+
+    setMenuView(nextView)
+  }
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     params.set('tab', activeTab)
     params.delete('rows')
-    if (activeView === 'list') params.delete('view')
-    else params.set('view', activeView)
+
+    if (menuView === 'list') params.delete('view')
+    else params.set('view', menuView)
+
+    if (eventView === 'photo') params.delete('event_view')
+    else params.set('event_view', eventView)
+
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, activeView])
+  }, [activeTab, menuView, eventView])
 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseStateFromUrl()
       setActiveTab(parsed.tab)
-      setActiveView(parsed.view)
+      setMenuView(parsed.menuView)
+      setEventView(parsed.eventView)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -98,7 +122,7 @@ export default function MenuClientPage({
       </div>
 
       <div className="mb-6">
-        <MenuRowOptions activeMode={activeView} onChange={setActiveView} />
+        <MenuRowOptions activeMode={activeView} onChange={handleViewChange} />
       </div>
 
       <div className="glass-card px-4 py-2">

@@ -1,39 +1,98 @@
 'use client'
 
-import { useState } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const toPublicImageUrl = (path: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!baseUrl) return path
+  return `${baseUrl}/storage/v1/object/public/post-images/${path}`
+}
+
 export default function NewPopupPage() {
   const router = useRouter()
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
+
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (preview) URL.revokeObjectURL(preview)
+    const file = e.target.files?.[0]
+    setImageFile(file ?? null)
+    setPreview(file ? URL.createObjectURL(file) : '')
+  }
+
+  const uploadImage = async () => {
+    if (!imageFile) return null
+
+    const prepareRes = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+    })
+
+    if (!prepareRes.ok) {
+      const data = await prepareRes.json().catch(() => ({ error: '이미지 업로드 준비에 실패했습니다.' }))
+      throw new Error(data.error ?? '이미지 업로드 준비에 실패했습니다.')
+    }
+
+    const { signedUrl, path } = await prepareRes.json()
+
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': imageFile.type },
+      body: imageFile,
+    })
+
+    if (!uploadRes.ok) {
+      throw new Error('이미지 업로드에 실패했습니다.')
+    }
+
+    return toPublicImageUrl(path as string)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error: insertError } = await supabase.from('popups').insert({
-      title,
-      content: content || null,
-      image_url: imageUrl || null,
-      is_active: isActive,
-    })
+    try {
+      const uploadedImageUrl = await uploadImage()
+      const finalImageUrl = uploadedImageUrl || imageUrl || null
 
-    if (insertError) {
-      setError(insertError.message)
+      const supabase = createClient()
+      const { error: insertError } = await supabase.from('popups').insert({
+        title,
+        content: content || null,
+        image_url: finalImageUrl,
+        is_active: isActive,
+      })
+
+      if (insertError) {
+        setError(insertError.message)
+        setLoading(false)
+        return
+      }
+
+      router.push('/admin/popup')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '팝업 생성에 실패했습니다.')
       setLoading(false)
-      return
     }
-
-    router.push('/admin/popup')
   }
 
   return (
@@ -76,6 +135,26 @@ export default function NewPopupPage() {
           <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>
             이미지 URL
           </label>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="px-3 py-1.5 text-xs rounded-md border"
+              style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+            >
+              파일 선택
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+            <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+              또는 이미지 URL 입력
+            </span>
+          </div>
           <input
             type="url"
             value={imageUrl}
@@ -84,6 +163,15 @@ export default function NewPopupPage() {
             className="glass-input w-full px-4 py-2.5 text-sm"
             style={{ color: 'var(--foreground)' }}
           />
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={preview}
+              alt="미리보기"
+              className="mt-2 w-24 h-24 rounded object-cover"
+              style={{ border: '1px solid rgba(201,162,39,0.3)' }}
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-2">

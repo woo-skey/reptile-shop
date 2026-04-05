@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import TogglePopupActiveButton from '@/components/admin/TogglePopupActiveButton'
+import PopupEditModalButton from '@/components/admin/PopupEditModalButton'
+import DeletePopupButton from '@/components/admin/DeletePopupButton'
 import type { Popup } from '@/types'
 
 export default async function AdminPopupPage() {
@@ -61,7 +63,11 @@ export default async function AdminPopupPage() {
                 </p>
               </div>
 
-              <TogglePopupActiveButton popupId={popup.id} initialActive={popup.is_active} />
+              <div className="flex items-center gap-2 shrink-0">
+                <TogglePopupActiveButton popupId={popup.id} initialActive={popup.is_active} />
+                <PopupEditModalButton popup={popup} />
+                <DeletePopupButton popupId={popup.id} />
+              </div>
             </div>
           ))
         )}
