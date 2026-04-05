@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import type { RowOptionKey } from '@/components/menu/MenuTypes'
 
 const ROW_OPTIONS = [
   { key: 'all', label: '전체 보기' },
@@ -10,7 +9,7 @@ const ROW_OPTIONS = [
   { key: '5', label: '5행 보기' },
 ] as const
 
-function RowOptionIcon({ optionKey }: { optionKey: 'all' | '2' | '3' | '5' }) {
+function RowOptionIcon({ optionKey }: { optionKey: RowOptionKey }) {
   const lineCount = optionKey === 'all' ? 6 : parseInt(optionKey, 10)
   return (
     <span
@@ -29,41 +28,29 @@ function RowOptionIcon({ optionKey }: { optionKey: 'all' | '2' | '3' | '5' }) {
   )
 }
 
-export default function MenuRowOptions({ activeRows }: { activeRows: 'all' | '2' | '3' | '5' }) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [optimisticRows, setOptimisticRows] = useState(activeRows)
-
-  useEffect(() => {
-    setOptimisticRows(activeRows)
-  }, [activeRows])
-
-  const handleOption = (key: 'all' | '2' | '3' | '5') => {
-    if (key === optimisticRows) return
-    setOptimisticRows(key)
-
-    const params = new URLSearchParams(searchParams.toString())
-    if (key === 'all') params.delete('rows')
-    else params.set('rows', key)
-    const nextHref = params.toString() ? `/menu?${params.toString()}` : '/menu'
-
-    startTransition(() => {
-      router.replace(nextHref, { scroll: false })
-    })
+export default function MenuRowOptions({
+  activeRows,
+  onChange,
+}: {
+  activeRows: RowOptionKey
+  onChange: (rows: RowOptionKey) => void
+}) {
+  const handleOption = (key: RowOptionKey) => {
+    if (key === activeRows) return
+    onChange(key)
   }
 
   return (
     <div className="-mx-1 px-1 overflow-x-auto">
       <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
         {ROW_OPTIONS.map(({ key, label }) => {
-          const active = optimisticRows === key
+          const rowKey = key as RowOptionKey
+          const active = activeRows === rowKey
           return (
             <button
               key={key}
-              onClick={() => handleOption(key)}
-              disabled={isPending}
-              className="shrink-0 inline-flex items-center justify-center w-10 h-8 text-xs rounded-md border transition-all disabled:opacity-70"
+              onClick={() => handleOption(rowKey)}
+              className="shrink-0 inline-flex items-center justify-center w-10 h-8 text-xs rounded-md border transition-all"
               aria-label={label}
               title={label}
               style={{
@@ -73,7 +60,7 @@ export default function MenuRowOptions({ activeRows }: { activeRows: 'all' | '2'
                 fontWeight: active ? 600 : 400,
               }}
             >
-              <RowOptionIcon optionKey={key} />
+              <RowOptionIcon optionKey={rowKey} />
               <span className="sr-only">{label}</span>
             </button>
           )

@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import type { MenuCategory } from '@/types'
 
 const TABS = [
   { key: 'event', label: 'Event / New' },
@@ -15,40 +14,29 @@ const TABS = [
   { key: 'spirits', label: 'Spirits' },
 ] as const
 
-export default function MenuTabs({ activeTab }: { activeTab: string }) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
-  const [optimisticTab, setOptimisticTab] = useState(activeTab)
-
-  useEffect(() => {
-    setOptimisticTab(activeTab)
-  }, [activeTab])
-
-  const handleTab = (key: string) => {
-    if (key === optimisticTab) return
-    setOptimisticTab(key)
-
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', key)
-    const nextHref = `/menu?${params.toString()}`
-
-    startTransition(() => {
-      router.replace(nextHref, { scroll: false })
-    })
+export default function MenuTabs({
+  activeTab,
+  onChange,
+}: {
+  activeTab: MenuCategory
+  onChange: (tab: MenuCategory) => void
+}) {
+  const handleTab = (key: MenuCategory) => {
+    if (key === activeTab) return
+    onChange(key)
   }
 
   return (
     <div className="mb-8 -mx-1 px-1 overflow-x-auto">
       <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
         {TABS.map(({ key, label }) => {
-          const active = optimisticTab === key
+          const tabKey = key as MenuCategory
+          const active = activeTab === tabKey
           return (
             <button
               key={key}
-              onClick={() => handleTab(key)}
-              disabled={isPending}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-md border transition-all disabled:opacity-70"
+              onClick={() => handleTab(tabKey)}
+              className="shrink-0 px-3 py-1.5 text-xs rounded-md border transition-all"
               style={{
                 backgroundColor: active ? '#456132' : 'transparent',
                 color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.55)',

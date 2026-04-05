@@ -1,22 +1,7 @@
-import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import MenuTabs from '@/components/menu/MenuTabs'
-import MenuRowOptions from '@/components/menu/MenuRowOptions'
-import MenuTable from '@/components/menu/MenuTable'
-import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
+import MenuClientPage from '@/components/menu/MenuClientPage'
+import { TAB_LABELS, type RowOptionKey } from '@/components/menu/MenuTypes'
 import type { MenuCategory, MenuItem } from '@/types'
-
-const TAB_LABELS: Record<MenuCategory, string> = {
-  event: 'Event / New',
-  food: 'Food',
-  signature: 'Signature',
-  cocktail: 'Cocktail',
-  beer: 'Beer',
-  wine: 'Wine',
-  whisky: 'Whisky',
-  shochu: 'Shochu',
-  spirits: 'Spirits',
-}
 
 export default async function MenuPage({
   searchParams,
@@ -29,8 +14,7 @@ export default async function MenuPage({
     ? (tab as MenuCategory)
     : 'event'
 
-  const activeRows = rows === '2' || rows === '3' || rows === '5' ? rows : 'all'
-  const rowLimit = activeRows === 'all' ? null : parseInt(activeRows)
+  const activeRows = (rows === '2' || rows === '3' || rows === '5' ? rows : 'all') as RowOptionKey
 
   const supabase = await createClient()
   const [
@@ -42,8 +26,8 @@ export default async function MenuPage({
     supabase
       .from('menu_items')
       .select('*')
-      .eq('category', activeTab)
       .eq('is_available', true)
+      .order('category', { ascending: true })
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true }),
     supabase.auth.getUser(),
@@ -75,30 +59,7 @@ export default async function MenuPage({
         </p>
       </div>
 
-      <Suspense>
-        <MenuTabs activeTab={activeTab} />
-      </Suspense>
-
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <h2
-          className="text-base font-semibold"
-          style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
-        >
-          {TAB_LABELS[activeTab]}
-        </h2>
-        <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(201,162,39,0.2)' }} />
-        {isAdmin && <MenuAddModalButton category={activeTab} />}
-      </div>
-
-      <div className="mb-6">
-        <Suspense>
-          <MenuRowOptions activeRows={activeRows} />
-        </Suspense>
-      </div>
-
-      <div className="glass-card px-4 py-2">
-        <MenuTable items={items} category={activeTab} rowLimit={rowLimit} />
-      </div>
+      <MenuClientPage items={items} initialTab={activeTab} initialRows={activeRows} isAdmin={isAdmin} />
     </div>
   )
 }
