@@ -53,6 +53,7 @@ export default function MenuClientPage({
   const [orderError, setOrderError] = useState('')
 
   const canUsePhotoView = activeTab === 'event' || activeTab === 'food'
+  const effectiveViewMode: ViewMode = canUsePhotoView ? viewMode : 'list'
 
   useEffect(() => {
     setMenuItems(items)
@@ -97,6 +98,7 @@ export default function MenuClientPage({
       .sort(sortByOrder),
     [menuItems, activeTab]
   )
+  const canDragRows = isAdmin && filteredItems.length > 1 && effectiveViewMode === 'list'
 
   const handleItemUpdated = (updated: MenuItem) => {
     setMenuItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
@@ -168,6 +170,7 @@ export default function MenuClientPage({
       <MenuTabs activeTab={activeTab} onChange={setActiveTab} />
 
       <div className="flex flex-wrap items-center gap-3 mb-3">
+        {canUsePhotoView && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}
         <h2
           className="text-base font-semibold"
           style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
@@ -175,69 +178,46 @@ export default function MenuClientPage({
           {TAB_LABELS[activeTab]}
         </h2>
         <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(201,162,39,0.2)' }} />
-        {canUsePhotoView && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}
+        {orderSaving && (
+          <span className="text-xs" style={{ color: '#C9A227', opacity: 0.85 }}>
+            순서 저장 중...
+          </span>
+        )}
         {isAdmin && <MenuAddModalButton category={activeTab} />}
       </div>
 
-      {isAdmin && filteredItems.length > 1 && (
-        <div className="glass-card px-3 py-3 mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
-              드래그로 메뉴 순서 변경
-            </p>
-            {orderSaving && (
-              <span className="text-[11px]" style={{ color: '#C9A227', opacity: 0.85 }}>
-                저장 중...
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            {filteredItems.map((item, index) => (
-              <div
-                key={item.id}
-                draggable={!orderSaving}
-                onDragStart={() => setDraggingId(item.id)}
-                onDragEnd={() => setDraggingId(null)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => void handleDrop(item.id)}
-                className="flex items-center gap-2 px-2 py-2 rounded-md border text-xs transition-colors"
-                style={{
-                  borderColor: draggingId === item.id ? 'rgba(201,162,39,0.65)' : 'rgba(201,162,39,0.25)',
-                  backgroundColor: draggingId === item.id ? 'rgba(69,97,50,0.22)' : 'rgba(255,255,255,0.02)',
-                  color: 'var(--foreground)',
-                  cursor: orderSaving ? 'not-allowed' : 'grab',
-                }}
-              >
-                <span className="w-5 shrink-0 text-center" style={{ color: '#C9A227', opacity: 0.85 }}>
-                  {index + 1}
-                </span>
-                <span className="truncate flex-1" style={{ opacity: 0.9 }}>
-                  {item.name}
-                </span>
-                <span className="shrink-0 select-none" style={{ opacity: 0.4 }}>
-                  ⋮⋮
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {orderError && (
-            <p className="text-xs mt-2 text-red-400">
-              {orderError}
-            </p>
-          )}
-        </div>
+      {canDragRows && (
+        <p className="text-xs mb-2" style={{ color: 'var(--foreground)', opacity: 0.58 }}>
+          리스트에서 항목을 드래그해 순서를 바꿀 수 있습니다.
+        </p>
+      )}
+      {orderError && (
+        <p className="text-xs mb-2 text-red-400">
+          {orderError}
+        </p>
       )}
 
       <div className="glass-card px-4 py-2">
         <MenuTable
           items={filteredItems}
           category={activeTab}
-          viewMode={canUsePhotoView ? viewMode : 'list'}
+          viewMode={effectiveViewMode}
           isAdmin={isAdmin}
           onItemUpdated={handleItemUpdated}
           onItemDeleted={handleItemDeleted}
+          dragContext={
+            canDragRows
+              ? {
+                  enabled: !orderSaving,
+                  draggingId,
+                  onDragStart: setDraggingId,
+                  onDragEnd: () => setDraggingId(null),
+                  onDrop: (id) => {
+                    void handleDrop(id)
+                  },
+                }
+              : undefined
+          }
         />
       </div>
     </>

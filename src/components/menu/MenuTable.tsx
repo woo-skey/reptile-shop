@@ -103,9 +103,48 @@ function NameCell({ item }: { item: MenuItem }) {
   )
 }
 
-function Row({ cells }: { cells: (ReactNode | null | undefined)[] }) {
+type ListDragContext = {
+  enabled: boolean
+  draggingId: string | null
+  onDragStart: (id: string) => void
+  onDragEnd: () => void
+  onDrop: (id: string) => void
+}
+
+function Row({
+  cells,
+  itemId,
+  dragContext,
+}: {
+  cells: (ReactNode | null | undefined)[]
+  itemId?: string
+  dragContext?: ListDragContext
+}) {
+  const isDraggable = Boolean(dragContext?.enabled && itemId)
+  const isDragging = Boolean(isDraggable && dragContext?.draggingId === itemId)
+
   return (
-    <tr className="transition-colors hover:bg-white/5" style={{ borderBottom: '1px solid rgba(201,162,39,0.08)' }}>
+    <tr
+      draggable={isDraggable}
+      onDragStart={
+        isDraggable && itemId && dragContext
+          ? () => dragContext.onDragStart(itemId)
+          : undefined
+      }
+      onDragEnd={isDraggable && dragContext ? dragContext.onDragEnd : undefined}
+      onDragOver={isDraggable ? (event) => event.preventDefault() : undefined}
+      onDrop={
+        isDraggable && itemId && dragContext
+          ? () => dragContext.onDrop(itemId)
+          : undefined
+      }
+      className="transition-colors hover:bg-white/5"
+      style={{
+        borderBottom: '1px solid rgba(201,162,39,0.08)',
+        cursor: isDraggable ? 'grab' : 'default',
+        backgroundColor: isDragging ? 'rgba(69,97,50,0.22)' : undefined,
+      }}
+    >
       {cells.map((c, i) => (
         <td
           key={i}
@@ -270,9 +309,10 @@ type TableRendererProps = {
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
+  dragContext?: ListDragContext
 }
 
-function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['제목', '내용'], isAdmin)
 
@@ -284,6 +324,8 @@ function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: 
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell([<NameCell key="name" item={item} />, item.description], item, isAdmin, onItemUpdated, onItemDeleted)}
           />
         ))
@@ -292,7 +334,7 @@ function EventTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: 
   )
 }
 
-function SimplePriceTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function SimplePriceTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '가격'], isAdmin)
 
@@ -304,6 +346,8 @@ function SimplePriceTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDelet
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell([<NameCell key="name" item={item} />, item.description, fmt(item.price)], item, isAdmin, onItemUpdated, onItemDeleted)}
           />
         ))
@@ -312,7 +356,7 @@ function SimplePriceTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDelet
   )
 }
 
-function FoodTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function FoodTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '비고', '가격'], isAdmin)
 
@@ -324,6 +368,8 @@ function FoodTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: T
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell(
               [<NameCell key="name" item={item} />, item.description, item.note, fmt(item.price)],
               item,
@@ -338,7 +384,7 @@ function FoodTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: T
   )
 }
 
-function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '가격'], isAdmin)
 
@@ -350,6 +396,8 @@ function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell(
               [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)],
               item,
@@ -364,7 +412,7 @@ function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted
   )
 }
 
-function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const groups = limited.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const key = item.subcategory?.trim() || ''
@@ -391,6 +439,8 @@ function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted 
             {groups[key].map((item) => (
               <Row
                 key={item.id}
+                itemId={item.id}
+                dragContext={dragContext}
                 cells={withEditCell(
                   [<NameCell key="name" item={item} />, item.description, abvStr(item.abv)],
                   item,
@@ -407,7 +457,7 @@ function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted 
   )
 }
 
-function BeerTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function BeerTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '용량', '가격'], isAdmin)
 
@@ -419,6 +469,8 @@ function BeerTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: T
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell(
               [
                 <NameCell key="name" item={item} />,
@@ -445,7 +497,7 @@ const WINE_SUBS = [
   { key: 'sparkling', label: 'Sparkling' },
 ]
 
-function WineTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function WineTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
@@ -464,6 +516,8 @@ function WineTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: T
               {rows.map((item) => (
                 <Row
                   key={item.id}
+                  itemId={item.id}
+                  dragContext={dragContext}
                   cells={withEditCell(
                     [
                       <NameCell key="name" item={item} />,
@@ -494,7 +548,7 @@ const WHISKY_SUBS = [
   { key: 'tennessee', label: 'Tennessee' },
 ]
 
-function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
@@ -513,6 +567,8 @@ function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }:
               {rows.map((item) => (
                 <Row
                   key={item.id}
+                  itemId={item.id}
+                  dragContext={dragContext}
                   cells={withEditCell(
                     [
                       <NameCell key="name" item={item} />,
@@ -536,7 +592,7 @@ function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }:
   )
 }
 
-function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted }: TableRendererProps) {
+function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDeleted, dragContext }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
 
@@ -548,6 +604,8 @@ function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated, onItemDelet
         limited.map((item) => (
           <Row
             key={item.id}
+            itemId={item.id}
+            dragContext={dragContext}
             cells={withEditCell(
               [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)],
               item,
@@ -569,6 +627,7 @@ export default function MenuTable({
   isAdmin = false,
   onItemUpdated,
   onItemDeleted,
+  dragContext,
 }: {
   items: MenuItem[]
   category: MenuCategory
@@ -576,6 +635,7 @@ export default function MenuTable({
   isAdmin?: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
+  dragContext?: ListDragContext
 }) {
   const canUsePhotoView = category === 'event' || category === 'food'
   if (viewMode === 'photo' && canUsePhotoView) {
@@ -590,7 +650,7 @@ export default function MenuTable({
     )
   }
 
-  const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated, onItemDeleted }
+  const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated, onItemDeleted, dragContext }
 
   switch (category) {
     case 'event':

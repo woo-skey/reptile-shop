@@ -44,30 +44,28 @@ export default function MenuRowOptions({
   }
 
   return (
-    <div className="-mx-1 px-1 overflow-x-auto">
-      <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
-        {VIEW_OPTIONS.map(({ key, label }) => {
-          const active = activeMode === key
-          return (
-            <button
-              key={key}
-              onClick={() => handleOption(key)}
-              className="shrink-0 inline-flex items-center justify-center w-10 h-8 text-xs rounded-md border transition-all"
-              aria-label={label}
-              title={label}
-              style={{
-                backgroundColor: active ? 'rgba(69,97,50,0.7)' : 'transparent',
-                color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.6)',
-                borderColor: active ? '#C9A227' : 'rgba(201, 162, 39, 0.2)',
-                fontWeight: active ? 600 : 400,
-              }}
-            >
-              <ViewModeIcon mode={key} />
-              <span className="sr-only">{label}</span>
-            </button>
-          )
-        })}
-      </div>
+    <div className="flex gap-1 shrink-0">
+      {VIEW_OPTIONS.map(({ key, label }) => {
+        const active = activeMode === key
+        return (
+          <button
+            key={key}
+            onClick={() => handleOption(key)}
+            className="inline-flex items-center justify-center w-10 h-8 text-xs rounded-md border transition-all"
+            aria-label={label}
+            title={label}
+            style={{
+              backgroundColor: active ? 'rgba(69,97,50,0.7)' : 'transparent',
+              color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.6)',
+              borderColor: active ? '#C9A227' : 'rgba(201, 162, 39, 0.2)',
+              fontWeight: active ? 600 : 400,
+            }}
+          >
+            <ViewModeIcon mode={key} />
+            <span className="sr-only">{label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
