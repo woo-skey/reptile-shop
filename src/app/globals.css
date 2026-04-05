@@ -28,6 +28,9 @@
 :root {
   --background: #F5F0E8;
   --foreground: #1A1A0F;
+  --font-playfair: var(--font-cafe24);
+  --font-noto-serif-kr: var(--font-cafe24);
+  --font-im-fell: var(--font-cafe24);
 }
 
 :root.dark {
@@ -41,7 +44,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: "Noto Serif KR", Georgia, serif;
+  font-family: var(--font-cafe24), sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 

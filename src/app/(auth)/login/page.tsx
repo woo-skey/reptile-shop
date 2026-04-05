@@ -8,7 +8,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1
             className="text-3xl font-bold mb-1"
-            style={{ fontFamily: '"Playfair Display", serif', color: '#C9A227' }}
+            style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
           >
             파충류가게
           </h1>

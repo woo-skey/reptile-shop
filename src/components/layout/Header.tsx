@@ -57,7 +57,7 @@ export default function Header() {
         <Link href="/" prefetch className="flex items-center gap-2">
           <span
             className="text-xl font-bold"
-            style={{ fontFamily: '"Playfair Display", serif', color: '#C9A227' }}
+            style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
           >
             파충류가게
           </span>

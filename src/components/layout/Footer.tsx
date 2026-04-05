@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto px-4 text-center">
         <p
           className="text-lg font-bold mb-1"
-          style={{ fontFamily: '"Playfair Display", serif', color: '#C9A227' }}
+          style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
         >
           파충류가게
         </p>
