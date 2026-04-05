@@ -1,8 +1,11 @@
+import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import MenuClientPage from '@/components/menu/MenuClientPage'
 import type { MenuItem } from '@/types'
 
 export default async function MenuPage() {
+  await connection()
+
   const supabase = createPublicClient()
   const { data } = await supabase
     .from('menu_items')

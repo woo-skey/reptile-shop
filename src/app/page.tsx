@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
@@ -20,6 +21,8 @@ const MENU_LABELS: Record<string, string> = {
 const MAIN_HERO_IMAGE = '/reptile_image.png'
 
 export default async function HomePage() {
+  await connection()
+
   const supabase = createPublicClient()
 
   const [
