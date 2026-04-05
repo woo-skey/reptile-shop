@@ -1,6 +1,6 @@
 import HomeNoticeBannerForm from '@/components/admin/HomeNoticeBannerForm'
 import { createClient } from '@/lib/supabase/server'
-import type { HomeNoticeBanner } from '@/types'
+import type { BannerAlign, HomeNoticeBanner } from '@/types'
 
 const isHomeNoticeTableMissingError = (message: string) => {
   const normalized = message.toLowerCase()
@@ -9,6 +9,11 @@ const isHomeNoticeTableMissingError = (message: string) => {
     normalized.includes('schema cache') ||
     normalized.includes('relation')
   )
+}
+
+const toBannerAlign = (value: string | null | undefined): BannerAlign => {
+  if (value === 'left' || value === 'center' || value === 'right') return value
+  return 'center'
 }
 
 export default async function AdminHomeNoticePage() {
@@ -56,13 +61,13 @@ export default async function AdminHomeNoticePage() {
           메인 공지 배너
         </h2>
         <p className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
-          홈 배너 아래에 9:1 공지 영역으로 노출됩니다. 내용이 비어 있으면 자동으로 숨겨집니다.
+          홈 배너 아래에 공지 영역으로 노출됩니다. 제목 없이 내용만 노출되며, 정렬을 선택할 수 있습니다.
         </p>
       </div>
 
       <HomeNoticeBannerForm
-        initialTitle={banner?.title ?? ''}
         initialContent={banner?.content ?? ''}
+        initialAlign={toBannerAlign(banner?.title)}
       />
     </div>
   )

@@ -1,34 +1,58 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import type { BannerAlign } from '@/types'
+
+const ALIGN_OPTIONS: { key: BannerAlign; label: string }[] = [
+  { key: 'left', label: '왼쪽' },
+  { key: 'center', label: '가운데' },
+  { key: 'right', label: '오른쪽' },
+]
+
+const ALIGN_PREVIEW_CLASS: Record<BannerAlign, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+}
 
 export default function HomeNoticeBannerForm({
-  initialTitle,
   initialContent,
+  initialAlign,
 }: {
-  initialTitle: string
   initialContent: string
+  initialAlign: BannerAlign
 }) {
-  const router = useRouter()
+  const clearSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const [title, setTitle] = useState(initialTitle)
   const [content, setContent] = useState(initialContent)
+  const [align, setAlign] = useState<BannerAlign>(initialAlign)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
 
   const visible = content.trim().length > 0
+
+  useEffect(() => {
+    return () => {
+      if (clearSavedTimer.current) clearTimeout(clearSavedTimer.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    setSaved(false)
+  }, [content, align])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSaved(false)
     setLoading(true)
 
     try {
       const response = await fetch('/api/admin/home-notice', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ content, align }),
       })
 
       const data = await response.json().catch(() => ({}))
@@ -38,7 +62,9 @@ export default function HomeNoticeBannerForm({
         return
       }
 
-      router.refresh()
+      setSaved(true)
+      if (clearSavedTimer.current) clearTimeout(clearSavedTimer.current)
+      clearSavedTimer.current = setTimeout(() => setSaved(false), 1800)
     } catch {
       setError('네트워크 오류로 저장에 실패했습니다.')
     } finally {
@@ -50,6 +76,7 @@ export default function HomeNoticeBannerForm({
     if (!confirm('메인 공지 배너를 숨기시겠습니까?')) return
 
     setError('')
+    setSaved(false)
     setLoading(true)
 
     try {
@@ -65,7 +92,7 @@ export default function HomeNoticeBannerForm({
       }
 
       setContent('')
-      router.refresh()
+      setAlign('center')
     } catch {
       setError('네트워크 오류로 처리에 실패했습니다.')
     } finally {
@@ -93,21 +120,6 @@ export default function HomeNoticeBannerForm({
 
       <div>
         <label className="block text-xs font-medium mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
-          제목 *
-        </label>
-        <input
-          type="text"
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="공지 제목을 입력하세요"
-          className="glass-input w-full px-3 py-2 text-sm"
-          style={{ color: 'var(--foreground)' }}
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-medium mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
           내용 *
         </label>
         <textarea
@@ -121,16 +133,71 @@ export default function HomeNoticeBannerForm({
         />
       </div>
 
+      <div>
+        <label className="block text-xs font-medium mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
+          정렬
+        </label>
+        <div className="inline-flex items-center rounded-lg border overflow-hidden" style={{ borderColor: 'rgba(201,162,39,0.3)' }}>
+          {ALIGN_OPTIONS.map((option) => {
+            const active = align === option.key
+            return (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setAlign(option.key)}
+                className="px-3 py-1.5 text-xs border-r last:border-r-0 transition-colors"
+                style={{
+                  borderColor: 'rgba(201,162,39,0.25)',
+                  backgroundColor: active ? 'rgba(69,97,50,0.35)' : 'transparent',
+                  color: active ? '#F5F0E8' : 'rgba(245,240,232,0.65)',
+                }}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs mb-1.5 opacity-70" style={{ color: 'var(--foreground)' }}>
+          미리보기
+        </p>
+        <div
+          className="w-full aspect-[27/2] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden"
+          style={{
+            borderColor: 'rgba(201,162,39,0.25)',
+            background: 'linear-gradient(90deg, rgba(69,97,50,0.24), rgba(26,26,15,0.65))',
+          }}
+        >
+          <p
+            className={`w-full text-sm sm:text-lg font-semibold truncate ${ALIGN_PREVIEW_CLASS[align]}`}
+            style={{ color: 'var(--foreground)', opacity: 0.86 }}
+          >
+            {content.trim() || '내용을 입력하면 이렇게 노출됩니다.'}
+          </p>
+        </div>
+      </div>
+
       {error && <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">{error}</p>}
+      {!error && saved && (
+        <p className="text-sm px-3 py-2 rounded-lg" style={{ color: '#9acd6a', backgroundColor: 'rgba(69,97,50,0.25)' }}>
+          저장 완료
+        </p>
+      )}
 
       <div className="flex flex-col-reverse sm:flex-row gap-2">
         <button
           type="submit"
           disabled={loading}
           className="w-full sm:w-auto px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-          style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
+          style={{
+            backgroundColor: saved ? 'rgba(69,97,50,0.75)' : '#456132',
+            color: '#F5F0E8',
+            border: '1px solid #C9A227',
+          }}
         >
-          {loading ? '저장 중...' : '저장'}
+          {loading ? '저장 중...' : saved ? '저장됨' : '저장'}
         </button>
         <button
           type="button"

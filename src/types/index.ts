@@ -73,6 +73,8 @@ export interface HomeNoticeBanner {
   updated_at: string
 }
 
+export type BannerAlign = 'left' | 'center' | 'right'
+
 export interface Comment {
   id: string
   post_id: string

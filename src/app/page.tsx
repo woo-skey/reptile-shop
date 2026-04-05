@@ -4,7 +4,7 @@ import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
-import type { HomeNoticeBanner, Post, MenuItem } from '@/types'
+import type { BannerAlign, HomeNoticeBanner, Post, MenuItem } from '@/types'
 
 const MENU_LABELS: Record<string, string> = {
   food: 'Food',
@@ -21,6 +21,17 @@ const MENU_LABELS: Record<string, string> = {
 
 const MAIN_HERO_IMAGE = '/reptile_image.png'
 const HOME_NOTICE_KEY = 'main'
+
+const NOTICE_ALIGN_CLASS: Record<BannerAlign, { row: string; text: string }> = {
+  left: { row: 'justify-start', text: 'text-left' },
+  center: { row: 'justify-center', text: 'text-center' },
+  right: { row: 'justify-end', text: 'text-right' },
+}
+
+const toBannerAlign = (value: string | null | undefined): BannerAlign => {
+  if (value === 'left' || value === 'center' || value === 'right') return value
+  return 'center'
+}
 
 export default async function HomePage() {
   await connection()
@@ -84,6 +95,7 @@ export default async function HomePage() {
     ? null
     : ((homeNoticeData ?? null) as HomeNoticeBanner | null)
   const hasHomeNotice = Boolean(homeNotice?.content?.trim())
+  const homeNoticeAlign = toBannerAlign(homeNotice?.title)
   const storageAdminClient = createPostImagesAdminClient()
 
   const popup = activePopup
@@ -115,24 +127,18 @@ export default async function HomePage() {
         {hasHomeNotice && homeNotice && (
           <section>
             <div
-              className="w-full aspect-[9/1] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden"
+              className={`w-full aspect-[27/2] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden ${NOTICE_ALIGN_CLASS[homeNoticeAlign].row}`}
               style={{
                 borderColor: 'rgba(201,162,39,0.25)',
                 background: 'linear-gradient(90deg, rgba(69,97,50,0.24), rgba(26,26,15,0.65))',
               }}
             >
-              <div className="w-full min-w-0 flex items-center gap-3">
-                <p
-                  className="shrink-0 text-xs sm:text-sm font-semibold truncate"
-                  style={{ color: '#C9A227', maxWidth: '28%' }}
-                >
-                  {homeNotice.title || '공지'}
-                </p>
-                <div className="w-px h-4 shrink-0" style={{ backgroundColor: 'rgba(201,162,39,0.28)' }} />
-                <p className="text-xs sm:text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.82 }}>
-                  {homeNotice.content}
-                </p>
-              </div>
+              <p
+                className={`w-full text-sm sm:text-lg font-semibold truncate ${NOTICE_ALIGN_CLASS[homeNoticeAlign].text}`}
+                style={{ color: 'var(--foreground)', opacity: 0.86 }}
+              >
+                {homeNotice.content}
+              </p>
             </div>
           </section>
         )}

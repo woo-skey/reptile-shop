@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { BannerAlign } from '@/types'
 
 const HOME_NOTICE_KEY = 'main'
+const ALIGN_OPTIONS: BannerAlign[] = ['left', 'center', 'right']
 
 const toTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
+const toBannerAlign = (value: unknown): BannerAlign => {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : ''
+  return ALIGN_OPTIONS.includes(raw as BannerAlign) ? (raw as BannerAlign) : 'center'
+}
 
 const isHomeNoticeTableMissingError = (message: string) => {
   const normalized = message.toLowerCase()
@@ -85,11 +91,11 @@ export async function PUT(request: NextRequest) {
   if (admin.errorResponse) return admin.errorResponse
 
   const body = await request.json().catch(() => ({}))
-  const title = toTrimmedString((body as Record<string, unknown>).title)
   const content = toTrimmedString((body as Record<string, unknown>).content)
+  const align = toBannerAlign((body as Record<string, unknown>).align)
 
-  if (!title || !content) {
-    return NextResponse.json({ error: '제목과 내용을 입력해주세요.' }, { status: 400 })
+  if (!content) {
+    return NextResponse.json({ error: '내용을 입력해주세요.' }, { status: 400 })
   }
 
   const { data, error } = await admin.adminClient
@@ -97,7 +103,8 @@ export async function PUT(request: NextRequest) {
     .upsert(
       {
         key: HOME_NOTICE_KEY,
-        title,
+        // title 컬럼은 화면 제목 대신 정렬값(left/center/right) 저장 용도로 사용한다.
+        title: align,
         content,
       },
       { onConflict: 'key' }
@@ -122,7 +129,7 @@ export async function DELETE() {
     .upsert(
       {
         key: HOME_NOTICE_KEY,
-        title: '',
+        title: 'center',
         content: '',
       },
       { onConflict: 'key' }
