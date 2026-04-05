@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
+import MenuEditModalButton from '@/components/menu/MenuEditModalButton'
 import type { MenuCategory, MenuItem } from '@/types'
 import type { ViewMode } from '@/components/menu/MenuTypes'
 
@@ -10,16 +11,43 @@ const limitRows = (items: MenuItem[], rowLimit?: number | null) => {
   return items.slice(0, rowLimit)
 }
 
+const headersWithEdit = (headers: string[], isAdmin: boolean) =>
+  isAdmin ? [...headers, ''] : headers
+
+const normalizeCocktailTierLabel = (rawTier: string) => {
+  const tier = rawTier.trim()
+  if (!tier) return '가격#기타'
+  if (tier.startsWith('가격#')) return tier
+  if (tier.startsWith('#')) return `가격${tier}`
+  if (/^\d+$/.test(tier)) return `가격#${tier}`
+  return tier
+}
+
+const cocktailTierOrder = (tier: string) => {
+  const match = tier.match(/\d+/)
+  if (!match) return Number.MAX_SAFE_INTEGER
+  const value = Number.parseInt(match[0], 10)
+  return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value
+}
+
+const getDisplayImage = (imageUrl: string | null | undefined) => {
+  if (!imageUrl) return null
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) {
+    return imageUrl
+  }
+  return null
+}
+
 function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
     <div className="overflow-x-auto -mx-2 px-2">
       <table className="w-full min-w-[640px] md:min-w-0 text-sm border-collapse">
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(201,162,39,0.25)' }}>
-            {headers.map((h) => (
+            {headers.map((h, i) => (
               <th
-                key={h}
-                className="text-left py-2.5 px-2 md:px-3 text-xs font-semibold"
+                key={`${h}-${i}`}
+                className={`py-2.5 px-2 md:px-3 text-xs font-semibold ${i === headers.length - 1 && h === '' ? 'text-right' : 'text-left'}`}
                 style={{ color: '#C9A227', whiteSpace: 'nowrap' }}
               >
                 {h}
@@ -76,10 +104,10 @@ function Row({ cells }: { cells: (ReactNode | null | undefined)[] }) {
   )
 }
 
-function SubHead({ label }: { label: string }) {
+function SubHead({ label, colSpan }: { label: string; colSpan: number }) {
   return (
     <tr>
-      <td colSpan={10} className="pt-6 pb-2 px-3">
+      <td colSpan={colSpan} className="pt-6 pb-2 px-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#C9A227' }}>
             {label}
@@ -91,14 +119,42 @@ function SubHead({ label }: { label: string }) {
   )
 }
 
-function Empty() {
+function Empty({ colSpan }: { colSpan: number }) {
   return (
     <tr>
-      <td colSpan={10} className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+      <td colSpan={colSpan} className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
         등록된 메뉴가 없습니다.
       </td>
     </tr>
   )
+}
+
+function EditCell({
+  item,
+  isAdmin,
+  onItemUpdated,
+}: {
+  item: MenuItem
+  isAdmin: boolean
+  onItemUpdated?: (updated: MenuItem) => void
+}) {
+  if (!isAdmin || !onItemUpdated) return null
+
+  return (
+    <div className="flex justify-end">
+      <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+    </div>
+  )
+}
+
+const withEditCell = (
+  cells: (ReactNode | null | undefined)[],
+  item: MenuItem,
+  isAdmin: boolean,
+  onItemUpdated?: (updated: MenuItem) => void
+) => {
+  if (!isAdmin || !onItemUpdated) return cells
+  return [...cells, <EditCell key={`edit-${item.id}`} item={item} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />]
 }
 
 const formatPhotoPrice = (item: MenuItem) => {
@@ -110,31 +166,15 @@ const formatPhotoPrice = (item: MenuItem) => {
   return parts.length > 0 ? parts.join(' / ') : '-'
 }
 
-const getDisplayImage = (imageUrl: string | null | undefined) => {
-  if (!imageUrl) return null
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) {
-    return imageUrl
-  }
-  return null
-}
-
-const normalizeCocktailTierLabel = (rawTier: string) => {
-  const tier = rawTier.trim()
-  if (!tier) return '\uAC00\uACA9#\uAE30\uD0C0'
-  if (tier.startsWith('\uAC00\uACA9#')) return tier
-  if (tier.startsWith('#')) return `\uAC00\uACA9${tier}`
-  if (/^\d+$/.test(tier)) return `\uAC00\uACA9#${tier}`
-  return tier
-}
-
-const cocktailTierOrder = (tier: string) => {
-  const match = tier.match(/\d+/)
-  if (!match) return Number.MAX_SAFE_INTEGER
-  const value = Number.parseInt(match[0], 10)
-  return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value
-}
-
-function PhotoGrid({ items }: { items: MenuItem[] }) {
+function PhotoGrid({
+  items,
+  isAdmin,
+  onItemUpdated,
+}: {
+  items: MenuItem[]
+  isAdmin: boolean
+  onItemUpdated?: (updated: MenuItem) => void
+}) {
   if (items.length === 0) {
     return (
       <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
@@ -148,11 +188,17 @@ function PhotoGrid({ items }: { items: MenuItem[] }) {
       {items.map((item) => {
         const imageSrc = getDisplayImage(item.image_url)
         return (
-          <div
+          <article
             key={item.id}
-            className="rounded-2xl overflow-hidden border"
+            className="relative rounded-2xl overflow-hidden border"
             style={{ borderColor: 'rgba(201,162,39,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
           >
+            {isAdmin && onItemUpdated && (
+              <div className="absolute top-2 right-2 z-10">
+                <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+              </div>
+            )}
+
             <div
               className="aspect-square border-b flex items-center justify-center"
               style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.04)' }}
@@ -180,18 +226,26 @@ function PhotoGrid({ items }: { items: MenuItem[] }) {
                 </p>
               )}
             </div>
-          </div>
+          </article>
         )
       })}
     </div>
   )
 }
 
-function CocktailPhotoGrid({ items }: { items: MenuItem[] }) {
+function CocktailPhotoGrid({
+  items,
+  isAdmin,
+  onItemUpdated,
+}: {
+  items: MenuItem[]
+  isAdmin: boolean
+  onItemUpdated?: (updated: MenuItem) => void
+}) {
   if (items.length === 0) {
     return (
       <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-        No items yet.
+        등록된 메뉴가 없습니다.
       </div>
     )
   }
@@ -226,9 +280,15 @@ function CocktailPhotoGrid({ items }: { items: MenuItem[] }) {
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl overflow-hidden border"
+                  className="relative rounded-2xl overflow-hidden border"
                   style={{ borderColor: 'rgba(201,162,39,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }}
                 >
+                  {isAdmin && onItemUpdated && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <MenuEditModalButton item={item} onUpdated={onItemUpdated} />
+                    </div>
+                  )}
+
                   <div
                     className="aspect-square border-b flex items-center justify-center"
                     style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.05)' }}
@@ -238,7 +298,7 @@ function CocktailPhotoGrid({ items }: { items: MenuItem[] }) {
                       <img src={imageSrc} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                        Image (1:1)
+                        이미지 (1:1)
                       </span>
                     )}
                   </div>
@@ -268,52 +328,84 @@ function CocktailPhotoGrid({ items }: { items: MenuItem[] }) {
   )
 }
 
-function EventTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+type TableRendererProps = {
+  items: MenuItem[]
+  rowLimit?: number | null
+  isAdmin: boolean
+  onItemUpdated?: (updated: MenuItem) => void
+}
+
+function EventTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '가격'], isAdmin)
+
   return (
-    <Table headers={['메뉴', '설명', '가격']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
-          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, fmt(item.price)]} />
+          <Row
+            key={item.id}
+            cells={withEditCell([<NameCell key="name" item={item} />, item.description, fmt(item.price)], item, isAdmin, onItemUpdated)}
+          />
         ))
       )}
     </Table>
   )
 }
 
-function FoodTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function FoodTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '비고', '가격'], isAdmin)
+
   return (
-    <Table headers={['메뉴', '설명', '비고', '가격']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
-          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, item.note, fmt(item.price)]} />
+          <Row
+            key={item.id}
+            cells={withEditCell(
+              [<NameCell key="name" item={item} />, item.description, item.note, fmt(item.price)],
+              item,
+              isAdmin,
+              onItemUpdated
+            )}
+          />
         ))
       )}
     </Table>
   )
 }
 
-function SignatureTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function SignatureTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '도수', '가격'], isAdmin)
+
   return (
-    <Table headers={['메뉴', '설명', '도수', '가격']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
-          <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)]} />
+          <Row
+            key={item.id}
+            cells={withEditCell(
+              [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)],
+              item,
+              isAdmin,
+              onItemUpdated
+            )}
+          />
         ))
       )}
     </Table>
   )
 }
 
-function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function CocktailTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const groups = limited.reduce<Record<string, MenuItem[]>>((acc, item) => {
     const key = item.subcategory?.trim() || ''
@@ -322,6 +414,7 @@ function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: numb
     return acc
   }, {})
 
+  const headers = headersWithEdit(['메뉴', '설명', '도수'], isAdmin)
   const sortedKeys = Object.keys(groups).sort((a, b) => {
     const diff = cocktailTierOrder(a) - cocktailTierOrder(b)
     if (diff !== 0) return diff
@@ -329,15 +422,23 @@ function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: numb
   })
 
   return (
-    <Table headers={['\uBA54\uB274', '\uC124\uBA85', '\uB3C4\uC218']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         sortedKeys.map((key) => (
           <Fragment key={`group-${key}`}>
-            <SubHead label={normalizeCocktailTierLabel(key)} />
+            <SubHead label={normalizeCocktailTierLabel(key)} colSpan={headers.length} />
             {groups[key].map((item) => (
-              <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv)]} />
+              <Row
+                key={item.id}
+                cells={withEditCell(
+                  [<NameCell key="name" item={item} />, item.description, abvStr(item.abv)],
+                  item,
+                  isAdmin,
+                  onItemUpdated
+                )}
+              />
             ))}
           </Fragment>
         ))
@@ -346,23 +447,30 @@ function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: numb
   )
 }
 
-function BeerTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function BeerTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '도수', '용량', '가격'], isAdmin)
+
   return (
-    <Table headers={['메뉴', '설명', '도수', '용량', '가격']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
           <Row
             key={item.id}
-            cells={[
-              <NameCell key="name" item={item} />,
-              item.description,
-              abvStr(item.abv),
-              item.volume_ml != null ? `${item.volume_ml}ml` : '-',
-              fmt(item.price),
-            ]}
+            cells={withEditCell(
+              [
+                <NameCell key="name" item={item} />,
+                item.description,
+                abvStr(item.abv),
+                item.volume_ml != null ? `${item.volume_ml}ml` : '-',
+                fmt(item.price),
+              ],
+              item,
+              isAdmin,
+              onItemUpdated
+            )}
           />
         ))
       )}
@@ -376,25 +484,37 @@ const WINE_SUBS = [
   { key: 'sparkling', label: 'Sparkling' },
 ]
 
-function WineTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function WineTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
+  const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
 
   return (
-    <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         WINE_SUBS.map(({ key, label }) => {
           const rows = bySubcat(key)
           if (rows.length === 0) return null
           return (
             <Fragment key={`group-${key}`}>
-              <SubHead label={label} />
+              <SubHead label={label} colSpan={headers.length} />
               {rows.map((item) => (
                 <Row
                   key={item.id}
-                  cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+                  cells={withEditCell(
+                    [
+                      <NameCell key="name" item={item} />,
+                      item.description,
+                      abvStr(item.abv),
+                      fmt(item.price_glass),
+                      fmt(item.price_bottle),
+                    ],
+                    item,
+                    isAdmin,
+                    onItemUpdated
+                  )}
                 />
               ))}
             </Fragment>
@@ -412,25 +532,37 @@ const WHISKY_SUBS = [
   { key: 'tennessee', label: 'Tennessee' },
 ]
 
-function WhiskyTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function WhiskyTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
   const bySubcat = (sub: string) => limited.filter((i) => i.subcategory === sub)
+  const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
 
   return (
-    <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         WHISKY_SUBS.map(({ key, label }) => {
           const rows = bySubcat(key)
           if (rows.length === 0) return null
           return (
             <Fragment key={`group-${key}`}>
-              <SubHead label={label} />
+              <SubHead label={label} colSpan={headers.length} />
               {rows.map((item) => (
                 <Row
                   key={item.id}
-                  cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+                  cells={withEditCell(
+                    [
+                      <NameCell key="name" item={item} />,
+                      item.description,
+                      abvStr(item.abv),
+                      fmt(item.price_glass),
+                      fmt(item.price_bottle),
+                    ],
+                    item,
+                    isAdmin,
+                    onItemUpdated
+                  )}
                 />
               ))}
             </Fragment>
@@ -441,17 +573,24 @@ function WhiskyTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number
   )
 }
 
-function GlassBottleTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
+function GlassBottleTable({ items, rowLimit, isAdmin, onItemUpdated }: TableRendererProps) {
   const limited = limitRows(items, rowLimit)
+  const headers = headersWithEdit(['메뉴', '설명', '도수', '1 Glass', '1 Bottle'], isAdmin)
+
   return (
-    <Table headers={['메뉴', '설명', '도수', '1 Glass', '1 Bottle']}>
+    <Table headers={headers}>
       {limited.length === 0 ? (
-        <Empty />
+        <Empty colSpan={headers.length} />
       ) : (
         limited.map((item) => (
           <Row
             key={item.id}
-            cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)]}
+            cells={withEditCell(
+              [<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price_glass), fmt(item.price_bottle)],
+              item,
+              isAdmin,
+              onItemUpdated
+            )}
           />
         ))
       )}
@@ -463,42 +602,48 @@ export default function MenuTable({
   items,
   category,
   viewMode,
+  isAdmin = false,
+  onItemUpdated,
 }: {
   items: MenuItem[]
   category: MenuCategory
   viewMode: ViewMode
+  isAdmin?: boolean
+  onItemUpdated?: (updated: MenuItem) => void
 }) {
   if (viewMode === 'photo') {
     if (category === 'cocktail') {
-      return <CocktailPhotoGrid items={items} />
+      return <CocktailPhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />
     }
 
-    return <PhotoGrid items={items} />
+    return <PhotoGrid items={items} isAdmin={isAdmin} onItemUpdated={onItemUpdated} />
   }
+
+  const commonProps: TableRendererProps = { items, isAdmin, onItemUpdated }
 
   switch (category) {
     case 'event':
-      return <EventTable items={items} />
+      return <EventTable {...commonProps} />
     case 'food':
-      return <FoodTable items={items} />
+      return <FoodTable {...commonProps} />
     case 'non_alcohol':
-      return <EventTable items={items} />
+      return <EventTable {...commonProps} />
     case 'beverage':
-      return <EventTable items={items} />
+      return <EventTable {...commonProps} />
     case 'signature':
-      return <SignatureTable items={items} />
+      return <SignatureTable {...commonProps} />
     case 'cocktail':
-      return <CocktailTable items={items} />
+      return <CocktailTable {...commonProps} />
     case 'beer':
-      return <BeerTable items={items} />
+      return <BeerTable {...commonProps} />
     case 'wine':
-      return <WineTable items={items} />
+      return <WineTable {...commonProps} />
     case 'whisky':
-      return <WhiskyTable items={items} />
+      return <WhiskyTable {...commonProps} />
     case 'shochu':
-      return <GlassBottleTable items={items} />
+      return <GlassBottleTable {...commonProps} />
     case 'spirits':
-      return <GlassBottleTable items={items} />
+      return <GlassBottleTable {...commonProps} />
     default:
       return null
   }

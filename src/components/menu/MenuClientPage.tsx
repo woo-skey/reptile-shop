@@ -5,7 +5,6 @@ import MenuTabs from '@/components/menu/MenuTabs'
 import MenuRowOptions from '@/components/menu/MenuRowOptions'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
-import MenuEditModalButton from '@/components/menu/MenuEditModalButton'
 import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
 import type { MenuCategory, MenuItem } from '@/types'
@@ -99,48 +98,14 @@ export default function MenuClientPage({
       </div>
 
       <div className="glass-card px-4 py-2">
-        <MenuTable items={filteredItems} category={activeTab} viewMode={activeView} />
+        <MenuTable
+          items={filteredItems}
+          category={activeTab}
+          viewMode={activeView}
+          isAdmin={isAdmin}
+          onItemUpdated={handleItemUpdated}
+        />
       </div>
-
-      {isAdmin && (
-        <div className="glass-card mt-4 px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-              관리자 메뉴 수정
-            </h3>
-            <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-              {filteredItems.length}개
-            </span>
-          </div>
-
-          {filteredItems.length === 0 ? (
-            <p className="text-xs py-2" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-              수정할 메뉴가 없습니다.
-            </p>
-          ) : (
-            <div className="space-y-2 max-h-56 overflow-y-auto">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 px-2 py-2 rounded-md"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm truncate" style={{ color: 'var(--foreground)' }}>
-                      {item.name}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                      {item.subcategory ? `${item.subcategory} · ` : ''}
-                      {item.price != null ? `${item.price.toLocaleString('ko-KR')}원` : '가격 미정'}
-                    </p>
-                  </div>
-                  <MenuEditModalButton item={item} onUpdated={handleItemUpdated} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </>
   )
 }
