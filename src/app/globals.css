@@ -45,6 +45,7 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-cafe24), sans-serif;
+  line-height: 1.45;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -54,6 +55,11 @@ input[type="submit"],
 input[type="reset"],
 [role="button"] {
   cursor: pointer;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
 
 button:disabled,
@@ -61,6 +67,12 @@ input[type="button"]:disabled,
 input[type="submit"]:disabled,
 input[type="reset"]:disabled {
   cursor: not-allowed;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  line-height: 1.35;
 }
 
 /* ────────────────────────────────────────
