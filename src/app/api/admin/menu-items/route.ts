@@ -136,6 +136,10 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
     }
   }
 
+  if (category === 'cocktail' && !subcategory) {
+    return { error: '칵테일은 가격 그룹을 입력해주세요.', payload: null }
+  }
+
   if (category === 'wine' && subcategory && !WINE_SUBS.has(subcategory)) {
     return { error: 'wine 서브카테고리가 올바르지 않습니다.', payload: null }
   }
@@ -157,6 +161,10 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
     price_bottle: toNullableNumber(body.price_bottle, true),
     sort_order: toNullableNumber(body.sort_order, true) ?? 0,
     is_available: typeof body.is_available === 'boolean' ? body.is_available : true,
+  }
+
+  if (category === 'cocktail') {
+    payload.price = null
   }
 
   // 이미지 삭제를 지원하기 위해 image_url 키가 오면 null도 포함해서 반영한다.

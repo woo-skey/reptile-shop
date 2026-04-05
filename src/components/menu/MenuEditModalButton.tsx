@@ -73,7 +73,7 @@ export default function MenuEditModalButton({
   const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(currentCategory)
   const needsVol = currentCategory === 'beer'
   const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(currentCategory)
-  const needsPrice = !needsGlass
+  const needsPrice = !needsGlass && currentCategory !== 'cocktail'
   const subOptions = currentCategory === 'wine' ? WINE_SUBS : currentCategory === 'whisky' ? WHISKY_SUBS : []
 
   const close = () => {
@@ -135,7 +135,7 @@ export default function MenuEditModalButton({
         note: form.note || null,
         abv: toNumberOrNull(form.abv, parseFloat),
         volume_ml: toNumberOrNull(form.volume_ml, parseInt),
-        price: toNumberOrNull(form.price, parseInt),
+        price: currentCategory === 'cocktail' ? null : toNumberOrNull(form.price, parseInt),
         price_glass: toNumberOrNull(form.price_glass, parseInt),
         price_bottle: toNumberOrNull(form.price_bottle, parseInt),
         sort_order: toNumberOrNull(form.sort_order, parseInt) ?? 0,
@@ -283,7 +283,7 @@ export default function MenuEditModalButton({
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    {currentCategory === 'cocktail' ? '가격 티어 (예: 12000)' : '서브 카테고리'}
+                    {currentCategory === 'cocktail' ? '가격 그룹 (예: #1)' : '서브 카테고리'}
                   </label>
                   {subOptions.length > 0 ? (
                     <select
@@ -304,7 +304,7 @@ export default function MenuEditModalButton({
                       type="text"
                       value={form.subcategory}
                       onChange={(e) => set('subcategory', e.target.value)}
-                      placeholder="예: 12000"
+                      placeholder="예: #1"
                       className={inputCls}
                       style={{ color: 'var(--foreground)' }}
                     />

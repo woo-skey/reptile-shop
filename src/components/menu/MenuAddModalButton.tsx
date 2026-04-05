@@ -58,7 +58,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
   const needsAbv = !['food', 'event', 'non_alcohol', 'beverage'].includes(category)
   const needsVol = category === 'beer'
   const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(category)
-  const needsPrice = !needsGlass
+  const needsPrice = !needsGlass && category !== 'cocktail'
   const subOptions = category === 'wine' ? WINE_SUBS : category === 'whisky' ? WHISKY_SUBS : []
 
   const reset = () => {
@@ -143,7 +143,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
           note: form.note || null,
           abv: form.abv ? parseFloat(form.abv) : null,
           volume_ml: form.volume_ml ? parseInt(form.volume_ml) : null,
-          price: form.price ? parseInt(form.price) : null,
+          price: category === 'cocktail' ? null : (form.price ? parseInt(form.price) : null),
           price_glass: form.price_glass ? parseInt(form.price_glass) : null,
           price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
           sort_order: parseInt(form.sort_order) || 0,
@@ -253,7 +253,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    {category === 'cocktail' ? '가격 티어 (예: 12000)' : '서브 카테고리'}
+                    {category === 'cocktail' ? '가격 그룹 (예: #1)' : '서브 카테고리'}
                   </label>
                   {subOptions.length > 0 ? (
                     <select
@@ -274,7 +274,7 @@ export default function MenuAddModalButton({ category }: { category: MenuCategor
                       type="text"
                       value={form.subcategory}
                       onChange={(e) => set('subcategory', e.target.value)}
-                      placeholder="예: 12000"
+                      placeholder="예: #1"
                       className={inputCls}
                       style={{ color: 'var(--foreground)' }}
                     />

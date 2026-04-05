@@ -118,6 +118,22 @@ const getDisplayImage = (imageUrl: string | null | undefined) => {
   return null
 }
 
+const normalizeCocktailTierLabel = (rawTier: string) => {
+  const tier = rawTier.trim()
+  if (!tier) return '\uAC00\uACA9#\uAE30\uD0C0'
+  if (tier.startsWith('\uAC00\uACA9#')) return tier
+  if (tier.startsWith('#')) return `\uAC00\uACA9${tier}`
+  if (/^\d+$/.test(tier)) return `\uAC00\uACA9#${tier}`
+  return tier
+}
+
+const cocktailTierOrder = (tier: string) => {
+  const match = tier.match(/\d+/)
+  if (!match) return Number.MAX_SAFE_INTEGER
+  const value = Number.parseInt(match[0], 10)
+  return Number.isNaN(value) ? Number.MAX_SAFE_INTEGER : value
+}
+
 function PhotoGrid({ items }: { items: MenuItem[] }) {
   if (items.length === 0) {
     return (
@@ -171,6 +187,87 @@ function PhotoGrid({ items }: { items: MenuItem[] }) {
   )
 }
 
+function CocktailPhotoGrid({ items }: { items: MenuItem[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+        No items yet.
+      </div>
+    )
+  }
+
+  const groups = items.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    const key = item.subcategory?.trim() || ''
+    if (!acc[key]) acc[key] = []
+    acc[key].push(item)
+    return acc
+  }, {})
+
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    const diff = cocktailTierOrder(a) - cocktailTierOrder(b)
+    if (diff !== 0) return diff
+    return a.localeCompare(b)
+  })
+
+  return (
+    <div className="space-y-10 py-2">
+      {sortedKeys.map((tier) => (
+        <section key={`cocktail-tier-${tier}`} className="space-y-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+              {normalizeCocktailTierLabel(tier)}
+            </h3>
+            <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(201,162,39,0.3)' }} />
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {groups[tier].map((item) => {
+              const imageSrc = getDisplayImage(item.image_url)
+              return (
+                <article
+                  key={item.id}
+                  className="rounded-2xl overflow-hidden border"
+                  style={{ borderColor: 'rgba(201,162,39,0.3)', backgroundColor: 'rgba(255,255,255,0.03)' }}
+                >
+                  <div
+                    className="aspect-square border-b flex items-center justify-center"
+                    style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.05)' }}
+                  >
+                    {imageSrc ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageSrc} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                        Image (1:1)
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="px-3 py-2.5 min-h-[70px]">
+                    <p className="text-sm truncate font-semibold" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                      {item.name}
+                    </p>
+                    {item.description && (
+                      <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+                        {item.description}
+                      </p>
+                    )}
+                    {item.abv != null && (
+                      <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
+                        ABV {item.abv}%
+                      </p>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
+
 function EventTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
   const limited = limitRows(items, rowLimit)
   return (
@@ -219,29 +316,28 @@ function SignatureTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: num
 function CocktailTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: number | null }) {
   const limited = limitRows(items, rowLimit)
   const groups = limited.reduce<Record<string, MenuItem[]>>((acc, item) => {
-    const key = item.subcategory ?? '기타'
+    const key = item.subcategory?.trim() || ''
     if (!acc[key]) acc[key] = []
     acc[key].push(item)
     return acc
   }, {})
 
   const sortedKeys = Object.keys(groups).sort((a, b) => {
-    const na = parseInt(a)
-    const nb = parseInt(b)
-    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
+    const diff = cocktailTierOrder(a) - cocktailTierOrder(b)
+    if (diff !== 0) return diff
     return a.localeCompare(b)
   })
 
   return (
-    <Table headers={['메뉴', '설명', '도수', '가격']}>
+    <Table headers={['\uBA54\uB274', '\uC124\uBA85', '\uB3C4\uC218']}>
       {limited.length === 0 ? (
         <Empty />
       ) : (
         sortedKeys.map((key) => (
           <Fragment key={`group-${key}`}>
-            <SubHead label={Number.isNaN(parseInt(key)) ? key : fmt(parseInt(key))} />
+            <SubHead label={normalizeCocktailTierLabel(key)} />
             {groups[key].map((item) => (
-              <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv), fmt(item.price)]} />
+              <Row key={item.id} cells={[<NameCell key="name" item={item} />, item.description, abvStr(item.abv)]} />
             ))}
           </Fragment>
         ))
@@ -373,6 +469,10 @@ export default function MenuTable({
   viewMode: ViewMode
 }) {
   if (viewMode === 'photo') {
+    if (category === 'cocktail') {
+      return <CocktailPhotoGrid items={items} />
+    }
+
     return <PhotoGrid items={items} />
   }
 
