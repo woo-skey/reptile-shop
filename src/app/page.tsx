@@ -4,7 +4,7 @@ import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
-import type { Post, MenuItem } from '@/types'
+import type { HomeNoticeBanner, Post, MenuItem } from '@/types'
 
 const MENU_LABELS: Record<string, string> = {
   food: 'Food',
@@ -20,6 +20,7 @@ const MENU_LABELS: Record<string, string> = {
 }
 
 const MAIN_HERO_IMAGE = '/reptile_image.png'
+const HOME_NOTICE_KEY = 'main'
 
 export default async function HomePage() {
   await connection()
@@ -32,6 +33,7 @@ export default async function HomePage() {
     { data: eventItems },
     { data: mainMenuItems },
     { data: activePopup },
+    { data: homeNoticeData, error: homeNoticeError },
   ] = await Promise.all([
     supabase
       .from('posts')
@@ -67,12 +69,21 @@ export default async function HomePage() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    supabase
+      .from('home_notice_banner')
+      .select('key, title, content, created_at, updated_at')
+      .eq('key', HOME_NOTICE_KEY)
+      .maybeSingle(),
   ])
 
   const posts = (recentPosts ?? []) as unknown as Post[]
   const notices = (recentNotices ?? []) as unknown as Post[]
   const events = (eventItems ?? []) as unknown as MenuItem[]
   const menus = (mainMenuItems ?? []) as unknown as MenuItem[]
+  const homeNotice = homeNoticeError
+    ? null
+    : ((homeNoticeData ?? null) as HomeNoticeBanner | null)
+  const hasHomeNotice = Boolean(homeNotice?.content?.trim())
   const storageAdminClient = createPostImagesAdminClient()
 
   const popup = activePopup
@@ -100,6 +111,31 @@ export default async function HomePage() {
             />
           </div>
         </section>
+
+        {hasHomeNotice && homeNotice && (
+          <section>
+            <div
+              className="w-full aspect-[9/1] px-4 sm:px-6 flex items-center border rounded-xl overflow-hidden"
+              style={{
+                borderColor: 'rgba(201,162,39,0.25)',
+                background: 'linear-gradient(90deg, rgba(69,97,50,0.24), rgba(26,26,15,0.65))',
+              }}
+            >
+              <div className="w-full min-w-0 flex items-center gap-3">
+                <p
+                  className="shrink-0 text-xs sm:text-sm font-semibold truncate"
+                  style={{ color: '#C9A227', maxWidth: '28%' }}
+                >
+                  {homeNotice.title || '공지'}
+                </p>
+                <div className="w-px h-4 shrink-0" style={{ backgroundColor: 'rgba(201,162,39,0.28)' }} />
+                <p className="text-xs sm:text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.82 }}>
+                  {homeNotice.content}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
         <section className="grid md:grid-cols-2 gap-6 items-start">
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
             <div className="flex items-center justify-between mb-4">

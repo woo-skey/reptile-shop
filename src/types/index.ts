@@ -65,6 +65,14 @@ export interface Popup {
   created_at: string
 }
 
+export interface HomeNoticeBanner {
+  key: string
+  title: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Comment {
   id: string
   post_id: string
