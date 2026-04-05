@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function DeleteMenuItemButton({ itemId }: { itemId: string }) {
   const router = useRouter()
@@ -11,8 +10,20 @@ export default function DeleteMenuItemButton({ itemId }: { itemId: string }) {
   const handleDelete = async () => {
     if (!confirm('메뉴 아이템을 삭제하시겠습니까?')) return
     setLoading(true)
-    const supabase = createClient()
-    await supabase.from('menu_items').delete().eq('id', itemId)
+
+    const res = await fetch('/api/admin/menu-items', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: itemId }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: '메뉴 삭제에 실패했습니다.' }))
+      alert(data.error ?? '메뉴 삭제에 실패했습니다.')
+      setLoading(false)
+      return
+    }
+
     router.refresh()
     setLoading(false)
   }

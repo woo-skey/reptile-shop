@@ -11,7 +11,7 @@ export default function GuestSignupLink() {
   return (
     <div className="text-center">
       <Link href="/signup" prefetch className="text-xs underline" style={{ color: '#C9A227', opacity: 0.75 }}>
-        媛?낇븯怨?而ㅻ??덊떚??湲 ?④린湲?
+        가입하고 커뮤니티에 글 남기기
       </Link>
     </div>
   )

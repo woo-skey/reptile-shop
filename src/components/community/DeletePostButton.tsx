@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function DeletePostButton({ postId, redirectTo }: { postId: string; redirectTo: string }) {
   const router = useRouter()
@@ -11,14 +10,20 @@ export default function DeletePostButton({ postId, redirectTo }: { postId: strin
   const handleDelete = async () => {
     if (!confirm('게시글을 삭제하시겠습니까?')) return
     setLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('posts').delete().eq('id', postId)
-    if (error) {
-      alert(error.message)
+
+    const res = await fetch(`/api/posts/${postId}`, {
+      method: 'DELETE',
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: '게시글 삭제에 실패했습니다.' }))
+      alert(data.error ?? '게시글 삭제에 실패했습니다.')
       setLoading(false)
       return
     }
+
     router.push(redirectTo)
+    router.refresh()
   }
 
   return (
