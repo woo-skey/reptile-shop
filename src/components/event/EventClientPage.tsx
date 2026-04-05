@@ -13,6 +13,17 @@ const formatDate = (date: string) =>
     day: '2-digit',
   })
 
+const resolveImageUrl = (imageUrl?: string | null) => {
+  if (!imageUrl) return null
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) {
+    return imageUrl
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!baseUrl) return null
+  return `${baseUrl}/storage/v1/object/public/post-images/${imageUrl}`
+}
+
 export default function EventClientPage({ items }: { items: MenuItem[] }) {
   const { isAdmin } = useAuth()
   const [eventItems, setEventItems] = useState<MenuItem[]>(items)
@@ -62,44 +73,59 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {sortedItems.map((item) => (
-            <article
-              key={item.id}
-              className="glass-card p-4 sm:p-5"
-              style={{ border: '1px solid rgba(201,162,39,0.2)' }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3
-                    className="text-base sm:text-lg font-semibold break-words"
-                    style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
-                  >
-                    {item.name}
-                  </h3>
-                  <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
-                    {formatDate(item.created_at)}
-                  </p>
+          {sortedItems.map((item) => {
+            const imageSrc = resolveImageUrl(item.image_url)
+
+            return (
+              <article
+                key={item.id}
+                className="glass-card p-4 sm:p-5"
+                style={{ border: '1px solid rgba(201,162,39,0.2)' }}
+              >
+                {imageSrc && (
+                  <div className="mb-4 rounded-lg overflow-hidden border" style={{ borderColor: 'rgba(201,162,39,0.25)' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageSrc}
+                      alt={item.name}
+                      className="w-full aspect-[16/9] object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3
+                      className="text-base sm:text-lg font-semibold break-words"
+                      style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
+                    >
+                      {item.name}
+                    </h3>
+                    <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
+                      {formatDate(item.created_at)}
+                    </p>
+                  </div>
+
+                  {isAdmin && (
+                    <EventEditModalButton
+                      item={item}
+                      onUpdated={handleItemUpdated}
+                      onDeleted={handleItemDeleted}
+                    />
+                  )}
                 </div>
 
-                {isAdmin && (
-                  <EventEditModalButton
-                    item={item}
-                    onUpdated={handleItemUpdated}
-                    onDeleted={handleItemDeleted}
-                  />
+                {item.description && (
+                  <p
+                    className="text-sm mt-3 whitespace-pre-line break-words"
+                    style={{ color: 'var(--foreground)', opacity: 0.78, lineHeight: 1.6 }}
+                  >
+                    {item.description}
+                  </p>
                 )}
-              </div>
-
-              {item.description && (
-                <p
-                  className="text-sm mt-3 whitespace-pre-line break-words"
-                  style={{ color: 'var(--foreground)', opacity: 0.78, lineHeight: 1.6 }}
-                >
-                  {item.description}
-                </p>
-              )}
-            </article>
-          ))}
+              </article>
+            )
+          })}
         </div>
       )}
     </>

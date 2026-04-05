@@ -1,8 +1,14 @@
 'use client'
 
-import { type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { MenuItem } from '@/types'
+
+const toPublicImageUrl = (path: string) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!baseUrl) return path
+  return `${baseUrl}/storage/v1/object/public/post-images/${path}`
+}
 
 export default function EventWriteModalButton({
   onCreated,
@@ -10,13 +16,23 @@ export default function EventWriteModalButton({
   onCreated?: (item: MenuItem) => void
 }) {
   const router = useRouter()
+  const fileRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState('')
   const [sortOrder, setSortOrder] = useState('0')
   const [isAvailable, setIsAvailable] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const close = () => {
     setOpen(false)
@@ -24,50 +40,97 @@ export default function EventWriteModalButton({
     setLoading(false)
   }
 
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (preview) URL.revokeObjectURL(preview)
+    const file = e.target.files?.[0]
+    setImageFile(file ?? null)
+    setPreview(file ? URL.createObjectURL(file) : '')
+  }
+
+  const uploadImage = async () => {
+    if (!imageFile) return null
+
+    const prepareRes = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+    })
+
+    if (!prepareRes.ok) {
+      const data = await prepareRes.json().catch(() => ({ error: '이미지 업로드 준비에 실패했습니다.' }))
+      throw new Error(data.error ?? '이미지 업로드 준비에 실패했습니다.')
+    }
+
+    const { signedUrl, path } = await prepareRes.json()
+
+    const uploadRes = await fetch(signedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': imageFile.type },
+      body: imageFile,
+    })
+
+    if (!uploadRes.ok) {
+      throw new Error('이미지 업로드에 실패했습니다.')
+    }
+
+    return toPublicImageUrl(path as string)
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const payload = {
-      category: 'event_post',
-      name: title,
-      description: content || null,
-      sort_order: Number.parseInt(sortOrder, 10) || 0,
-      is_available: isAvailable,
-      subcategory: null,
-      note: null,
-      abv: null,
-      volume_ml: null,
-      price: null,
-      price_glass: null,
-      price_bottle: null,
-      image_url: null,
-    }
+    try {
+      const uploadedImageUrl = await uploadImage()
+      const payload = {
+        category: 'event_post',
+        name: title,
+        description: content || null,
+        sort_order: Number.parseInt(sortOrder, 10) || 0,
+        is_available: isAvailable,
+        subcategory: null,
+        note: null,
+        abv: null,
+        volume_ml: null,
+        price: null,
+        price_glass: null,
+        price_bottle: null,
+        image_url: uploadedImageUrl || imageUrl || null,
+      }
 
-    const res = await fetch('/api/admin/menu-items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
+      const res = await fetch('/api/admin/menu-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: '이벤트 등록에 실패했습니다.' }))
-      setError(data.error ?? '이벤트 등록에 실패했습니다.')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: '이벤트 등록에 실패했습니다.' }))
+        setError(data.error ?? '이벤트 등록에 실패했습니다.')
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json().catch(() => null)
+      if (data?.item) {
+        onCreated?.(data.item as MenuItem)
+      }
+
+      close()
+      setTitle('')
+      setContent('')
+      setImageUrl('')
+      setImageFile(null)
+      setPreview('')
+      if (fileRef.current) fileRef.current.value = ''
+      setSortOrder('0')
+      setIsAvailable(true)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이벤트 등록에 실패했습니다.')
       setLoading(false)
-      return
     }
-
-    const data = await res.json().catch(() => null)
-    if (data?.item) {
-      onCreated?.(data.item as MenuItem)
-    }
-    close()
-    setTitle('')
-    setContent('')
-    setSortOrder('0')
-    setIsAvailable(true)
-    router.refresh()
   }
 
   return (
@@ -105,6 +168,49 @@ export default function EventWriteModalButton({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium mb-1 opacity-60" style={{ color: 'var(--foreground)' }}>
+                  이미지
+                </label>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="px-3 py-1.5 text-xs rounded-md border"
+                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+                  >
+                    파일 선택
+                  </button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                    또는 이미지 URL 입력
+                  </span>
+                </div>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="glass-input w-full px-3 py-2 text-sm"
+                  style={{ color: 'var(--foreground)' }}
+                />
+                {preview && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview}
+                    alt="미리보기"
+                    className="mt-2 w-24 h-24 rounded object-cover"
+                    style={{ border: '1px solid rgba(201,162,39,0.3)' }}
+                  />
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs font-medium mb-1 opacity-60" style={{ color: 'var(--foreground)' }}>
                   제목 *
