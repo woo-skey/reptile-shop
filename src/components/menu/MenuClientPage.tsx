@@ -52,7 +52,7 @@ export default function MenuClientPage({
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingOrderRef = useRef<MenuItem[] | null>(null)
+  const pendingOrderRef = useRef<{ category: MenuTabCategory; items: MenuItem[] } | null>(null)
   const savingRef = useRef(false)
 
   const isEventTab = activeTab === 'event'
@@ -121,7 +121,7 @@ export default function MenuClientPage({
   const flushOrder = async () => {
     if (!isAdmin || savingRef.current || !pendingOrderRef.current) return
 
-    const ordered = pendingOrderRef.current
+    const pending = pendingOrderRef.current
     pendingOrderRef.current = null
     savingRef.current = true
     setOrderSaving(true)
@@ -129,8 +129,8 @@ export default function MenuClientPage({
 
     try {
       const payload = {
-        category: activeTab,
-        items: ordered.map((item, index) => ({ id: item.id, sort_order: index })),
+        category: pending.category,
+        items: pending.items.map((item, index) => ({ id: item.id, sort_order: index })),
       }
 
       const response = await fetch('/api/admin/menu-items/reorder', {
@@ -155,8 +155,8 @@ export default function MenuClientPage({
     }
   }
 
-  const schedulePersistOrder = (ordered: MenuItem[]) => {
-    pendingOrderRef.current = ordered
+  const schedulePersistOrder = (category: MenuTabCategory, ordered: MenuItem[]) => {
+    pendingOrderRef.current = { category, items: ordered }
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       void flushOrder()
@@ -171,7 +171,7 @@ export default function MenuClientPage({
       prev.map((item) => (item.category === activeTab ? (normalizeMap.get(item.id) ?? item) : item))
     )
 
-    schedulePersistOrder(normalized)
+    schedulePersistOrder(activeTab, normalized)
   }
 
   const handleDrop = (targetId: string) => {
