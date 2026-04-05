@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import MenuTabs from '@/components/menu/MenuTabs'
 import MenuTable from '@/components/menu/MenuTable'
@@ -51,6 +51,9 @@ export default function MenuClientPage({
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingOrderRef = useRef<MenuItem[] | null>(null)
+  const savingRef = useRef(false)
 
   const canUsePhotoView = activeTab === 'event' || activeTab === 'food'
   const effectiveViewMode: ViewMode = canUsePhotoView ? viewMode : 'list'
@@ -58,6 +61,12 @@ export default function MenuClientPage({
   useEffect(() => {
     setMenuItems(items)
   }, [items])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!canUsePhotoView && viewMode !== 'list') {
@@ -108,9 +117,12 @@ export default function MenuClientPage({
     setMenuItems((prev) => prev.filter((item) => item.id !== deletedId))
   }
 
-  const persistOrder = async (ordered: MenuItem[]) => {
-    if (!isAdmin) return
+  const flushOrder = async () => {
+    if (!isAdmin || savingRef.current || !pendingOrderRef.current) return
 
+    const ordered = pendingOrderRef.current
+    pendingOrderRef.current = null
+    savingRef.current = true
     setOrderSaving(true)
     setOrderError('')
 
@@ -134,12 +146,35 @@ export default function MenuClientPage({
       setOrderError(error instanceof Error ? error.message : '순서 저장에 실패했습니다.')
       router.refresh()
     } finally {
+      savingRef.current = false
       setOrderSaving(false)
+      if (pendingOrderRef.current) {
+        void flushOrder()
+      }
     }
   }
 
-  const handleDrop = async (targetId: string) => {
-    if (!isAdmin || !draggingId || draggingId === targetId || orderSaving) {
+  const schedulePersistOrder = (ordered: MenuItem[]) => {
+    pendingOrderRef.current = ordered
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      void flushOrder()
+    }, 120)
+  }
+
+  const applyReorder = (nextOrdered: MenuItem[]) => {
+    const normalized = nextOrdered.map((item, index) => ({ ...item, sort_order: index }))
+    const normalizeMap = new Map(normalized.map((item) => [item.id, item]))
+
+    setMenuItems((prev) =>
+      prev.map((item) => (item.category === activeTab ? (normalizeMap.get(item.id) ?? item) : item))
+    )
+
+    schedulePersistOrder(normalized)
+  }
+
+  const handleDrop = (targetId: string) => {
+    if (!isAdmin || !draggingId || draggingId === targetId) {
       setDraggingId(null)
       return
     }
@@ -154,15 +189,21 @@ export default function MenuClientPage({
     const nextOrdered = filteredItems.slice()
     const [moved] = nextOrdered.splice(fromIndex, 1)
     nextOrdered.splice(toIndex, 0, moved)
-    const normalized = nextOrdered.map((item, index) => ({ ...item, sort_order: index }))
-    const normalizeMap = new Map(normalized.map((item) => [item.id, item]))
-
-    setMenuItems((prev) =>
-      prev.map((item) => (item.category === activeTab ? (normalizeMap.get(item.id) ?? item) : item))
-    )
-
+    applyReorder(nextOrdered)
     setDraggingId(null)
-    await persistOrder(normalized)
+  }
+
+  const moveByStep = (id: string, direction: -1 | 1) => {
+    if (!canDragRows) return
+    const index = filteredItems.findIndex((item) => item.id === id)
+    if (index < 0) return
+    const target = index + direction
+    if (target < 0 || target >= filteredItems.length) return
+
+    const nextOrdered = filteredItems.slice()
+    const [moved] = nextOrdered.splice(index, 1)
+    nextOrdered.splice(target, 0, moved)
+    applyReorder(nextOrdered)
   }
 
   return (
@@ -208,12 +249,19 @@ export default function MenuClientPage({
           dragContext={
             canDragRows
               ? {
-                  enabled: !orderSaving,
+                  enabled: true,
                   draggingId,
                   onDragStart: setDraggingId,
                   onDragEnd: () => setDraggingId(null),
                   onDrop: (id) => {
-                    void handleDrop(id)
+                    handleDrop(id)
+                  },
+                  onMoveUp: (id) => moveByStep(id, -1),
+                  onMoveDown: (id) => moveByStep(id, 1),
+                  canMoveUp: (id) => filteredItems.findIndex((item) => item.id === id) > 0,
+                  canMoveDown: (id) => {
+                    const index = filteredItems.findIndex((item) => item.id === id)
+                    return index >= 0 && index < filteredItems.length - 1
                   },
                 }
               : undefined

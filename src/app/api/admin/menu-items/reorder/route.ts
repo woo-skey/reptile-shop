@@ -114,16 +114,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '정렬할 메뉴 목록이 올바르지 않습니다.' }, { status: 400 })
   }
 
-  for (const row of items) {
-    const { error } = await admin.adminClient
-      .from('menu_items')
-      .update({ sort_order: row.sort_order })
-      .eq('id', row.id)
-      .eq('category', category)
+  const results = await Promise.all(
+    items.map((row) =>
+      admin.adminClient
+        .from('menu_items')
+        .update({ sort_order: row.sort_order })
+        .eq('id', row.id)
+        .eq('category', category)
+    )
+  )
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+  const failed = results.find((result) => result.error)
+  if (failed?.error) {
+    return NextResponse.json({ error: failed.error.message }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
