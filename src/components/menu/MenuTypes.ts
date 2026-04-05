@@ -1,6 +1,6 @@
 import type { MenuCategory } from '@/types'
 
-export type RowOptionKey = 'all' | '2' | '3' | '5'
+export type ViewMode = 'list' | 'photo'
 
 export const TAB_LABELS: Record<MenuCategory, string> = {
   event: 'Event / New',

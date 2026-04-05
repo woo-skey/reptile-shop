@@ -1,55 +1,57 @@
 'use client'
 
-import type { RowOptionKey } from '@/components/menu/MenuTypes'
+import type { ViewMode } from '@/components/menu/MenuTypes'
 
-const ROW_OPTIONS = [
-  { key: 'all', label: '전체 보기' },
-  { key: '2', label: '2행 보기' },
-  { key: '3', label: '3행 보기' },
-  { key: '5', label: '5행 보기' },
-] as const
+const VIEW_OPTIONS: { key: ViewMode; label: string }[] = [
+  { key: 'list', label: '리스트 형식' },
+  { key: 'photo', label: '사진 형식' },
+]
 
-function RowOptionIcon({ optionKey }: { optionKey: RowOptionKey }) {
-  const lineCount = optionKey === 'all' ? 6 : parseInt(optionKey, 10)
+function ViewModeIcon({ mode }: { mode: ViewMode }) {
+  if (mode === 'list') {
+    return (
+      <span
+        className="inline-grid w-5 h-4"
+        style={{ gridTemplateRows: 'repeat(3, minmax(0, 1fr))', rowGap: '2px' }}
+        aria-hidden="true"
+      >
+        {Array.from({ length: 3 }).map((_, index) => (
+          <span key={`list-${index}`} className="block w-full rounded-full bg-current" style={{ height: '2px' }} />
+        ))}
+      </span>
+    )
+  }
+
   return (
-    <span
-      className="inline-grid w-5 h-4"
-      style={{ gridTemplateRows: `repeat(${lineCount}, minmax(0, 1fr))`, rowGap: '2px' }}
-      aria-hidden="true"
-    >
-      {Array.from({ length: lineCount }).map((_, index) => (
-        <span
-          key={`${optionKey}-${index}`}
-          className="block w-full rounded-full bg-current"
-          style={{ height: '2px' }}
-        />
+    <span className="inline-grid w-5 h-4 grid-cols-2 gap-1" aria-hidden="true">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <span key={`photo-${index}`} className="block rounded-[2px] bg-current" />
       ))}
     </span>
   )
 }
 
 export default function MenuRowOptions({
-  activeRows,
+  activeMode,
   onChange,
 }: {
-  activeRows: RowOptionKey
-  onChange: (rows: RowOptionKey) => void
+  activeMode: ViewMode
+  onChange: (mode: ViewMode) => void
 }) {
-  const handleOption = (key: RowOptionKey) => {
-    if (key === activeRows) return
+  const handleOption = (key: ViewMode) => {
+    if (key === activeMode) return
     onChange(key)
   }
 
   return (
     <div className="-mx-1 px-1 overflow-x-auto">
       <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
-        {ROW_OPTIONS.map(({ key, label }) => {
-          const rowKey = key as RowOptionKey
-          const active = activeRows === rowKey
+        {VIEW_OPTIONS.map(({ key, label }) => {
+          const active = activeMode === key
           return (
             <button
               key={key}
-              onClick={() => handleOption(rowKey)}
+              onClick={() => handleOption(key)}
               className="shrink-0 inline-flex items-center justify-center w-10 h-8 text-xs rounded-md border transition-all"
               aria-label={label}
               title={label}
@@ -60,7 +62,7 @@ export default function MenuRowOptions({
                 fontWeight: active ? 600 : 400,
               }}
             >
-              <RowOptionIcon optionKey={rowKey} />
+              <ViewModeIcon mode={key} />
               <span className="sr-only">{label}</span>
             </button>
           )

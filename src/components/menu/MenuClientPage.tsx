@@ -6,43 +6,38 @@ import MenuRowOptions from '@/components/menu/MenuRowOptions'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
 import MenuEditModalButton from '@/components/menu/MenuEditModalButton'
-import { TAB_LABELS, type RowOptionKey } from '@/components/menu/MenuTypes'
+import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
 import type { MenuCategory, MenuItem } from '@/types'
 
 const TAB_KEYS = Object.keys(TAB_LABELS) as MenuCategory[]
 
-const getRowLimit = (rows: RowOptionKey) => (rows === 'all' ? null : parseInt(rows, 10))
-
 const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
-  const rowsFromUrl = params.get('rows')
+  const viewFromUrl = params.get('view')
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuCategory)
     ? (tabFromUrl as MenuCategory)
     : 'event'
 
-  const rows = rowsFromUrl === '2' || rowsFromUrl === '3' || rowsFromUrl === '5'
-    ? rowsFromUrl
-    : 'all'
-
-  return { tab, rows: rows as RowOptionKey }
+  const view = viewFromUrl === 'photo' ? 'photo' : 'list'
+  return { tab, view: view as ViewMode }
 }
 
 export default function MenuClientPage({
   items,
   initialTab,
-  initialRows,
+  initialView,
   isAdmin,
 }: {
   items: MenuItem[]
   initialTab: MenuCategory
-  initialRows: RowOptionKey
+  initialView: ViewMode
   isAdmin: boolean
 }) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
   const [activeTab, setActiveTab] = useState<MenuCategory>(initialTab)
-  const [activeRows, setActiveRows] = useState<RowOptionKey>(initialRows)
+  const [activeView, setActiveView] = useState<ViewMode>(initialView)
 
   useEffect(() => {
     setMenuItems(items)
@@ -51,17 +46,18 @@ export default function MenuClientPage({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     params.set('tab', activeTab)
-    if (activeRows === 'all') params.delete('rows')
-    else params.set('rows', activeRows)
+    params.delete('rows')
+    if (activeView === 'list') params.delete('view')
+    else params.set('view', activeView)
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, activeRows])
+  }, [activeTab, activeView])
 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseStateFromUrl()
       setActiveTab(parsed.tab)
-      setActiveRows(parsed.rows)
+      setActiveView(parsed.view)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -93,11 +89,11 @@ export default function MenuClientPage({
       </div>
 
       <div className="mb-6">
-        <MenuRowOptions activeRows={activeRows} onChange={setActiveRows} />
+        <MenuRowOptions activeMode={activeView} onChange={setActiveView} />
       </div>
 
       <div className="glass-card px-4 py-2">
-        <MenuTable items={filteredItems} category={activeTab} rowLimit={getRowLimit(activeRows)} />
+        <MenuTable items={filteredItems} category={activeTab} viewMode={activeView} />
       </div>
 
       {isAdmin && (

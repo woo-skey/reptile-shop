@@ -1,20 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import MenuClientPage from '@/components/menu/MenuClientPage'
-import { TAB_LABELS, type RowOptionKey } from '@/components/menu/MenuTypes'
+import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
 import type { MenuCategory, MenuItem } from '@/types'
 
 export default async function MenuPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; rows?: string }>
+  searchParams: Promise<{ tab?: string; view?: string }>
 }) {
-  const { tab, rows } = await searchParams
+  const { tab, view } = await searchParams
 
   const activeTab = (Object.keys(TAB_LABELS) as MenuCategory[]).includes((tab ?? '') as MenuCategory)
     ? (tab as MenuCategory)
     : 'event'
 
-  const activeRows = (rows === '2' || rows === '3' || rows === '5' ? rows : 'all') as RowOptionKey
+  const activeView = (view === 'photo' ? 'photo' : 'list') as ViewMode
 
   const supabase = await createClient()
   const [
@@ -59,7 +59,7 @@ export default async function MenuPage({
         </p>
       </div>
 
-      <MenuClientPage items={items} initialTab={activeTab} initialRows={activeRows} isAdmin={isAdmin} />
+      <MenuClientPage items={items} initialTab={activeTab} initialView={activeView} isAdmin={isAdmin} />
     </div>
   )
 }

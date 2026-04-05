@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
-import type { MenuItem } from '@/types'
+import type { MenuCategory, MenuItem } from '@/types'
+import type { ViewMode } from '@/components/menu/MenuTypes'
 
 const fmt = (n: number | null) => (n != null ? `${n.toLocaleString('ko-KR')}원` : '-')
 const abvStr = (n: number | null) => (n != null ? `${n}%` : '-')
@@ -97,6 +98,76 @@ function Empty() {
         등록된 메뉴가 없습니다.
       </td>
     </tr>
+  )
+}
+
+const formatPhotoPrice = (item: MenuItem) => {
+  if (item.price != null) return fmt(item.price)
+
+  const parts: string[] = []
+  if (item.price_glass != null) parts.push(`G ${fmt(item.price_glass)}`)
+  if (item.price_bottle != null) parts.push(`B ${fmt(item.price_bottle)}`)
+  return parts.length > 0 ? parts.join(' / ') : '-'
+}
+
+const getDisplayImage = (imageUrl: string | null | undefined) => {
+  if (!imageUrl) return null
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('/')) {
+    return imageUrl
+  }
+  return null
+}
+
+function PhotoGrid({ items }: { items: MenuItem[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="py-12 text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+        등록된 메뉴가 없습니다.
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 py-2">
+      {items.map((item) => {
+        const imageSrc = getDisplayImage(item.image_url)
+        return (
+          <div
+            key={item.id}
+            className="rounded-2xl overflow-hidden border"
+            style={{ borderColor: 'rgba(201,162,39,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+          >
+            <div
+              className="aspect-square border-b flex items-center justify-center"
+              style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.04)' }}
+            >
+              {imageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageSrc} alt={item.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                  이미지 (1:1)
+                </span>
+              )}
+            </div>
+
+            <div className="px-3 py-2.5">
+              <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                {item.name}
+              </p>
+              <p className="text-xs mt-1 truncate" style={{ color: '#C9A227', opacity: 0.85 }}>
+                {formatPhotoPrice(item)}
+              </p>
+              {item.description && (
+                <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                  {item.description}
+                </p>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -295,35 +366,39 @@ function GlassBottleTable({ items, rowLimit }: { items: MenuItem[]; rowLimit?: n
 export default function MenuTable({
   items,
   category,
-  rowLimit,
+  viewMode,
 }: {
   items: MenuItem[]
-  category: string
-  rowLimit?: number | null
+  category: MenuCategory
+  viewMode: ViewMode
 }) {
+  if (viewMode === 'photo') {
+    return <PhotoGrid items={items} />
+  }
+
   switch (category) {
     case 'event':
-      return <EventTable items={items} rowLimit={rowLimit} />
+      return <EventTable items={items} />
     case 'food':
-      return <FoodTable items={items} rowLimit={rowLimit} />
+      return <FoodTable items={items} />
     case 'non_alcohol':
-      return <EventTable items={items} rowLimit={rowLimit} />
+      return <EventTable items={items} />
     case 'beverage':
-      return <EventTable items={items} rowLimit={rowLimit} />
+      return <EventTable items={items} />
     case 'signature':
-      return <SignatureTable items={items} rowLimit={rowLimit} />
+      return <SignatureTable items={items} />
     case 'cocktail':
-      return <CocktailTable items={items} rowLimit={rowLimit} />
+      return <CocktailTable items={items} />
     case 'beer':
-      return <BeerTable items={items} rowLimit={rowLimit} />
+      return <BeerTable items={items} />
     case 'wine':
-      return <WineTable items={items} rowLimit={rowLimit} />
+      return <WineTable items={items} />
     case 'whisky':
-      return <WhiskyTable items={items} rowLimit={rowLimit} />
+      return <WhiskyTable items={items} />
     case 'shochu':
-      return <GlassBottleTable items={items} rowLimit={rowLimit} />
+      return <GlassBottleTable items={items} />
     case 'spirits':
-      return <GlassBottleTable items={items} rowLimit={rowLimit} />
+      return <GlassBottleTable items={items} />
     default:
       return null
   }
