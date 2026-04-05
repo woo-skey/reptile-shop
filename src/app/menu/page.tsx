@@ -1,47 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public-server'
 import MenuClientPage from '@/components/menu/MenuClientPage'
-import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
-import type { MenuCategory, MenuItem } from '@/types'
+import type { MenuItem } from '@/types'
 
-export default async function MenuPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string; view?: string }>
-}) {
-  const { tab, view } = await searchParams
-
-  const activeTab = (Object.keys(TAB_LABELS) as MenuCategory[]).includes((tab ?? '') as MenuCategory)
-    ? (tab as MenuCategory)
-    : 'event'
-
-  const activeView = (view === 'photo' ? 'photo' : 'list') as ViewMode
-
-  const supabase = await createClient()
-  const [
-    { data },
-    {
-      data: { user },
-    },
-  ] = await Promise.all([
-    supabase
-      .from('menu_items')
-      .select('*')
-      .eq('is_available', true)
-      .order('category', { ascending: true })
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true }),
-    supabase.auth.getUser(),
-  ])
-
-  let isAdmin = false
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    isAdmin = profile?.role === 'admin'
-  }
+export default async function MenuPage() {
+  const supabase = createPublicClient()
+  const { data } = await supabase
+    .from('menu_items')
+    .select('*')
+    .eq('is_available', true)
+    .order('category', { ascending: true })
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
 
   const items = (data ?? []) as MenuItem[]
 
@@ -59,7 +28,7 @@ export default async function MenuPage({
         </p>
       </div>
 
-      <MenuClientPage items={items} initialTab={activeTab} initialView={activeView} isAdmin={isAdmin} />
+      <MenuClientPage items={items} initialTab="event" initialView="list" />
     </div>
   )
 }

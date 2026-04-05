@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public-server'
 import HomePopup from '@/components/HomePopup'
+import GuestSignupLink from '@/components/home/GuestSignupLink'
 import type { Post, MenuItem } from '@/types'
 
 const MENU_LABELS: Record<string, string> = {
@@ -19,19 +20,15 @@ const MENU_LABELS: Record<string, string> = {
 const MAIN_HERO_IMAGE = '/reptile_image.png'
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const [
-    {
-      data: { user },
-    },
     { data: recentPosts },
     { data: recentNotices },
     { data: eventItems },
     { data: mainMenuItems },
     { data: activePopup },
   ] = await Promise.all([
-    supabase.auth.getUser(),
     supabase
       .from('posts')
       .select('id, title, created_at')
@@ -248,13 +245,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {!user && (
-          <div className="text-center">
-            <Link href="/signup" className="text-xs underline" style={{ color: '#C9A227', opacity: 0.75 }}>
-              가입하고 커뮤니티에 글 남기기
-            </Link>
-          </div>
-        )}
+        <GuestSignupLink />
       </div>
     </>
   )

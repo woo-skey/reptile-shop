@@ -7,6 +7,7 @@ import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
 import MenuEditModalButton from '@/components/menu/MenuEditModalButton'
 import { TAB_LABELS, type ViewMode } from '@/components/menu/MenuTypes'
+import { useAuth } from '@/hooks/useAuth'
 import type { MenuCategory, MenuItem } from '@/types'
 
 const TAB_KEYS = Object.keys(TAB_LABELS) as MenuCategory[]
@@ -28,16 +29,21 @@ export default function MenuClientPage({
   items,
   initialTab,
   initialView,
-  isAdmin,
 }: {
   items: MenuItem[]
   initialTab: MenuCategory
   initialView: ViewMode
-  isAdmin: boolean
 }) {
+  const { isAdmin } = useAuth()
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
-  const [activeTab, setActiveTab] = useState<MenuCategory>(initialTab)
-  const [activeView, setActiveView] = useState<ViewMode>(initialView)
+  const [activeTab, setActiveTab] = useState<MenuCategory>(() => {
+    if (typeof window === 'undefined') return initialTab
+    return parseStateFromUrl().tab
+  })
+  const [activeView, setActiveView] = useState<ViewMode>(() => {
+    if (typeof window === 'undefined') return initialView
+    return parseStateFromUrl().view
+  })
 
   useEffect(() => {
     setMenuItems(items)

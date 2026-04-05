@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public-server'
+import CommunityWriteLink from '@/components/community/CommunityWriteLink'
 import type { Post } from '@/types'
 
 export default async function CommunityPage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data } = await supabase
     .from('posts')
@@ -12,8 +13,6 @@ export default async function CommunityPage() {
     .order('created_at', { ascending: false })
 
   const posts = (data ?? []) as unknown as Post[]
-
-  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -27,15 +26,7 @@ export default async function CommunityPage() {
             단골들의 이야기
           </p>
         </div>
-        {user && (
-          <Link
-            href="/community/new"
-            className="px-4 py-2 rounded-lg text-sm font-medium"
-            style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
-          >
-            글쓰기
-          </Link>
-        )}
+        <CommunityWriteLink variant="header" />
       </div>
 
       {/* 게시글 목록 */}
@@ -44,15 +35,7 @@ export default async function CommunityPage() {
           <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
             아직 게시글이 없습니다. 첫 번째 글을 작성해보세요.
           </p>
-          {user && (
-            <Link
-              href="/community/new"
-              className="inline-block mt-4 text-sm underline"
-              style={{ color: '#C9A227' }}
-            >
-              글쓰기
-            </Link>
-          )}
+          <CommunityWriteLink variant="empty" />
         </div>
       ) : (
         <div className="space-y-3">

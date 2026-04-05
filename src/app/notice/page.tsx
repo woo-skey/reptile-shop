@@ -1,34 +1,17 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public-server'
+import NoticeCreateLink from '@/components/notice/NoticeCreateLink'
 import type { Post } from '@/types'
 
 export default async function NoticePage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
-  const [
-    { data },
-    {
-      data: { user },
-    },
-  ] = await Promise.all([
-    supabase
-      .from('posts')
-      .select('id, title, content, created_at, is_pinned, profiles(display_name)')
-      .eq('type', 'notice')
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: false }),
-    supabase.auth.getUser(),
-  ])
-
-  let isAdmin = false
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    isAdmin = profile?.role === 'admin'
-  }
+  const { data } = await supabase
+    .from('posts')
+    .select('id, title, content, created_at, is_pinned, profiles(display_name)')
+    .eq('type', 'notice')
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false })
 
   const notices = (data ?? []) as unknown as Post[]
 
@@ -43,15 +26,7 @@ export default async function NoticePage() {
             파충류가게 공지입니다.
           </p>
         </div>
-        {isAdmin && (
-          <Link
-            href="/admin/notices/new"
-            className="px-4 py-2 rounded-lg text-sm font-medium"
-            style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
-          >
-            공지 추가
-          </Link>
-        )}
+        <NoticeCreateLink />
       </div>
 
       {notices.length === 0 ? (
