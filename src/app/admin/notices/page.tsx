@@ -17,18 +17,9 @@ export default async function AdminNoticesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-          공지 목록 ({notices.length}개)
-        </h2>
-        <Link
-          href="/admin/notices/new"
-          className="text-xs px-3 py-1.5 rounded-lg"
-          style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
-        >
-          공지 작성
-        </Link>
-      </div>
+      <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
+        공지 목록 ({notices.length}개)
+      </h2>
 
       <div className="glass-card divide-y divide-[rgba(201,162,39,0.1)]">
         {notices.length === 0 ? (
