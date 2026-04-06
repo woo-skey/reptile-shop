@@ -53,15 +53,15 @@ const getDisplayImage = (item: MenuItem) => {
 
 function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
-    <div className="overflow-x-auto -mx-2 px-2">
-      <table className="w-full min-w-[640px] md:min-w-0 text-sm border-collapse">
+    <div>
+      <table className="w-full table-fixed text-sm border-collapse">
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(201,162,39,0.25)' }}>
             {headers.map((h, i) => (
               <th
                 key={`${h}-${i}`}
                 className={`py-2.5 px-2 md:px-3 text-xs font-semibold ${i === headers.length - 1 && h === '' ? 'text-right' : 'text-left'}`}
-                style={{ color: '#C9A227', whiteSpace: 'nowrap' }}
+                style={{ color: '#C9A227' }}
               >
                 {h}
               </th>
@@ -156,7 +156,7 @@ function Row({
       {cells.map((c, i) => (
         <td
           key={i}
-          className="py-3 px-2 md:px-3 align-top text-xs sm:text-sm"
+          className="py-3 px-2 md:px-3 align-top text-xs sm:text-sm break-words"
           style={{ color: 'var(--foreground)', opacity: c == null || c === '' ? 0.35 : 0.85 }}
         >
           {c ?? '-'}

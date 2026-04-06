@@ -29,8 +29,8 @@ export default function MenuTabs({
   }
 
   return (
-    <div className="mb-8 -mx-1 px-1 overflow-x-auto">
-      <div className="flex gap-1 w-max min-w-full sm:min-w-0 sm:flex-wrap">
+    <div className="mb-8">
+      <div className="flex flex-wrap gap-1">
         {TABS.map(({ key, label }) => {
           const tabKey = key as MenuTabCategory
           const active = activeTab === tabKey
