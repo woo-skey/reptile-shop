@@ -10,6 +10,12 @@ interface PopupData {
 }
 
 const STORAGE_KEY = 'reptile_popup_hidden_v'
+const toLocalDateKey = (date: Date) => {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
 export default function HomePopup({ popup }: { popup: PopupData | null }) {
   const [sessionHidden, setSessionHidden] = useState<Record<string, boolean>>({})
@@ -19,7 +25,19 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
   let hiddenByStorage = false
   if (typeof window !== 'undefined') {
     try {
-      hiddenByStorage = localStorage.getItem(STORAGE_KEY + popup.id) === '1'
+      const storageKey = STORAGE_KEY + popup.id
+      const todayKey = toLocalDateKey(new Date())
+      const storedValue = localStorage.getItem(storageKey)
+
+      if (storedValue === todayKey) {
+        hiddenByStorage = true
+      } else if (storedValue === '1') {
+        // 이전 "다시 보지 않기" 값을 "오늘 하루 보지 않기" 형식으로 자동 전환
+        localStorage.setItem(storageKey, todayKey)
+        hiddenByStorage = true
+      } else {
+        hiddenByStorage = false
+      }
     } catch {
       hiddenByStorage = false
     }
@@ -34,7 +52,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
 
   const handleDontShowAgain = () => {
     try {
-      localStorage.setItem(STORAGE_KEY + popup.id, '1')
+      localStorage.setItem(STORAGE_KEY + popup.id, toLocalDateKey(new Date()))
     } catch {
       // noop
     }
@@ -105,7 +123,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
               className="w-full py-2 text-xs"
               style={{ color: 'var(--foreground)', opacity: 0.35 }}
             >
-              다시 보지않기
+              오늘 하루 보지 않기
             </button>
           </div>
         </div>
