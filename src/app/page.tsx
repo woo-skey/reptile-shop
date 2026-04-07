@@ -138,8 +138,8 @@ export default async function HomePage() {
             </div>
           </section>
         )}
-        <section className="grid md:grid-cols-2 gap-6 items-start">
-          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start min-w-0">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 메인 메뉴
@@ -161,9 +161,9 @@ export default async function HomePage() {
                   <Link
                     key={item.id}
                     href={`/menu?tab=${item.category}`}
-                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded"
+                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded min-w-0"
                   >
-                    <div className="min-w-0">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                         {item.name}
                       </p>
@@ -180,7 +180,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 이벤트
@@ -202,9 +202,9 @@ export default async function HomePage() {
                   <Link
                     key={item.id}
                     href="/event"
-                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded"
+                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded min-w-0"
                   >
-                    <div className="min-w-0">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                         {item.name}
                       </p>
@@ -223,7 +223,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
@@ -245,9 +245,9 @@ export default async function HomePage() {
                   <Link
                     key={post.id}
                     href={`/community/${post.id}`}
-                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded"
+                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded min-w-0"
                   >
-                    <span className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                    <span className="text-sm truncate block flex-1 min-w-0" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                       {post.title}
                     </span>
                     <span className="text-xs shrink-0 ml-4" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
@@ -259,7 +259,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col">
+          <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
                 <span style={{ color: '#C9A227' }}>·</span> 공지사항
@@ -281,9 +281,9 @@ export default async function HomePage() {
                   <Link
                     key={notice.id}
                     href={`/notice/${notice.id}`}
-                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded"
+                    className="flex items-center justify-between py-3 transition-colors hover:bg-white/5 px-1 rounded min-w-0"
                   >
-                    <span className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                    <span className="text-sm truncate block flex-1 min-w-0" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                       {notice.title}
                     </span>
                     <span className="text-xs shrink-0 ml-4" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
