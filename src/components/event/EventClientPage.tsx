@@ -98,6 +98,7 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
                   )}
 
                   {imageSrc ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={imageSrc}
                       alt={item.name}

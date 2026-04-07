@@ -28,16 +28,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
       const storageKey = STORAGE_KEY + popup.id
       const todayKey = toLocalDateKey(new Date())
       const storedValue = localStorage.getItem(storageKey)
-
-      if (storedValue === todayKey) {
-        hiddenByStorage = true
-      } else if (storedValue === '1') {
-        // 이전 "다시 보지 않기" 값을 "오늘 하루 보지 않기" 형식으로 자동 전환
-        localStorage.setItem(storageKey, todayKey)
-        hiddenByStorage = true
-      } else {
-        hiddenByStorage = false
-      }
+      hiddenByStorage = storedValue === todayKey
     } catch {
       hiddenByStorage = false
     }
