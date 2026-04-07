@@ -18,6 +18,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
   if (!data) notFound()
 
   const notice = data as unknown as Post & { profiles: Pick<Profile, 'display_name' | 'username'> }
+  const authorName = notice.profiles?.display_name ?? notice.profiles?.username ?? '알 수 없음'
 
   const { data: { user } } = await supabase.auth.getUser()
   let isAdmin = false
@@ -55,7 +56,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
               {notice.title}
             </h1>
             <div className="flex items-center gap-2 text-xs mt-2" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-              <span>{notice.profiles.display_name}</span>
+              <span>{authorName}</span>
               <span>·</span>
               <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>

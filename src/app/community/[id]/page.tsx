@@ -29,17 +29,21 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const imageUrls: string[] = []
-  if (post.image_urls?.length > 0) {
-    for (const path of post.image_urls) {
-      const { data } = await supabase.storage
-        .from('post-images')
-        .createSignedUrl(path, 3600)
-      if (data) imageUrls.push(data.signedUrl)
-    }
-  }
+  const imageUrls = post.image_urls?.length
+    ? (
+        await Promise.all(
+          post.image_urls.map(async (path) => {
+            const { data } = await supabase.storage
+              .from('post-images')
+              .createSignedUrl(path, 3600)
+            return data?.signedUrl ?? null
+          })
+        )
+      ).filter((url): url is string => Boolean(url))
+    : []
 
   const canDelete = user?.id === post.author_id
+  const authorName = post.profiles?.display_name ?? post.profiles?.username ?? '알 수 없음'
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -50,7 +54,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               {post.title}
             </h1>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-              <span>{post.profiles.display_name}</span>
+              <span>{authorName}</span>
               <span>·</span>
               <span>{new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
