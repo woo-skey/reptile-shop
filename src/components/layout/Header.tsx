@@ -26,7 +26,7 @@ export default function Header() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user, profile, isAdmin, loading } = useAuth()
+  const { user, isAdmin, loading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const currentTab = searchParams.get('tab')
 
@@ -104,7 +104,7 @@ export default function Header() {
                 className="hidden md:block text-sm"
                 style={{ color: 'rgba(245, 240, 232, 0.7)' }}
               >
-                {profile?.display_name ?? profile?.username ?? '마이페이지'}
+                마이페이지
               </Link>
               <button
                 onClick={handleSignOut}
