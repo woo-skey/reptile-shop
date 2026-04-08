@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
+import EventGridCard from '@/components/event/EventGridCard'
 import MenuEditModalButton from '@/components/menu/MenuEditModalButton'
 import type { MenuCategory, MenuItem } from '@/types'
 import type { ViewMode } from '@/components/menu/MenuTypes'
@@ -336,6 +337,25 @@ function PhotoGrid({
           if (!isPreviewable || !onItemPreview) return
           onItemPreview(item)
         }
+
+        if (isEventItem) {
+          return (
+            <EventGridCard
+              key={item.id}
+              title={item.name}
+              description={item.description}
+              imageSrc={imageSrc}
+              dateLabel={dateLabel}
+              editSlot={
+                isAdmin && onItemUpdated ? (
+                  <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
+                ) : undefined
+              }
+              onOpen={isPreviewable && onItemPreview ? handleOpenPreview : undefined}
+            />
+          )
+        }
+
         return (
           <article
             key={item.id}
@@ -354,11 +374,11 @@ function PhotoGrid({
                   }
                 : undefined
             }
-          >
-            {isAdmin && onItemUpdated && (
-              <div className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
-                <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
-              </div>
+            >
+              {isAdmin && onItemUpdated && (
+                <div className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
+                  <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
+                </div>
             )}
 
             <div
@@ -375,39 +395,7 @@ function PhotoGrid({
               )}
             </div>
 
-            {isEventItem ? (
-              <div className="p-3 sm:p-4 flex-1 text-left">
-                <h3
-                  className="text-sm sm:text-base font-semibold break-words"
-                  style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
-                >
-                  {item.name}
-                </h3>
-
-                {dateLabel && (
-                  <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
-                    {dateLabel}
-                  </p>
-                )}
-
-                {item.description && (
-                  <p
-                    className="text-xs sm:text-sm mt-2 break-words whitespace-pre-line"
-                    style={{
-                      color: 'var(--foreground)',
-                      opacity: 0.78,
-                      lineHeight: 1.5,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 4,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            ) : (
+            {isEventItem ? null : (
               <div className="px-3 py-2.5">
                 <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                   {item.name}

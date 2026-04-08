@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import EventWriteModalButton from '@/components/event/EventWriteModalButton'
 import EventEditModalButton from '@/components/event/EventEditModalButton'
 import EventDetailModal, { type EventDetailModalItem } from '@/components/event/EventDetailModal'
+import EventGridCard from '@/components/event/EventGridCard'
 import type { MenuItem } from '@/types'
 
 const formatDate = (date: string) =>
@@ -91,79 +92,23 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
             const imageSrc = resolveImageUrl(item)
 
             return (
-              <article
+              <EventGridCard
                 key={item.id}
-                className="glass-card overflow-hidden flex flex-col text-left"
-                style={{ border: '1px solid rgba(201,162,39,0.2)' }}
-                role="button"
-                tabIndex={0}
-                onClick={() => openDetail(item)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    openDetail(item)
-                  }
-                }}
-              >
-                <div
-                  className="relative border-b"
-                  style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.04)' }}
-                >
-                  {isAdmin && (
-                    <div className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
-                      <EventEditModalButton
-                        item={item}
-                        onUpdated={handleItemUpdated}
-                        onDeleted={handleItemDeleted}
-                      />
-                    </div>
-                  )}
-
-                  {imageSrc ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={imageSrc}
-                      alt={item.name}
-                      className="w-full aspect-square object-cover"
+                title={item.name}
+                description={item.description}
+                imageSrc={imageSrc}
+                dateLabel={formatDate(item.created_at)}
+                editSlot={
+                  isAdmin ? (
+                    <EventEditModalButton
+                      item={item}
+                      onUpdated={handleItemUpdated}
+                      onDeleted={handleItemDeleted}
                     />
-                  ) : (
-                    <div className="w-full aspect-square flex items-center justify-center">
-                      <span className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                        이미지
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3 sm:p-4 flex-1 text-left">
-                  <h3
-                    className="text-sm sm:text-base font-semibold break-words"
-                    style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
-                  >
-                    {item.name}
-                  </h3>
-                  <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
-                    {formatDate(item.created_at)}
-                  </p>
-
-                  {item.description && (
-                    <p
-                      className="text-xs sm:text-sm mt-2 break-words whitespace-pre-line"
-                      style={{
-                        color: 'var(--foreground)',
-                        opacity: 0.78,
-                        lineHeight: 1.5,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 4,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-              </article>
+                  ) : undefined
+                }
+                onOpen={() => openDetail(item)}
+              />
             )
           })}
         </div>
