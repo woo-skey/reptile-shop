@@ -59,7 +59,7 @@ export default function EventDetailModal({
           <img
             src={item.imageUrl}
             alt={item.title}
-            className="w-full aspect-[4/3] object-cover border-b"
+            className="w-full aspect-square object-cover border-b"
             style={{ borderColor: 'rgba(201,162,39,0.2)' }}
           />
         )}

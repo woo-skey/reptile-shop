@@ -283,8 +283,19 @@ const formatPhotoPrice = (item: MenuItem) => {
   return parts.length > 0 ? parts.join(' / ') : '-'
 }
 
+const formatCardDate = (date: string) => {
+  const parsed = new Date(date)
+  if (Number.isNaN(parsed.getTime())) return null
+  return parsed.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
 function PhotoGrid({
   items,
+  category,
   isAdmin,
   onItemUpdated,
   onItemDeleted,
@@ -292,6 +303,7 @@ function PhotoGrid({
   emptyMessage = '등록된 메뉴가 없습니다.',
 }: {
   items: MenuItem[]
+  category: MenuCategory
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
@@ -306,11 +318,17 @@ function PhotoGrid({
     )
   }
 
+  const gridClassName = category === 'event'
+    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-2'
+    : 'grid grid-cols-2 lg:grid-cols-3 gap-4 py-2'
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 py-2">
+    <div className={gridClassName}>
       {items.map((item) => {
         const imageSrc = getDisplayImage(item)
-        const isPreviewable = item.category === 'event' || item.category === 'event_post'
+        const isEventItem = item.category === 'event' || item.category === 'event_post'
+        const isPreviewable = isEventItem
+        const dateLabel = formatCardDate(item.created_at)
         const handleOpenPreview = () => {
           if (!isPreviewable || !onItemPreview) return
           onItemPreview(item)
@@ -354,19 +372,53 @@ function PhotoGrid({
               )}
             </div>
 
-            <div className="px-3 py-2.5">
-              <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
-                {item.name}
-              </p>
-              <p className="text-xs mt-1 truncate" style={{ color: '#C9A227', opacity: 0.85 }}>
-                {formatPhotoPrice(item)}
-              </p>
-              {item.description && (
-                <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                  {item.description}
+            {isEventItem ? (
+              <div className="p-3 sm:p-4 flex-1">
+                <h3
+                  className="text-sm sm:text-base font-semibold break-words"
+                  style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
+                >
+                  {item.name}
+                </h3>
+
+                {dateLabel && (
+                  <p className="text-xs mt-1" style={{ color: '#C9A227', opacity: 0.8 }}>
+                    {dateLabel}
+                  </p>
+                )}
+
+                {item.description && (
+                  <p
+                    className="text-xs sm:text-sm mt-2 break-words whitespace-pre-line"
+                    style={{
+                      color: 'var(--foreground)',
+                      opacity: 0.78,
+                      lineHeight: 1.5,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 4,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="px-3 py-2.5">
+                <p className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                  {item.name}
                 </p>
-              )}
-            </div>
+                <p className="text-xs mt-1 truncate" style={{ color: '#C9A227', opacity: 0.85 }}>
+                  {formatPhotoPrice(item)}
+                </p>
+                {item.description && (
+                  <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            )}
           </article>
         )
       })}
@@ -722,6 +774,7 @@ export default function MenuTable({
     return (
       <PhotoGrid
         items={items}
+        category={category}
         isAdmin={isAdmin}
         onItemUpdated={onItemUpdated}
         onItemDeleted={onItemDeleted}
