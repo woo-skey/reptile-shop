@@ -57,14 +57,17 @@ body {
 button,
 input[type="button"],
 input[type="submit"],
-input[type="reset"],
-[role="button"] {
+input[type="reset"] {
   cursor: pointer;
   line-height: 1.2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
+}
+
+[role="button"] {
+  cursor: pointer;
 }
 
 button:disabled,
