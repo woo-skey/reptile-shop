@@ -19,6 +19,10 @@ export default function CommentSection({ postId, initialComments, currentUserId 
   )
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingContent, setEditingContent] = useState('')
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,11 +58,82 @@ export default function CommentSection({ postId, initialComments, currentUserId 
   }
 
   const handleDelete = async (commentId: string) => {
+    if (!currentUserId) return
+
+    setActionError('')
+    setActionLoadingId(commentId)
     const supabase = createClient()
-    const { error } = await supabase.from('comments').delete().eq('id', commentId)
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId)
+      .eq('author_id', currentUserId)
+
     if (!error) {
       setComments((prev) => prev.filter((c) => c.id !== commentId))
+      if (editingId === commentId) {
+        setEditingId(null)
+        setEditingContent('')
+      }
+    } else {
+      setActionError('댓글 삭제에 실패했습니다.')
     }
+
+    setActionLoadingId(null)
+  }
+
+  const startEdit = (comment: CommentWithProfile) => {
+    setActionError('')
+    setEditingId(comment.id)
+    setEditingContent(comment.content)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditingContent('')
+  }
+
+  const handleEditSave = async (commentId: string) => {
+    if (!currentUserId) return
+
+    const nextContent = editingContent.trim()
+    if (!nextContent) {
+      setActionError('수정할 내용을 입력해주세요.')
+      return
+    }
+
+    setActionError('')
+    setActionLoadingId(commentId)
+
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('comments')
+      .update({ content: nextContent })
+      .eq('id', commentId)
+      .eq('author_id', currentUserId)
+      .select('id, content')
+      .single()
+
+    if (error || !data) {
+      setActionError('댓글 수정에 실패했습니다.')
+      setActionLoadingId(null)
+      return
+    }
+
+    setComments((prev) =>
+      prev.map((comment) =>
+        comment.id === commentId
+          ? {
+              ...comment,
+              content: data.content,
+            }
+          : comment
+      )
+    )
+
+    setEditingId(null)
+    setEditingContent('')
+    setActionLoadingId(null)
   }
 
   return (
@@ -85,23 +160,73 @@ export default function CommentSection({ postId, initialComments, currentUserId 
                     {new Date(comment.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                   </span>
                 </div>
-                <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
-                  {comment.content}
-                </p>
+                {editingId === comment.id ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      className="glass-input w-full px-3 py-2 text-sm"
+                      style={{ color: 'var(--foreground)' }}
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditSave(comment.id)}
+                        disabled={actionLoadingId === comment.id}
+                        className="text-xs px-2.5 py-1 rounded-md border disabled:opacity-50"
+                        style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
+                      >
+                        저장
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        disabled={actionLoadingId === comment.id}
+                        className="text-xs px-2.5 py-1 rounded-md border disabled:opacity-50"
+                        style={{ color: 'var(--foreground)', opacity: 0.65, borderColor: 'rgba(255,255,255,0.2)' }}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
+                    {comment.content}
+                  </p>
+                )}
               </div>
               {currentUserId === comment.author_id && (
-                <button
-                  onClick={() => handleDelete(comment.id)}
-                  className="text-xs shrink-0 mt-0.5"
-                  style={{ color: 'rgba(239,68,68,0.6)' }}
-                >
-                  삭제
-                </button>
+                <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                  {editingId !== comment.id && (
+                    <button
+                      type="button"
+                      onClick={() => startEdit(comment)}
+                      className="text-xs"
+                      style={{ color: '#C9A227', opacity: 0.85 }}
+                    >
+                      수정
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(comment.id)}
+                    disabled={actionLoadingId === comment.id}
+                    className="text-xs disabled:opacity-50"
+                    style={{ color: 'rgba(239,68,68,0.6)' }}
+                  >
+                    삭제
+                  </button>
+                </div>
               )}
             </div>
           ))
         )}
       </div>
+
+      {actionError && (
+        <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg mb-4">{actionError}</p>
+      )}
 
       {/* 댓글 입력 */}
       {currentUserId ? (

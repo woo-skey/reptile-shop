@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import CommentSection from '@/components/community/CommentSection'
 import DeletePostButton from '@/components/community/DeletePostButton'
@@ -42,7 +43,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
       ).filter((url): url is string => Boolean(url))
     : []
 
-  const canDelete = user?.id === post.author_id
+  const canManage = user?.id === post.author_id
   const authorName = post.profiles?.display_name ?? post.profiles?.username ?? '알 수 없음'
 
   return (
@@ -59,7 +60,18 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               <span>{new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
-          {canDelete && <DeletePostButton postId={post.id} redirectTo="/community" />}
+          {canManage && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/community/${post.id}/edit`}
+                className="text-xs px-3 py-1.5 rounded-md border"
+                style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
+              >
+                수정
+              </Link>
+              <DeletePostButton postId={post.id} redirectTo="/community" />
+            </div>
+          )}
         </div>
 
         {imageUrls.length > 0 && (
