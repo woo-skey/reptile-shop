@@ -50,10 +50,25 @@ export default function EventDetailModal({
       onClick={onClose}
     >
       <div
-        className="glass-card w-full max-w-lg max-h-[85vh] overflow-y-auto"
+        className="glass-card relative w-full max-w-lg max-h-[85vh] overflow-y-auto"
         style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
         onClick={(event) => event.stopPropagation()}
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full border text-sm font-bold"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.55)',
+            color: '#F5F0E8',
+            borderColor: 'rgba(245, 240, 232, 0.65)',
+            lineHeight: 1,
+          }}
+        >
+          ×
+        </button>
+
         {item.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -65,21 +80,13 @@ export default function EventDetailModal({
         )}
 
         <div className="p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="mb-3">
             <h3
               className="text-lg font-semibold break-words"
               style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
             >
               {item.title}
             </h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-xs px-2 py-1 rounded border shrink-0"
-              style={{ color: 'var(--foreground)', opacity: 0.7, borderColor: 'rgba(255,255,255,0.2)' }}
-            >
-              닫기
-            </button>
           </div>
 
           {dateLabel && (
