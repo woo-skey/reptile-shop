@@ -39,8 +39,7 @@ export default function Header() {
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+    window.location.assign('/')
   }
 
   return (
