@@ -93,7 +93,7 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
             return (
               <article
                 key={item.id}
-                className="glass-card overflow-hidden flex flex-col"
+                className="glass-card overflow-hidden flex flex-col text-left"
                 style={{ border: '1px solid rgba(201,162,39,0.2)' }}
                 role="button"
                 tabIndex={0}
@@ -135,7 +135,7 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
                   )}
                 </div>
 
-                <div className="p-3 sm:p-4 flex-1">
+                <div className="p-3 sm:p-4 flex-1 text-left">
                   <h3
                     className="text-sm sm:text-base font-semibold break-words"
                     style={{ color: 'var(--foreground)', lineHeight: 1.35 }}

@@ -329,6 +329,9 @@ function PhotoGrid({
         const isEventItem = item.category === 'event' || item.category === 'event_post'
         const isPreviewable = isEventItem
         const dateLabel = formatCardDate(item.created_at)
+        const articleClassName = isEventItem
+          ? 'glass-card relative overflow-hidden flex flex-col text-left'
+          : 'relative rounded-2xl overflow-hidden border'
         const handleOpenPreview = () => {
           if (!isPreviewable || !onItemPreview) return
           onItemPreview(item)
@@ -336,7 +339,7 @@ function PhotoGrid({
         return (
           <article
             key={item.id}
-            className="relative rounded-2xl overflow-hidden border"
+            className={articleClassName}
             style={{ borderColor: 'rgba(201,162,39,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
             role={isPreviewable && onItemPreview ? 'button' : undefined}
             tabIndex={isPreviewable && onItemPreview ? 0 : undefined}
@@ -373,7 +376,7 @@ function PhotoGrid({
             </div>
 
             {isEventItem ? (
-              <div className="p-3 sm:p-4 flex-1">
+              <div className="p-3 sm:p-4 flex-1 text-left">
                 <h3
                   className="text-sm sm:text-base font-semibold break-words"
                   style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
