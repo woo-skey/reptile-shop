@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import EventWriteModalButton from '@/components/event/EventWriteModalButton'
 import EventEditModalButton from '@/components/event/EventEditModalButton'
+import EventDetailModal, { type EventDetailModalItem } from '@/components/event/EventDetailModal'
 import type { MenuItem } from '@/types'
 
 const formatDate = (date: string) =>
@@ -28,6 +29,7 @@ const resolveImageUrl = (item: MenuItem) => {
 export default function EventClientPage({ items }: { items: MenuItem[] }) {
   const { isAdmin } = useAuth()
   const [eventItems, setEventItems] = useState<MenuItem[]>(items)
+  const [detailItem, setDetailItem] = useState<EventDetailModalItem | null>(null)
 
   useEffect(() => {
     setEventItems(items)
@@ -51,6 +53,17 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
 
   const handleItemDeleted = (deletedId: string) => {
     setEventItems((prev) => prev.filter((item) => item.id !== deletedId))
+    setDetailItem((prev) => (prev?.id === deletedId ? null : prev))
+  }
+
+  const openDetail = (item: MenuItem) => {
+    setDetailItem({
+      id: item.id,
+      title: item.name,
+      content: item.description,
+      imageUrl: resolveImageUrl(item),
+      createdAt: item.created_at,
+    })
   }
 
   return (
@@ -82,13 +95,22 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
                 key={item.id}
                 className="glass-card overflow-hidden flex flex-col"
                 style={{ border: '1px solid rgba(201,162,39,0.2)' }}
+                role="button"
+                tabIndex={0}
+                onClick={() => openDetail(item)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    openDetail(item)
+                  }
+                }}
               >
                 <div
                   className="relative border-b"
                   style={{ borderColor: 'rgba(201,162,39,0.2)', backgroundColor: 'rgba(255,255,255,0.04)' }}
                 >
                   {isAdmin && (
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
                       <EventEditModalButton
                         item={item}
                         onUpdated={handleItemUpdated}
@@ -146,6 +168,8 @@ export default function EventClientPage({ items }: { items: MenuItem[] }) {
           })}
         </div>
       )}
+
+      <EventDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
     </>
   )
 }

@@ -288,12 +288,14 @@ function PhotoGrid({
   isAdmin,
   onItemUpdated,
   onItemDeleted,
+  onItemPreview,
   emptyMessage = '등록된 메뉴가 없습니다.',
 }: {
   items: MenuItem[]
   isAdmin: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
+  onItemPreview?: (item: MenuItem) => void
   emptyMessage?: string
 }) {
   if (items.length === 0) {
@@ -308,14 +310,32 @@ function PhotoGrid({
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 py-2">
       {items.map((item) => {
         const imageSrc = getDisplayImage(item)
+        const isPreviewable = item.category === 'event' || item.category === 'event_post'
+        const handleOpenPreview = () => {
+          if (!isPreviewable || !onItemPreview) return
+          onItemPreview(item)
+        }
         return (
           <article
             key={item.id}
             className="relative rounded-2xl overflow-hidden border"
             style={{ borderColor: 'rgba(201,162,39,0.25)', backgroundColor: 'rgba(255,255,255,0.02)' }}
+            role={isPreviewable && onItemPreview ? 'button' : undefined}
+            tabIndex={isPreviewable && onItemPreview ? 0 : undefined}
+            onClick={handleOpenPreview}
+            onKeyDown={
+              isPreviewable && onItemPreview
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      handleOpenPreview()
+                    }
+                  }
+                : undefined
+            }
           >
             {isAdmin && onItemUpdated && (
-              <div className="absolute top-2 right-2 z-10">
+              <div className="absolute top-2 right-2 z-10" onClick={(event) => event.stopPropagation()}>
                 <MenuEditModalButton item={item} onUpdated={onItemUpdated} onDeleted={onItemDeleted} />
               </div>
             )}
@@ -685,6 +705,7 @@ export default function MenuTable({
   isAdmin = false,
   onItemUpdated,
   onItemDeleted,
+  onItemPreview,
   dragContext,
 }: {
   items: MenuItem[]
@@ -693,6 +714,7 @@ export default function MenuTable({
   isAdmin?: boolean
   onItemUpdated?: (updated: MenuItem) => void
   onItemDeleted?: (deletedId: string) => void
+  onItemPreview?: (item: MenuItem) => void
   dragContext?: ListDragContext
 }) {
   const canUsePhotoView = category === 'event' || category === 'food'
@@ -703,6 +725,7 @@ export default function MenuTable({
         isAdmin={isAdmin}
         onItemUpdated={onItemUpdated}
         onItemDeleted={onItemDeleted}
+        onItemPreview={onItemPreview}
         emptyMessage={category === 'event' ? '등록된 이벤트가 없습니다.' : undefined}
       />
     )

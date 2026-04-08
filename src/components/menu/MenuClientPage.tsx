@@ -6,6 +6,7 @@ import MenuTabs from '@/components/menu/MenuTabs'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
 import MenuRowOptions from '@/components/menu/MenuRowOptions'
+import EventDetailModal, { type EventDetailModalItem } from '@/components/event/EventDetailModal'
 import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
 import type { MenuItem } from '@/types'
@@ -51,6 +52,7 @@ export default function MenuClientPage({
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
+  const [detailItem, setDetailItem] = useState<EventDetailModalItem | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingOrderRef = useRef<{ category: MenuTabCategory; items: MenuItem[] } | null>(null)
   const savingRef = useRef(false)
@@ -116,6 +118,19 @@ export default function MenuClientPage({
 
   const handleItemDeleted = (deletedId: string) => {
     setMenuItems((prev) => prev.filter((item) => item.id !== deletedId))
+    setDetailItem((prev) => (prev?.id === deletedId ? null : prev))
+  }
+
+  const handleItemPreview = (item: MenuItem) => {
+    if (item.category !== 'event') return
+
+    setDetailItem({
+      id: item.id,
+      title: item.name,
+      content: item.description,
+      imageUrl: item.image_url ?? item.note,
+      createdAt: item.created_at,
+    })
   }
 
   const flushOrder = async () => {
@@ -247,6 +262,7 @@ export default function MenuClientPage({
           isAdmin={isAdmin}
           onItemUpdated={handleItemUpdated}
           onItemDeleted={handleItemDeleted}
+          onItemPreview={handleItemPreview}
           dragContext={
             canDragRows
               ? {
@@ -269,6 +285,8 @@ export default function MenuClientPage({
           }
         />
       </div>
+
+      <EventDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
     </>
   )
 }
