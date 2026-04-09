@@ -1,10 +1,10 @@
-import type { MetadataRoute } from 'next'
+﻿import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '파충류가게',
-    short_name: '파충류가게',
-    description: '파충류가게 단골들의 공간',
+    name: 'Reptile Shop',
+    short_name: 'Reptile',
+    description: 'Community for Reptile Shop regulars',
     start_url: '/',
     display: 'standalone',
     background_color: '#1A1A0F',
@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/reptile_icon.jpg',
         sizes: '512x512',
         type: 'image/jpeg',
-        purpose: 'any maskable',
+        purpose: 'maskable',
       },
     ],
   }
