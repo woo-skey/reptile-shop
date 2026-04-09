@@ -17,13 +17,14 @@ const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
   const viewFromUrl = params.get('view')
+  const query = params.get('q')?.trim() ?? ''
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
     ? (tabFromUrl as MenuTabCategory)
     : 'event'
   const view: ViewMode = viewFromUrl === 'photo' ? 'photo' : 'list'
 
-  return { tab, view }
+  return { tab, view, query }
 }
 
 const sortByOrder = (a: MenuItem, b: MenuItem) => {
@@ -48,6 +49,10 @@ export default function MenuClientPage({
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') return 'list'
     return parseStateFromUrl().view
+  })
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return parseStateFromUrl().query
   })
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [orderSaving, setOrderSaving] = useState(false)
@@ -87,30 +92,55 @@ export default function MenuClientPage({
     } else {
       params.delete('view')
     }
+    if (searchQuery.trim()) {
+      params.set('q', searchQuery.trim())
+    } else {
+      params.delete('q')
+    }
 
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, isFoodTab, viewMode])
+  }, [activeTab, isFoodTab, searchQuery, viewMode])
 
   useEffect(() => {
     const handlePopState = () => {
       const parsed = parseStateFromUrl()
       setActiveTab(parsed.tab)
       setViewMode(parsed.view)
+      setSearchQuery(parsed.query)
     }
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  const filteredItems = useMemo(() =>
+  const tabItems = useMemo(() =>
     menuItems
       .filter((item) => item.category === activeTab)
       .slice()
       .sort(sortByOrder),
     [menuItems, activeTab]
   )
-  const canDragRows = isAdmin && filteredItems.length > 1 && effectiveViewMode === 'list'
+
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+
+  const filteredItems = useMemo(() => {
+    if (!normalizedSearch) return tabItems
+
+    return tabItems.filter((item) => {
+      const source = [item.name, item.description, item.note]
+      return source.some((field) => {
+        if (typeof field !== 'string') return false
+        return field.toLowerCase().includes(normalizedSearch)
+      })
+    })
+  }, [normalizedSearch, tabItems])
+
+  const canDragRows =
+    isAdmin &&
+    filteredItems.length > 1 &&
+    effectiveViewMode === 'list' &&
+    normalizedSearch.length === 0
 
   const handleItemUpdated = (updated: MenuItem) => {
     setMenuItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
@@ -243,9 +273,35 @@ export default function MenuClientPage({
         {isAdmin && <MenuAddModalButton category={activeTab} />}
       </div>
 
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="메뉴 검색 (이름/설명)"
+          className="glass-input w-full px-3 py-2 text-sm"
+          style={{ color: 'var(--foreground)' }}
+        />
+        {searchQuery.trim().length > 0 && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="px-3 py-2 text-xs rounded-md border shrink-0"
+            style={{ color: 'var(--foreground)', borderColor: 'rgba(201,162,39,0.35)' }}
+          >
+            초기화
+          </button>
+        )}
+      </div>
+
       {canDragRows && (
         <p className="text-xs mb-2" style={{ color: 'var(--foreground)', opacity: 0.58 }}>
           리스트에서 항목을 드래그해 순서를 바꿀 수 있습니다.
+        </p>
+      )}
+      {normalizedSearch.length > 0 && filteredItems.length === 0 && (
+        <p className="text-xs mb-2" style={{ color: 'var(--foreground)', opacity: 0.58 }}>
+          검색 결과가 없습니다.
         </p>
       )}
       {orderError && (
