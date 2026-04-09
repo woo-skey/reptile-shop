@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Suspense } from 'react'
 import { ThemeProvider } from 'next-themes'
@@ -14,9 +14,32 @@ const cafe24Ssukssuk = localFont({
   display: 'swap',
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+const previewImageUrl = siteUrl ? `${siteUrl}/reptile_icon.jpg` : '/reptile_icon.jpg'
+
 export const metadata: Metadata = {
   title: '파충류가게',
   description: '파충류가게 단골들의 공간',
+  openGraph: {
+    title: '파충류가게',
+    description: '파충류가게 단골들의 공간',
+    type: 'website',
+    locale: 'ko_KR',
+    images: [
+      {
+        url: previewImageUrl,
+        width: 512,
+        height: 512,
+        alt: '파충류가게',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: '파충류가게',
+    description: '파충류가게 단골들의 공간',
+    images: [previewImageUrl],
+  },
 }
 
 export default function RootLayout({
@@ -51,3 +74,5 @@ export default function RootLayout({
     </html>
   )
 }
+
+
