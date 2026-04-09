@@ -65,7 +65,7 @@ export default function EventEditModalButton({
     const prepareRes = await fetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type, fileSize: imageFile.size }),
     })
 
     if (!prepareRes.ok) {

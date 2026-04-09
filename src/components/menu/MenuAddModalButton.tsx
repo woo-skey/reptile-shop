@@ -176,7 +176,7 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
     const res = await fetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type, fileSize: imageFile.size }),
     })
 
     if (!res.ok) {

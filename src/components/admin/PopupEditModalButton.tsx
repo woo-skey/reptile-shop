@@ -2,7 +2,6 @@
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import type { Popup } from '@/types'
 
 const toPublicImageUrl = (path: string) => {
@@ -50,7 +49,11 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
     const prepareRes = await fetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+      body: JSON.stringify({
+        filename: imageFile.name,
+        contentType: imageFile.type,
+        fileSize: imageFile.size,
+      }),
     })
 
     if (!prepareRes.ok) {
@@ -82,19 +85,20 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
       const uploadedImageUrl = await uploadImage()
       const finalImageUrl = uploadedImageUrl || imageUrl || null
 
-      const supabase = createClient()
-      const { error: updateError } = await supabase
-        .from('popups')
-        .update({
+      const response = await fetch(`/api/admin/popups/${popup.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title,
           content: content || null,
           image_url: finalImageUrl,
           is_active: isActive,
-        })
-        .eq('id', popup.id)
+        }),
+      })
 
-      if (updateError) {
-        setError(updateError.message)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: '팝업 수정에 실패했습니다.' }))
+        setError(data.error ?? '팝업 수정에 실패했습니다.')
         setLoading(false)
         return
       }

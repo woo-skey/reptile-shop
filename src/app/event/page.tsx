@@ -1,11 +1,11 @@
-import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import EventClientPage from '@/components/event/EventClientPage'
 import type { MenuItem } from '@/types'
 
+export const revalidate = 30
+
 export default async function EventPage() {
-  await connection()
 
   const supabase = createPublicClient()
   const { data } = await supabase

@@ -1,8 +1,7 @@
 'use client'
 
-import { type ChangeEvent, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 const toPublicImageUrl = (path: string) => {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -42,7 +41,11 @@ export default function NewPopupPage() {
     const prepareRes = await fetch('/api/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: imageFile.name, contentType: imageFile.type }),
+      body: JSON.stringify({
+        filename: imageFile.name,
+        contentType: imageFile.type,
+        fileSize: imageFile.size,
+      }),
     })
 
     if (!prepareRes.ok) {
@@ -65,7 +68,7 @@ export default function NewPopupPage() {
     return toPublicImageUrl(path as string)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -74,16 +77,20 @@ export default function NewPopupPage() {
       const uploadedImageUrl = await uploadImage()
       const finalImageUrl = uploadedImageUrl || imageUrl || null
 
-      const supabase = createClient()
-      const { error: insertError } = await supabase.from('popups').insert({
-        title,
-        content: content || null,
-        image_url: finalImageUrl,
-        is_active: isActive,
+      const response = await fetch('/api/admin/popups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          content: content || null,
+          image_url: finalImageUrl,
+          is_active: isActive,
+        }),
       })
 
-      if (insertError) {
-        setError(insertError.message)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: '팝업 생성에 실패했습니다.' }))
+        setError(data.error ?? '팝업 생성에 실패했습니다.')
         setLoading(false)
         return
       }

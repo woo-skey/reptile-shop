@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import CommunityWriteLink from '@/components/community/CommunityWriteLink'
 import type { Post } from '@/types'
@@ -33,7 +32,6 @@ export default async function CommunityPage({
 }: {
   searchParams: Promise<{ page?: string | string[] }>
 }) {
-  await connection()
 
   const supabase = createPublicClient()
   const resolvedSearchParams = await searchParams

@@ -2,30 +2,29 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function DeletePopupButton({ popupId }: { popupId: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('팝업을 삭제하시겠습니까?')) return
+    if (!confirm('이 팝업을 삭제할까요?')) return
     setLoading(true)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('popups')
-        .delete()
-        .eq('id', popupId)
+      const response = await fetch(`/api/admin/popups/${popupId}`, {
+        method: 'DELETE',
+      })
 
-      if (error) {
-        alert(error.message)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: '팝업 삭제에 실패했습니다.' }))
+        alert(data.error ?? '팝업 삭제에 실패했습니다.')
         setLoading(false)
         return
       }
 
       router.refresh()
+      setLoading(false)
     } catch {
       alert('네트워크 오류로 팝업 삭제에 실패했습니다.')
       setLoading(false)

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { connection } from 'next/server'
 import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import { HOME_NOTICE_TEXT_SIZE_CLASS, parseHomeNoticeMeta } from '@/lib/homeNoticeMeta'
@@ -22,6 +21,7 @@ const MENU_LABELS: Record<string, string> = {
 
 const MAIN_HERO_IMAGE = '/reptile_image.png'
 const HOME_NOTICE_KEY = 'main'
+export const revalidate = 30
 
 const NOTICE_ALIGN_CLASS: Record<BannerAlign, { row: string; text: string }> = {
   left: { row: 'justify-start', text: 'text-left' },
@@ -30,7 +30,6 @@ const NOTICE_ALIGN_CLASS: Record<BannerAlign, { row: string; text: string }> = {
 }
 
 export default async function HomePage() {
-  await connection()
 
   const supabase = createPublicClient()
 

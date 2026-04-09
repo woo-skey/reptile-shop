@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function TogglePopupActiveButton({
   popupId,
@@ -19,21 +18,28 @@ export default function TogglePopupActiveButton({
     setLoading(true)
 
     const nextValue = !isActive
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('popups')
-      .update({ is_active: nextValue })
-      .eq('id', popupId)
 
-    if (error) {
-      alert(error.message)
+    try {
+      const response = await fetch(`/api/admin/popups/${popupId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: nextValue }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: '상태 변경에 실패했습니다.' }))
+        alert(data.error ?? '상태 변경에 실패했습니다.')
+        setLoading(false)
+        return
+      }
+
+      setIsActive(nextValue)
+      router.refresh()
       setLoading(false)
-      return
+    } catch {
+      alert('네트워크 오류로 상태 변경에 실패했습니다.')
+      setLoading(false)
     }
-
-    setIsActive(nextValue)
-    router.refresh()
-    setLoading(false)
   }
 
   return (
