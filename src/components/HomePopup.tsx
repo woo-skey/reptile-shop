@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -61,19 +61,20 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
         style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 이미지 */}
+        {/* Popup image */}
         {popup.image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={popup.image_url}
-            alt={popup.title}
-            className="w-full object-cover"
-            style={{ maxHeight: '280px' }}
-          />
+          <div className="w-full aspect-square overflow-hidden" style={{ borderBottom: '1px solid rgba(201, 162, 39, 0.18)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={popup.image_url}
+              alt={popup.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
         )}
 
         <div className="p-6 text-center">
-          {/* 장식선 */}
+          {/* ?μ떇??*/}
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="h-px w-8" style={{ backgroundColor: '#C9A227', opacity: 0.5 }} />
             <span
@@ -107,14 +108,14 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
               className="w-full py-2.5 rounded-lg text-sm font-medium"
               style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
             >
-              닫기
+              ?リ린
             </button>
             <button
               onClick={handleDontShowAgain}
               className="w-full py-2 text-xs"
               style={{ color: 'var(--foreground)', opacity: 0.35 }}
             >
-              오늘 하루 보지 않기
+              ?ㅻ뒛 ?섎（ 蹂댁? ?딄린
             </button>
           </div>
         </div>
