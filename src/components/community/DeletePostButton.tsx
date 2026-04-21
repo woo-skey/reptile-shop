@@ -23,7 +23,6 @@ export default function DeletePostButton({ postId, redirectTo }: { postId: strin
       }
 
       router.push(redirectTo)
-      router.refresh()
     } catch {
       alert('네트워크 오류로 게시글 삭제에 실패했습니다.')
     } finally {

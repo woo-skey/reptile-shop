@@ -147,6 +147,10 @@ export default function MenuClientPage({
     setMenuItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
   }
 
+  const handleItemCreated = (created: MenuItem) => {
+    setMenuItems((prev) => [created, ...prev.filter((item) => item.id !== created.id)])
+  }
+
   const handleItemDeleted = (deletedId: string) => {
     setMenuItems((prev) => prev.filter((item) => item.id !== deletedId))
     setDetailItem((prev) => (prev?.id === deletedId ? null : prev))
@@ -271,7 +275,7 @@ export default function MenuClientPage({
             순서 저장 중...
           </span>
         )}
-        {isAdmin && <MenuAddModalButton category={activeTab} />}
+        {isAdmin && <MenuAddModalButton category={activeTab} onCreated={handleItemCreated} />}
       </div>
 
       <div className="flex items-center gap-2 mb-3">

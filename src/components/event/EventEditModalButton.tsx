@@ -1,19 +1,14 @@
 'use client'
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { MenuItem } from '@/types'
-
-const toPublicImageUrl = (path: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!baseUrl) return path
-  return `${baseUrl}/storage/v1/object/public/post-images/${path}`
-}
+import { useDialog } from '@/hooks/useDialog'
+import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const normalizeImageUrl = (raw?: string | null) => {
   if (!raw) return ''
   if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) return raw
-  return toPublicImageUrl(raw)
+  return toClientPostImageUrl(raw) ?? raw
 }
 
 export default function EventEditModalButton({
@@ -25,8 +20,8 @@ export default function EventEditModalButton({
   onUpdated?: (item: MenuItem) => void
   onDeleted?: (id: string) => void
 }) {
-  const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(item.name)
   const [content, setContent] = useState(item.description ?? '')
@@ -39,18 +34,24 @@ export default function EventEditModalButton({
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
-    }
-  }, [preview])
-
   const close = () => {
     setOpen(false)
     setError('')
     setLoading(false)
     setDeleting(false)
   }
+
+  const { dialogRef, titleId } = useDialog({
+    isOpen: open,
+    onClose: close,
+    initialFocusRef: closeButtonRef,
+  })
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (preview) URL.revokeObjectURL(preview)
@@ -85,7 +86,7 @@ export default function EventEditModalButton({
       throw new Error('이미지 업로드에 실패했습니다.')
     }
 
-    return toPublicImageUrl(path as string)
+    return toClientPostImageUrl(path as string)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -135,7 +136,6 @@ export default function EventEditModalButton({
       })
 
       close()
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '이벤트 수정에 실패했습니다.')
       setLoading(false)
@@ -162,7 +162,6 @@ export default function EventEditModalButton({
 
     onDeleted?.(item.id)
     close()
-    router.refresh()
   }
 
   return (
@@ -182,15 +181,22 @@ export default function EventEditModalButton({
           onClick={close}
         >
           <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
                 이벤트 수정
               </h3>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={close}
                 className="text-xs px-2 py-1 rounded border"
                 style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(255,255,255,0.2)' }}

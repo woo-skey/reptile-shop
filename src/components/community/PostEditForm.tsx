@@ -41,7 +41,6 @@ export default function PostEditForm({
       }
 
       router.push(`/community/${postId}`)
-      router.refresh()
     } catch {
       setError('네트워크 오류로 게시글 수정에 실패했습니다.')
       setLoading(false)

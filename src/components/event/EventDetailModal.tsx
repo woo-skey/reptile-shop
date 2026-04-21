@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useRef } from 'react'
+import { useDialog } from '@/hooks/useDialog'
 
 export type EventDetailModalItem = {
   id: string
@@ -28,16 +29,12 @@ export default function EventDetailModal({
   item: EventDetailModalItem | null
   onClose: () => void
 }) {
-  useEffect(() => {
-    if (!item) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [item, onClose])
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const { dialogRef, titleId } = useDialog({
+    isOpen: Boolean(item),
+    onClose,
+    initialFocusRef: closeButtonRef,
+  })
 
   if (!item) return null
 
@@ -50,11 +47,17 @@ export default function EventDetailModal({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         className="glass-card relative w-full max-w-lg max-h-[85vh] overflow-y-auto"
         style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
         onClick={(event) => event.stopPropagation()}
       >
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="닫기"
@@ -82,6 +85,7 @@ export default function EventDetailModal({
         <div className="p-5 sm:p-6">
           <div className="mb-3">
             <h3
+              id={titleId}
               className="text-lg font-semibold break-words"
               style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
             >

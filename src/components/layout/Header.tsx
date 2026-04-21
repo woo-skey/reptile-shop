@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 
@@ -20,21 +20,12 @@ const navLinks: NavLink[] = [
   { href: '/notice', label: '공지', isActive: (pathname) => pathname.startsWith('/notice') },
 ]
 
-const PREFETCH_ROUTES = ['/', '/menu', '/event', '/community', '/notice'] as const
-
 export default function Header() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const router = useRouter()
   const { user, isAdmin, loading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const currentTab = searchParams.get('tab')
-
-  useEffect(() => {
-    PREFETCH_ROUTES.forEach((href) => {
-      router.prefetch(href)
-    })
-  }, [router])
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -53,7 +44,7 @@ export default function Header() {
       }}
     >
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" prefetch className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold"
             style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
@@ -69,7 +60,6 @@ export default function Header() {
               <Link
                 key={href}
                 href={href}
-                prefetch
                 className="text-sm transition-colors"
                 style={{
                   color: active ? '#C9A227' : 'rgba(245, 240, 232, 0.7)',
@@ -83,7 +73,6 @@ export default function Header() {
           {isAdmin && (
             <Link
               href="/admin"
-              prefetch
               className="text-sm transition-colors"
               style={{ color: pathname.startsWith('/admin') ? '#C9A227' : 'rgba(245, 240, 232, 0.5)' }}
             >
@@ -99,7 +88,6 @@ export default function Header() {
             <>
               <Link
                 href="/mypage"
-                prefetch
                 className="hidden md:block text-sm"
                 style={{ color: 'rgba(245, 240, 232, 0.7)' }}
               >
@@ -119,7 +107,6 @@ export default function Header() {
           ) : (
             <Link
               href="/login"
-              prefetch
               className="text-xs px-3 py-1.5 rounded-md border transition-colors"
               style={{
                 color: '#C9A227',
@@ -156,7 +143,6 @@ export default function Header() {
             <Link
               key={href}
               href={href}
-              prefetch
               onClick={() => setMenuOpen(false)}
               className="block py-2 text-sm"
               style={{ color: 'rgba(245, 240, 232, 0.8)' }}
@@ -167,7 +153,6 @@ export default function Header() {
           {isAdmin && (
             <Link
               href="/admin"
-              prefetch
               onClick={() => setMenuOpen(false)}
               className="block py-2 text-sm"
               style={{ color: 'rgba(245, 240, 232, 0.6)' }}
@@ -178,7 +163,6 @@ export default function Header() {
           {user && (
             <Link
               href="/mypage"
-              prefetch
               onClick={() => setMenuOpen(false)}
               className="block py-2 text-sm"
               style={{ color: 'rgba(245, 240, 232, 0.8)' }}

@@ -122,19 +122,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '정렬할 메뉴 목록이 올바르지 않습니다.' }, { status: 400 })
   }
 
-  const results = await Promise.all(
-    items.map((row) =>
-      admin.adminClient
-        .from('menu_items')
-        .update({ sort_order: row.sort_order })
-        .eq('id', row.id)
-        .eq('category', category)
-    )
-  )
+  const itemIds = items.map((item) => item.id)
+  const uniqueIds = new Set(itemIds)
 
-  const failed = results.find((result) => result.error)
-  if (failed?.error) {
-    return NextResponse.json({ error: failed.error.message }, { status: 500 })
+  if (uniqueIds.size !== itemIds.length) {
+    return NextResponse.json({ error: '중복된 메뉴 ID가 포함되어 있습니다.' }, { status: 400 })
+  }
+
+  const { data: existingItems, error: existingItemsError } = await admin.adminClient
+    .from('menu_items')
+    .select('id')
+    .eq('category', category)
+    .in('id', itemIds)
+
+  if (existingItemsError) {
+    return NextResponse.json({ error: existingItemsError.message }, { status: 500 })
+  }
+
+  if ((existingItems?.length ?? 0) !== items.length) {
+    return NextResponse.json({ error: '정렬 대상 메뉴를 다시 불러와 주세요.' }, { status: 400 })
+  }
+
+  const { error } = await admin.adminClient
+    .from('menu_items')
+    .upsert(
+      items.map((row) => ({
+        id: row.id,
+        sort_order: row.sort_order,
+      })),
+      { onConflict: 'id' }
+    )
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   revalidateMenuPaths()

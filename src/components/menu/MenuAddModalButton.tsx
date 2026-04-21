@@ -1,9 +1,10 @@
 'use client'
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { MenuItem } from '@/types'
 import type { MenuTabCategory } from '@/components/menu/MenuTypes'
+import { useDialog } from '@/hooks/useDialog'
+import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const WINE_SUBS = ['red', 'white', 'sparkling']
 const WHISKY_SUBS = ['single_malt', 'blended', 'bourbon', 'tennessee']
@@ -24,9 +25,15 @@ const CATEGORY_LABEL: Record<MenuTabCategory, string> = {
   spirits: '메뉴',
 }
 
-export default function MenuAddModalButton({ category }: { category: MenuTabCategory }) {
-  const router = useRouter()
+export default function MenuAddModalButton({
+  category,
+  onCreated,
+}: {
+  category: MenuTabCategory
+  onCreated?: (item: MenuItem) => void
+}) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -53,6 +60,19 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
   const [error, setError] = useState('')
   const isEventCategory = category === 'event'
   const supportsImage = category === 'event' || category === 'food'
+
+  const close = () => {
+    setOpen(false)
+    setError('')
+    setLoading(false)
+    setEventSourceError('')
+  }
+
+  const { dialogRef, titleId } = useDialog({
+    isOpen: open,
+    onClose: close,
+    initialFocusRef: closeButtonRef,
+  })
 
   useEffect(() => {
     return () => {
@@ -126,13 +146,6 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const close = () => {
-    setOpen(false)
-    setError('')
-    setLoading(false)
-    setEventSourceError('')
-  }
-
   const handleOpen = () => {
     setOpen(true)
     setError('')
@@ -165,7 +178,7 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
       ...prev,
       name: selected.name,
       description: selected.description ?? '',
-      image_url: selected.image_url ?? '',
+      image_url: toClientPostImageUrl(selected.image_url) ?? selected.image_url ?? '',
       sort_order: String(selected.sort_order ?? 0),
     }))
   }
@@ -196,7 +209,7 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
       throw new Error('사진 업로드에 실패했습니다.')
     }
 
-    return path as string
+    return toClientPostImageUrl(path as string)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -206,7 +219,9 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
 
     try {
       const uploadedPath = supportsImage ? await uploadImage() : null
-      const imageUrl = supportsImage ? (uploadedPath || form.image_url || null) : null
+      const imageUrl = supportsImage
+        ? (uploadedPath || toClientPostImageUrl(form.image_url) || form.image_url || null)
+        : null
 
       const res = await fetch('/api/admin/menu-items', {
         method: 'POST',
@@ -235,9 +250,13 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
         return
       }
 
+      const data = await res.json().catch(() => null)
+      if (data?.item) {
+        onCreated?.(data.item as MenuItem)
+      }
+
       reset()
       close()
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다.')
       setLoading(false)
@@ -265,15 +284,22 @@ export default function MenuAddModalButton({ category }: { category: MenuTabCate
           onClick={close}
         >
           <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
                 {CATEGORY_LABEL[category]} 등록
               </h3>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={close}
                 className="text-xs px-2 py-1 rounded border"
                 style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(255,255,255,0.2)' }}

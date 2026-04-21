@@ -1,8 +1,9 @@
 'use client'
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { MenuCategory, MenuItem } from '@/types'
+import { useDialog } from '@/hooks/useDialog'
+import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const CATEGORIES: { value: MenuCategory; label: string }[] = [
   { value: 'event', label: 'Event / New' },
@@ -37,8 +38,8 @@ export default function MenuEditModalButton({
   onUpdated: (updated: MenuItem) => void
   onDeleted?: (deletedId: string) => void
 }) {
-  const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -54,7 +55,7 @@ export default function MenuEditModalButton({
     price_bottle: item.price_bottle != null ? String(item.price_bottle) : '',
     sort_order: String(item.sort_order),
     is_available: item.is_available,
-    image_url: item.image_url ?? '',
+    image_url: toClientPostImageUrl(item.image_url) ?? item.image_url ?? '',
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
@@ -86,6 +87,12 @@ export default function MenuEditModalButton({
     setLoading(false)
     setDeleting(false)
   }
+
+  const { dialogRef, titleId } = useDialog({
+    isOpen: open,
+    onClose: close,
+    initialFocusRef: closeButtonRef,
+  })
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (preview) URL.revokeObjectURL(preview)
@@ -119,7 +126,7 @@ export default function MenuEditModalButton({
       throw new Error('Image upload에 실패했습니다.')
     }
 
-    return path as string
+    return toClientPostImageUrl(path as string)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -129,7 +136,9 @@ export default function MenuEditModalButton({
 
     try {
       const uploadedPath = supportsImage ? await uploadImage() : null
-      const imageUrl = supportsImage ? (uploadedPath || form.image_url || null) : null
+      const imageUrl = supportsImage
+        ? (uploadedPath || toClientPostImageUrl(form.image_url) || form.image_url || null)
+        : null
 
       const payload = {
         id: item.id,
@@ -179,7 +188,6 @@ export default function MenuEditModalButton({
       })
 
       close()
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Update failed.')
       setLoading(false)
@@ -208,7 +216,6 @@ export default function MenuEditModalButton({
 
       onDeleted?.(item.id)
       close()
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed.')
       setDeleting(false)
@@ -235,6 +242,11 @@ export default function MenuEditModalButton({
           onClick={close}
         >
           <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             style={{
               border: '1px solid rgba(201, 162, 39, 0.4)',
@@ -243,10 +255,12 @@ export default function MenuEditModalButton({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
                 Edit Menu
               </h3>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={close}
                 className="text-xs px-2 py-1 rounded border"
                 style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(255,255,255,0.2)' }}

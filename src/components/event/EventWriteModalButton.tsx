@@ -1,22 +1,17 @@
 'use client'
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { MenuItem } from '@/types'
-
-const toPublicImageUrl = (path: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!baseUrl) return path
-  return `${baseUrl}/storage/v1/object/public/post-images/${path}`
-}
+import { useDialog } from '@/hooks/useDialog'
+import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 export default function EventWriteModalButton({
   onCreated,
 }: {
   onCreated?: (item: MenuItem) => void
 }) {
-  const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -28,17 +23,23 @@ export default function EventWriteModalButton({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    return () => {
-      if (preview) URL.revokeObjectURL(preview)
-    }
-  }, [preview])
-
   const close = () => {
     setOpen(false)
     setError('')
     setLoading(false)
   }
+
+  const { dialogRef, titleId } = useDialog({
+    isOpen: open,
+    onClose: close,
+    initialFocusRef: closeButtonRef,
+  })
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
+  }, [preview])
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (preview) URL.revokeObjectURL(preview)
@@ -73,7 +74,7 @@ export default function EventWriteModalButton({
       throw new Error('이미지 업로드에 실패했습니다.')
     }
 
-    return toPublicImageUrl(path as string)
+    return toClientPostImageUrl(path as string)
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -126,7 +127,6 @@ export default function EventWriteModalButton({
       if (fileRef.current) fileRef.current.value = ''
       setSortOrder('0')
       setIsAvailable(true)
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : '이벤트 등록에 실패했습니다.')
       setLoading(false)
@@ -150,15 +150,22 @@ export default function EventWriteModalButton({
           onClick={close}
         >
           <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+              <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
                 이벤트 작성
               </h3>
               <button
+                ref={closeButtonRef}
+                type="button"
                 onClick={close}
                 className="text-xs px-2 py-1 rounded border"
                 style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(255,255,255,0.2)' }}

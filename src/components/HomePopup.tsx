@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useRef, useState, useSyncExternalStore } from 'react'
+import { useDialog } from '@/hooks/useDialog'
 
 interface PopupData {
   id: string
@@ -33,15 +34,26 @@ const readHiddenByStorage = (popup: PopupData | null) => {
 
 export default function HomePopup({ popup }: { popup: PopupData | null }) {
   const [sessionHidden, setSessionHidden] = useState<Record<string, boolean>>({})
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const hiddenByStorage = useSyncExternalStore(
     emptySubscribe,
     () => readHiddenByStorage(popup),
     () => null
   )
 
+  const hiddenInSession = popup ? Boolean(sessionHidden[popup.id]) : false
+  const isOpen = Boolean(popup && hiddenByStorage === false && !hiddenInSession)
+  const { dialogRef, titleId } = useDialog({
+    isOpen,
+    onClose: () => {
+      if (!popup) return
+      setSessionHidden((prev) => ({ ...prev, [popup.id]: true }))
+    },
+    initialFocusRef: closeButtonRef,
+  })
+
   if (!popup || hiddenByStorage == null) return null
 
-  const hiddenInSession = Boolean(sessionHidden[popup.id])
   if (hiddenByStorage || hiddenInSession) return null
 
   const handleClose = () => {
@@ -64,6 +76,11 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
       onClick={handleClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         className="glass-card w-full max-w-sm overflow-hidden"
         style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
         onClick={(e) => e.stopPropagation()}
@@ -91,6 +108,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
           </div>
 
           <h2
+            id={titleId}
             className="text-xl font-bold mb-3"
             style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
           >
@@ -108,6 +126,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
 
           <div className="flex flex-col gap-2">
             <button
+              ref={closeButtonRef}
               onClick={handleClose}
               className="w-full py-2.5 rounded-lg text-sm font-medium"
               style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
