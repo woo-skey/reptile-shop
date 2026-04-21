@@ -35,25 +35,20 @@ const sortByOrder = (a: MenuItem, b: MenuItem) => {
 export default function MenuClientPage({
   items,
   initialTab,
+  initialView,
+  initialQuery,
 }: {
   items: MenuItem[]
   initialTab: MenuTabCategory
+  initialView: ViewMode
+  initialQuery: string
 }) {
   const router = useRouter()
   const { isAdmin } = useAuth()
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
-  const [activeTab, setActiveTab] = useState<MenuTabCategory>(() => {
-    if (typeof window === 'undefined') return initialTab
-    return parseStateFromUrl().tab
-  })
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') return 'list'
-    return parseStateFromUrl().view
-  })
-  const [searchQuery, setSearchQuery] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    return parseStateFromUrl().query
-  })
+  const [activeTab, setActiveTab] = useState<MenuTabCategory>(initialTab)
+  const [viewMode, setViewMode] = useState<ViewMode>(initialView)
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
@@ -69,6 +64,12 @@ export default function MenuClientPage({
   useEffect(() => {
     setMenuItems(items)
   }, [items])
+
+  useEffect(() => {
+    setActiveTab(initialTab)
+    setViewMode(initialView)
+    setSearchQuery(initialQuery)
+  }, [initialQuery, initialTab, initialView])
 
   useEffect(() => {
     return () => {

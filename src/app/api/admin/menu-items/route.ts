@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -21,6 +22,7 @@ const VALID_CATEGORIES: MenuCategory[] = [
 
 const WINE_SUBS = new Set(['red', 'white', 'sparkling'])
 const WHISKY_SUBS = new Set(['single_malt', 'blended', 'bourbon', 'tennessee'])
+const MENU_REVALIDATE_PATHS = ['/', '/menu', '/event']
 
 const isImageColumnMissingError = (message: string) => {
   const normalized = message.toLowerCase()
@@ -84,6 +86,12 @@ const createAdminClient = (): SupabaseClient | null => {
       autoRefreshToken: false,
     },
   })
+}
+
+const revalidateMenuPaths = () => {
+  for (const path of MENU_REVALIDATE_PATHS) {
+    revalidatePath(path)
+  }
 }
 
 async function assertAdmin() {
@@ -250,6 +258,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidateMenuPaths()
   return NextResponse.json({ success: true, item: insertedItem })
 }
 
@@ -311,6 +320,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidateMenuPaths()
   return NextResponse.json({ success: true })
 }
 
@@ -334,5 +344,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidateMenuPaths()
   return NextResponse.json({ success: true })
 }

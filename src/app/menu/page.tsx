@@ -1,11 +1,42 @@
 import { createPublicClient } from '@/lib/supabase/public-server'
 import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 import MenuClientPage from '@/components/menu/MenuClientPage'
+import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import type { MenuItem } from '@/types'
 
 export const revalidate = 30
 
-export default async function MenuPage() {
+type MenuPageSearchParams = {
+  tab?: string | string[]
+  view?: string | string[]
+  q?: string | string[]
+}
+
+const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
+
+const getFirstSearchParam = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value
+
+const parseMenuSearchParams = (searchParams: MenuPageSearchParams) => {
+  const tabFromUrl = getFirstSearchParam(searchParams.tab)
+  const viewFromUrl = getFirstSearchParam(searchParams.view)
+  const queryFromUrl = getFirstSearchParam(searchParams.q)?.trim() ?? ''
+
+  const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
+    ? (tabFromUrl as MenuTabCategory)
+    : 'event'
+  const view: ViewMode = viewFromUrl === 'photo' ? 'photo' : 'list'
+
+  return { tab, view, query: queryFromUrl }
+}
+
+export default async function MenuPage({
+  searchParams,
+}: {
+  searchParams: Promise<MenuPageSearchParams>
+}) {
+  const resolvedSearchParams = await searchParams
+  const initialState = parseMenuSearchParams(resolvedSearchParams)
 
   const supabase = createPublicClient()
   const { data } = await supabase
@@ -48,7 +79,12 @@ export default async function MenuPage() {
         </p>
       </div>
 
-      <MenuClientPage items={items} initialTab="event" />
+      <MenuClientPage
+        items={items}
+        initialTab={initialState.tab}
+        initialView={initialState.view}
+        initialQuery={initialState.query}
+      />
     </div>
   )
 }

@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 
 interface PopupData {
   id: string
@@ -10,6 +10,8 @@ interface PopupData {
 }
 
 const STORAGE_KEY = 'reptile_popup_hidden_v'
+const emptySubscribe = () => () => {}
+
 const toLocalDateKey = (date: Date) => {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -17,22 +19,27 @@ const toLocalDateKey = (date: Date) => {
   return `${y}-${m}-${d}`
 }
 
-export default function HomePopup({ popup }: { popup: PopupData | null }) {
-  const [sessionHidden, setSessionHidden] = useState<Record<string, boolean>>({})
-
+const readHiddenByStorage = (popup: PopupData | null) => {
   if (!popup) return null
 
-  let hiddenByStorage = false
-  if (typeof window !== 'undefined') {
-    try {
-      const storageKey = STORAGE_KEY + popup.id
-      const todayKey = toLocalDateKey(new Date())
-      const storedValue = localStorage.getItem(storageKey)
-      hiddenByStorage = storedValue === todayKey
-    } catch {
-      hiddenByStorage = false
-    }
+  try {
+    const storageKey = STORAGE_KEY + popup.id
+    const todayKey = toLocalDateKey(new Date())
+    return localStorage.getItem(storageKey) === todayKey
+  } catch {
+    return false
   }
+}
+
+export default function HomePopup({ popup }: { popup: PopupData | null }) {
+  const [sessionHidden, setSessionHidden] = useState<Record<string, boolean>>({})
+  const hiddenByStorage = useSyncExternalStore(
+    emptySubscribe,
+    () => readHiddenByStorage(popup),
+    () => null
+  )
+
+  if (!popup || hiddenByStorage == null) return null
 
   const hiddenInSession = Boolean(sessionHidden[popup.id])
   if (hiddenByStorage || hiddenInSession) return null
@@ -62,7 +69,10 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
         onClick={(e) => e.stopPropagation()}
       >
         {popup.image_url && (
-          <div className="w-full aspect-square overflow-hidden" style={{ borderBottom: '1px solid rgba(201, 162, 39, 0.18)' }}>
+          <div
+            className="w-full aspect-square overflow-hidden"
+            style={{ borderBottom: '1px solid rgba(201, 162, 39, 0.18)' }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={popup.image_url} alt={popup.title} className="w-full h-full object-cover" />
           </div>
@@ -80,12 +90,18 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
             <div className="h-px w-8" style={{ backgroundColor: '#C9A227', opacity: 0.5 }} />
           </div>
 
-          <h2 className="text-xl font-bold mb-3" style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}>
+          <h2
+            className="text-xl font-bold mb-3"
+            style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
+          >
             {popup.title}
           </h2>
 
           {popup.content && (
-            <p className="text-sm leading-relaxed mb-6 whitespace-pre-wrap" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+            <p
+              className="text-sm leading-relaxed mb-6 whitespace-pre-wrap"
+              style={{ color: 'var(--foreground)', opacity: 0.7 }}
+            >
               {popup.content}
             </p>
           )}

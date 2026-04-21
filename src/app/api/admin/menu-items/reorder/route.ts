@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -20,6 +21,7 @@ const VALID_CATEGORIES: MenuCategory[] = [
   'shochu',
   'spirits',
 ]
+const MENU_REVALIDATE_PATHS = ['/', '/menu', '/event']
 
 const toTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
@@ -35,6 +37,12 @@ const createAdminClient = (): SupabaseClient | null => {
       autoRefreshToken: false,
     },
   })
+}
+
+const revalidateMenuPaths = () => {
+  for (const path of MENU_REVALIDATE_PATHS) {
+    revalidatePath(path)
+  }
 }
 
 async function assertAdmin() {
@@ -129,5 +137,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: failed.error.message }, { status: 500 })
   }
 
+  revalidateMenuPaths()
   return NextResponse.json({ success: true })
 }
