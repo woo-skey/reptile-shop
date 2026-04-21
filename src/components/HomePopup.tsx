@@ -61,20 +61,14 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
         style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Popup image */}
         {popup.image_url && (
           <div className="w-full aspect-square overflow-hidden" style={{ borderBottom: '1px solid rgba(201, 162, 39, 0.18)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={popup.image_url}
-              alt={popup.title}
-              className="w-full h-full object-cover"
-            />
+            <img src={popup.image_url} alt={popup.title} className="w-full h-full object-cover" />
           </div>
         )}
 
         <div className="p-6 text-center">
-          {/* ?μ떇??*/}
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="h-px w-8" style={{ backgroundColor: '#C9A227', opacity: 0.5 }} />
             <span
@@ -86,18 +80,12 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
             <div className="h-px w-8" style={{ backgroundColor: '#C9A227', opacity: 0.5 }} />
           </div>
 
-          <h2
-            className="text-xl font-bold mb-3"
-            style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}
-          >
+          <h2 className="text-xl font-bold mb-3" style={{ fontFamily: 'var(--font-playfair)', color: '#C9A227' }}>
             {popup.title}
           </h2>
 
           {popup.content && (
-            <p
-              className="text-sm leading-relaxed mb-6 whitespace-pre-wrap"
-              style={{ color: 'var(--foreground)', opacity: 0.7 }}
-            >
+            <p className="text-sm leading-relaxed mb-6 whitespace-pre-wrap" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
               {popup.content}
             </p>
           )}
@@ -108,14 +96,14 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
               className="w-full py-2.5 rounded-lg text-sm font-medium"
               style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
             >
-              ?リ린
+              닫기
             </button>
             <button
               onClick={handleDontShowAgain}
               className="w-full py-2 text-xs"
               style={{ color: 'var(--foreground)', opacity: 0.35 }}
             >
-              ?ㅻ뒛 ?섎（ 蹂댁? ?딄린
+              오늘 다시 보지 않기
             </button>
           </div>
         </div>
