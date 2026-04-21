@@ -67,7 +67,7 @@ export default async function HomePage() {
       .eq('is_available', true)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true })
-      .limit(4),
+      .limit(3),
     supabase
       .from('popups')
       .select('id, title, content, image_url')
