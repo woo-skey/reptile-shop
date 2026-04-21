@@ -38,6 +38,7 @@ export default function ToggleRoleButton({ userId, currentRole }: { userId: stri
   return (
     <div className="flex flex-col items-end gap-1">
       <button
+        type="button"
         onClick={handleToggle}
         disabled={loading}
         className="text-xs px-2.5 py-1 rounded border disabled:opacity-50"

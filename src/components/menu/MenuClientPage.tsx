@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import MenuTabs from '@/components/menu/MenuTabs'
 import MenuTable from '@/components/menu/MenuTable'
@@ -56,10 +56,12 @@ export default function MenuClientPage({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingOrderRef = useRef<{ category: MenuTabCategory; items: MenuItem[] } | null>(null)
   const savingRef = useRef(false)
+  const [, startTabTransition] = useTransition()
 
   const isEventTab = activeTab === 'event'
   const isFoodTab = activeTab === 'food'
   const effectiveViewMode: ViewMode = isEventTab ? 'photo' : (isFoodTab ? viewMode : 'list')
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
   useEffect(() => {
     setMenuItems(items)
@@ -115,15 +117,30 @@ export default function MenuClientPage({
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  const tabItems = useMemo(() =>
-    menuItems
-      .filter((item) => item.category === activeTab)
-      .slice()
-      .sort(sortByOrder),
-    [menuItems, activeTab]
+  const itemsByTab = useMemo(() => {
+    const grouped = TAB_KEYS.reduce<Record<MenuTabCategory, MenuItem[]>>((acc, key) => {
+      acc[key] = []
+      return acc
+    }, {} as Record<MenuTabCategory, MenuItem[]>)
+
+    for (const item of menuItems) {
+      if (!(item.category in grouped)) continue
+      grouped[item.category as MenuTabCategory].push(item)
+    }
+
+    for (const key of TAB_KEYS) {
+      grouped[key] = grouped[key].slice().sort(sortByOrder)
+    }
+
+    return grouped
+  }, [menuItems])
+
+  const tabItems = useMemo(
+    () => itemsByTab[activeTab] ?? [],
+    [activeTab, itemsByTab]
   )
 
-  const normalizedSearch = searchQuery.trim().toLowerCase()
+  const normalizedSearch = deferredSearchQuery.trim().toLowerCase()
 
   const filteredItems = useMemo(() => {
     if (!normalizedSearch) return tabItems
@@ -257,9 +274,16 @@ export default function MenuClientPage({
     applyReorder(nextOrdered)
   }
 
+  const handleTabChange = (nextTab: MenuTabCategory) => {
+    if (nextTab === activeTab) return
+    startTabTransition(() => {
+      setActiveTab(nextTab)
+    })
+  }
+
   return (
     <>
-      <MenuTabs activeTab={activeTab} onChange={setActiveTab} />
+      <MenuTabs activeTab={activeTab} onChange={handleTabChange} />
 
       <div className="flex flex-wrap items-center gap-3 mb-3">
         {isFoodTab && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}

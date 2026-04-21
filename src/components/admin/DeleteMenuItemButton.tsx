@@ -34,6 +34,7 @@ export default function DeleteMenuItemButton({ itemId }: { itemId: string }) {
 
   return (
     <button
+      type="button"
       onClick={handleDelete}
       disabled={loading}
       className="text-xs px-3 py-1.5 rounded-md border shrink-0 disabled:opacity-50"

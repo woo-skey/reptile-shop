@@ -44,6 +44,7 @@ export default function TogglePopupActiveButton({
 
   return (
     <button
+      type="button"
       onClick={handleToggle}
       disabled={loading}
       className="text-xs px-3 py-1.5 rounded-md border shrink-0 disabled:opacity-50"

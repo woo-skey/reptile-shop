@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import type { MenuTabCategory } from '@/components/menu/MenuTypes'
 
 const TABS = [
@@ -16,7 +17,7 @@ const TABS = [
   { key: 'beverage', label: 'Beverage' },
 ] as const
 
-export default function MenuTabs({
+function MenuTabs({
   activeTab,
   onChange,
 }: {
@@ -30,15 +31,20 @@ export default function MenuTabs({
 
   return (
     <div className="mb-8">
-      <div className="flex flex-wrap gap-1">
+      <div
+        className="flex gap-1 overflow-x-auto pb-1 pr-1"
+        style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
         {TABS.map(({ key, label }) => {
           const tabKey = key as MenuTabCategory
           const active = activeTab === tabKey
           return (
             <button
+              type="button"
               key={key}
               onClick={() => handleTab(tabKey)}
-              className="shrink-0 px-3 py-1.5 text-xs rounded-md border transition-all"
+              aria-pressed={active}
+              className="shrink-0 whitespace-nowrap px-3 py-1.5 text-xs rounded-md border transition-all"
               style={{
                 backgroundColor: active ? '#456132' : 'transparent',
                 color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.55)',
@@ -54,3 +60,5 @@ export default function MenuTabs({
     </div>
   )
 }
+
+export default memo(MenuTabs)
