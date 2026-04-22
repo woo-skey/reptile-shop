@@ -3,7 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function DeleteMenuItemButton({ itemId }: { itemId: string }) {
+export default function DeleteMenuItemButton({
+  itemId,
+  onDeleted,
+}: {
+  itemId: string
+  onDeleted?: (deletedId: string) => void
+}) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -24,6 +30,7 @@ export default function DeleteMenuItemButton({ itemId }: { itemId: string }) {
         return
       }
 
+      onDeleted?.(itemId)
       router.refresh()
     } catch {
       alert('네트워크 오류로 메뉴 삭제에 실패했습니다.')
