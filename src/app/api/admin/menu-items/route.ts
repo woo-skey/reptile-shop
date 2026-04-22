@@ -185,6 +185,9 @@ const parseMenuPayload = (body: Record<string, unknown>) => {
     price_bottle: toNullableNumber(body.price_bottle, true),
     sort_order: toNullableNumber(body.sort_order, true) ?? 0,
     is_available: typeof body.is_available === 'boolean' ? body.is_available : true,
+    popular_order: category === 'event' || category === 'event_post'
+      ? null
+      : toNullableNumber(body.popular_order, true),
   }
 
   if (category === 'cocktail') {

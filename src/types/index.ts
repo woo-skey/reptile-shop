@@ -53,6 +53,7 @@ export interface MenuItem {
   price_bottle: number | null
   sort_order: number
   is_available: boolean
+  popular_order: number | null
   created_at: string
 }
 

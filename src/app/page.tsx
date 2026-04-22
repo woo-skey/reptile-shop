@@ -63,10 +63,9 @@ export default async function HomePage() {
     supabase
       .from('menu_items')
       .select('id, name, category, price')
-      .eq('category', 'food')
+      .not('popular_order', 'is', null)
       .eq('is_available', true)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
+      .order('popular_order', { ascending: true })
       .limit(3),
     supabase
       .from('popups')
@@ -141,7 +140,7 @@ export default async function HomePage() {
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                <span style={{ color: '#C9A227' }}>·</span> 메인 메뉴
+                <span style={{ color: '#C9A227' }}>·</span> 인기메뉴
               </h2>
               <Link href="/menu" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
@@ -151,7 +150,7 @@ export default async function HomePage() {
             {menus.length === 0 ? (
               <div className="flex-1 flex items-center justify-center">
                 <p className="text-center text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                  등록된 메뉴가 없습니다.
+                  선택된 인기메뉴가 없습니다.
                 </p>
               </div>
             ) : (

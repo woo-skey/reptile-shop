@@ -54,6 +54,7 @@ export default function MenuEditModalButton({
     price_glass: item.price_glass != null ? String(item.price_glass) : '',
     price_bottle: item.price_bottle != null ? String(item.price_bottle) : '',
     sort_order: String(item.sort_order),
+    popular_order: item.popular_order != null ? String(item.popular_order) : '',
     is_available: item.is_available,
     image_url: toClientPostImageUrl(item.image_url) ?? item.image_url ?? '',
   })
@@ -79,6 +80,7 @@ export default function MenuEditModalButton({
   const needsVol = currentCategory === 'beer'
   const needsGlass = ['wine', 'whisky', 'shochu', 'spirits'].includes(currentCategory)
   const needsPrice = !needsGlass && currentCategory !== 'cocktail' && currentCategory !== 'event'
+  const supportsPopular = currentCategory !== 'event' && currentCategory !== 'event_post'
   const subOptions = currentCategory === 'wine' ? WINE_SUBS : currentCategory === 'whisky' ? WHISKY_SUBS : []
 
   const close = () => {
@@ -153,6 +155,7 @@ export default function MenuEditModalButton({
         price_glass: toNumberOrNull(form.price_glass, parseInt),
         price_bottle: toNumberOrNull(form.price_bottle, parseInt),
         sort_order: toNumberOrNull(form.sort_order, parseInt) ?? 0,
+        popular_order: supportsPopular ? toNumberOrNull(form.popular_order, parseInt) : null,
         is_available: form.is_available,
         image_url: imageUrl,
       }
@@ -183,6 +186,7 @@ export default function MenuEditModalButton({
         price_glass: payload.price_glass,
         price_bottle: payload.price_bottle,
         sort_order: payload.sort_order,
+        popular_order: payload.popular_order,
         is_available: payload.is_available,
         image_url: payload.image_url,
       })
@@ -496,6 +500,25 @@ export default function MenuEditModalButton({
                     style={{ color: 'var(--foreground)' }}
                   />
                 </div>
+
+                {supportsPopular && (
+                  <div>
+                    <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                      인기메뉴 순서
+                    </label>
+                    <input
+                      type="number"
+                      value={form.popular_order}
+                      onChange={(e) => set('popular_order', e.target.value)}
+                      placeholder="비우면 인기메뉴 제외"
+                      className={inputCls}
+                      style={{ color: 'var(--foreground)' }}
+                    />
+                    <p className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+                      숫자가 작을수록 먼저 노출. 홈 인기메뉴 섹션에 최대 3개까지 표시됩니다.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">

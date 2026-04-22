@@ -47,6 +47,7 @@ export default function MenuAddModalButton({
     price_glass: '',
     price_bottle: '',
     sort_order: '0',
+    popular_order: '',
     is_available: true,
     image_url: '',
   })
@@ -60,6 +61,7 @@ export default function MenuAddModalButton({
   const [error, setError] = useState('')
   const isEventCategory = category === 'event'
   const supportsImage = category === 'event' || category === 'food'
+  const supportsPopular = category !== 'event'
 
   const close = () => {
     setOpen(false)
@@ -136,6 +138,7 @@ export default function MenuAddModalButton({
       price_glass: '',
       price_bottle: '',
       sort_order: '0',
+      popular_order: '',
       is_available: true,
       image_url: '',
     })
@@ -238,6 +241,9 @@ export default function MenuAddModalButton({
           price_glass: form.price_glass ? parseInt(form.price_glass) : null,
           price_bottle: form.price_bottle ? parseInt(form.price_bottle) : null,
           sort_order: parseInt(form.sort_order) || 0,
+          popular_order: supportsPopular && form.popular_order.trim() !== ''
+            ? parseInt(form.popular_order)
+            : null,
           is_available: form.is_available,
           image_url: imageUrl,
         }),
@@ -545,6 +551,25 @@ export default function MenuAddModalButton({
                     style={{ color: 'var(--foreground)' }}
                   />
                 </div>
+
+                {supportsPopular && (
+                  <div>
+                    <label className={labelCls} style={{ color: 'var(--foreground)' }}>
+                      인기메뉴 순서
+                    </label>
+                    <input
+                      type="number"
+                      value={form.popular_order}
+                      onChange={(e) => set('popular_order', e.target.value)}
+                      placeholder="비우면 인기메뉴 제외"
+                      className={inputCls}
+                      style={{ color: 'var(--foreground)' }}
+                    />
+                    <p className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+                      숫자가 작을수록 먼저 노출. 홈 인기메뉴 섹션에 최대 3개까지 표시됩니다.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">

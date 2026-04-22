@@ -115,6 +115,14 @@ export default function AdminMenuItemManager({ initialItems }: { initialItems: M
                             비노출
                           </span>
                         )}
+                        {item.popular_order != null && (
+                          <span
+                            className="text-xs px-1.5 py-0.5 rounded shrink-0"
+                            style={{ backgroundColor: 'rgba(201,162,39,0.18)', color: '#C9A227' }}
+                          >
+                            인기 #{item.popular_order}
+                          </span>
+                        )}
                       </div>
 
                       <p className="text-sm truncate" style={{ color: 'var(--foreground)' }}>
