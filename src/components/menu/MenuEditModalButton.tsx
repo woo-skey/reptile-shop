@@ -1,6 +1,7 @@
 'use client'
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { MenuCategory, MenuItem } from '@/types'
 import { useDialog } from '@/hooks/useDialog'
 import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
@@ -239,7 +240,7 @@ export default function MenuEditModalButton({
         Edit
       </button>
 
-      {open && (
+      {open && typeof document !== 'undefined' && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-start sm:items-center justify-center px-4 py-6 overflow-y-auto"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' }}
@@ -251,8 +252,7 @@ export default function MenuEditModalButton({
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="glass-modal w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
-            style={{ backgroundColor: 'var(--background)' }}
+            className="glass-modal w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7 bg-[#F5F0E8] dark:bg-[#1A1A0F]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
@@ -562,7 +562,8 @@ export default function MenuEditModalButton({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

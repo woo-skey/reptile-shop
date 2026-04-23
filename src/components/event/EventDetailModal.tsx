@@ -52,8 +52,7 @@ export default function EventDetailModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="glass-modal relative w-full max-w-lg max-h-[85vh] overflow-y-auto"
-        style={{ backgroundColor: 'var(--background)' }}
+        className="glass-modal relative w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#F5F0E8] dark:bg-[#1A1A0F]"
         onClick={(event) => event.stopPropagation()}
       >
         <button
