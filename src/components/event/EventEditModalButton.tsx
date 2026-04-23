@@ -186,8 +186,7 @@ export default function EventEditModalButton({
             aria-modal="true"
             aria-labelledby={titleId}
             tabIndex={-1}
-            className="glass-card w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
-            style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
+            className="glass-modal w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">

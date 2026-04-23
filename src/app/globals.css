@@ -104,6 +104,20 @@ textarea {
   border-color: rgba(201, 162, 39, 0.15);
 }
 
+/* 모달 전용 - 뒷 배경 컨텐츠가 비치지 않도록 거의 불투명 */
+.glass-modal {
+  background: rgba(245, 240, 232, 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: 0.75rem;
+}
+
+:root.dark .glass-modal {
+  background: rgba(26, 26, 15, 0.97);
+  border-color: rgba(201, 162, 39, 0.3);
+}
+
 .glass-input {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);

@@ -52,8 +52,7 @@ export default function EventDetailModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="glass-card relative w-full max-w-lg max-h-[85vh] overflow-y-auto"
-        style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
+        className="glass-modal relative w-full max-w-lg max-h-[85vh] overflow-y-auto"
         onClick={(event) => event.stopPropagation()}
       >
         <button

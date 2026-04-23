@@ -81,8 +81,7 @@ export default function HomePopup({ popup }: { popup: PopupData | null }) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="glass-card w-full max-w-sm overflow-hidden"
-        style={{ border: '1px solid rgba(201, 162, 39, 0.4)' }}
+        className="glass-modal w-full max-w-sm overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {popup.image_url && (
