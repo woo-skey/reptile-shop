@@ -13,18 +13,31 @@ import type { MenuItem } from '@/types'
 
 const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
 
+const WHISKY_SUBS = [
+  { key: 'single_malt', label: 'Single Malt' },
+  { key: 'blended', label: 'Blended' },
+  { key: 'bourbon', label: 'Bourbon' },
+  { key: 'tennessee', label: 'Tennessee' },
+] as const
+
+const WHISKY_SUB_KEYS = WHISKY_SUBS.map((s) => s.key) as readonly string[]
+
 const parseStateFromUrl = () => {
   const params = new URLSearchParams(window.location.search)
   const tabFromUrl = params.get('tab')
   const viewFromUrl = params.get('view')
   const query = params.get('q')?.trim() ?? ''
+  const subFromUrl = params.get('sub') ?? ''
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
     ? (tabFromUrl as MenuTabCategory)
     : 'event'
   const view: ViewMode = viewFromUrl === 'photo' ? 'photo' : 'list'
+  const sub = tab === 'whisky' && WHISKY_SUB_KEYS.includes(subFromUrl)
+    ? subFromUrl
+    : (tab === 'whisky' ? 'single_malt' : '')
 
-  return { tab, view, query }
+  return { tab, view, query, sub }
 }
 
 const sortByOrder = (a: MenuItem, b: MenuItem) => {
@@ -37,11 +50,13 @@ export default function MenuClientPage({
   initialTab,
   initialView,
   initialQuery,
+  initialSub,
 }: {
   items: MenuItem[]
   initialTab: MenuTabCategory
   initialView: ViewMode
   initialQuery: string
+  initialSub: string
 }) {
   const router = useRouter()
   const { isAdmin } = useAuth()
@@ -49,6 +64,7 @@ export default function MenuClientPage({
   const [activeTab, setActiveTab] = useState<MenuTabCategory>(initialTab)
   const [viewMode, setViewMode] = useState<ViewMode>(initialView)
   const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [activeSub, setActiveSub] = useState<string>(initialSub)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
@@ -60,6 +76,7 @@ export default function MenuClientPage({
 
   const isEventTab = activeTab === 'event'
   const isFoodTab = activeTab === 'food'
+  const isWhiskyTab = activeTab === 'whisky'
   const effectiveViewMode: ViewMode = isEventTab ? 'photo' : (isFoodTab ? viewMode : 'list')
   const deferredSearchQuery = useDeferredValue(searchQuery)
 
@@ -71,7 +88,8 @@ export default function MenuClientPage({
     setActiveTab(initialTab)
     setViewMode(initialView)
     setSearchQuery(initialQuery)
-  }, [initialQuery, initialTab, initialView])
+    setActiveSub(initialSub)
+  }, [initialQuery, initialTab, initialView, initialSub])
 
   useEffect(() => {
     return () => {
@@ -100,10 +118,15 @@ export default function MenuClientPage({
     } else {
       params.delete('q')
     }
+    if (isWhiskyTab && activeSub) {
+      params.set('sub', activeSub)
+    } else {
+      params.delete('sub')
+    }
 
     const next = params.toString() ? `/menu?${params.toString()}` : '/menu'
     window.history.replaceState(null, '', next)
-  }, [activeTab, isFoodTab, searchQuery, viewMode])
+  }, [activeTab, isFoodTab, isWhiskyTab, searchQuery, viewMode, activeSub])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -111,6 +134,7 @@ export default function MenuClientPage({
       setActiveTab(parsed.tab)
       setViewMode(parsed.view)
       setSearchQuery(parsed.query)
+      setActiveSub(parsed.sub)
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -142,17 +166,22 @@ export default function MenuClientPage({
 
   const normalizedSearch = deferredSearchQuery.trim().toLowerCase()
 
-  const filteredItems = useMemo(() => {
-    if (!normalizedSearch) return tabItems
+  const subFilteredTabItems = useMemo(() => {
+    if (!isWhiskyTab || !activeSub) return tabItems
+    return tabItems.filter((item) => item.subcategory === activeSub)
+  }, [isWhiskyTab, activeSub, tabItems])
 
-    return tabItems.filter((item) => {
+  const filteredItems = useMemo(() => {
+    if (!normalizedSearch) return subFilteredTabItems
+
+    return subFilteredTabItems.filter((item) => {
       const source = [item.name, item.description, item.note]
       return source.some((field) => {
         if (typeof field !== 'string') return false
         return field.toLowerCase().includes(normalizedSearch)
       })
     })
-  }, [normalizedSearch, tabItems])
+  }, [normalizedSearch, subFilteredTabItems])
 
   const canDragRows =
     isAdmin &&
@@ -278,12 +307,42 @@ export default function MenuClientPage({
     if (nextTab === activeTab) return
     startTabTransition(() => {
       setActiveTab(nextTab)
+      if (nextTab === 'whisky') {
+        setActiveSub((prev) => (WHISKY_SUB_KEYS.includes(prev) ? prev : 'single_malt'))
+      } else {
+        setActiveSub('')
+      }
     })
   }
 
   return (
     <>
       <MenuTabs activeTab={activeTab} onChange={handleTabChange} />
+
+      {isWhiskyTab && (
+        <div className="flex flex-wrap items-center gap-2 mb-3" role="tablist" aria-label="위스키 종류">
+          {WHISKY_SUBS.map(({ key, label }) => {
+            const active = activeSub === key
+            return (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveSub(key)}
+                className="text-xs px-3 py-1.5 rounded-md border transition-all"
+                style={
+                  active
+                    ? { backgroundColor: '#456132', color: '#F5F0E8', borderColor: '#C9A227', fontWeight: 600 }
+                    : { color: 'var(--foreground)', borderColor: 'rgba(201, 162, 39, 0.35)', opacity: 0.75 }
+                }
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 mb-3">
         {isFoodTab && <MenuRowOptions activeMode={viewMode} onChange={setViewMode} />}

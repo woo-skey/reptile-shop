@@ -10,9 +10,11 @@ type MenuPageSearchParams = {
   tab?: string | string[]
   view?: string | string[]
   q?: string | string[]
+  sub?: string | string[]
 }
 
 const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
+const WHISKY_SUB_KEYS = ['single_malt', 'blended', 'bourbon', 'tennessee'] as const
 
 const getFirstSearchParam = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value
@@ -21,13 +23,17 @@ const parseMenuSearchParams = (searchParams: MenuPageSearchParams) => {
   const tabFromUrl = getFirstSearchParam(searchParams.tab)
   const viewFromUrl = getFirstSearchParam(searchParams.view)
   const queryFromUrl = getFirstSearchParam(searchParams.q)?.trim() ?? ''
+  const subFromUrl = getFirstSearchParam(searchParams.sub)
 
   const tab = TAB_KEYS.includes((tabFromUrl ?? '') as MenuTabCategory)
     ? (tabFromUrl as MenuTabCategory)
     : 'event'
   const view: ViewMode = viewFromUrl === 'photo' ? 'photo' : 'list'
+  const sub = tab === 'whisky' && (WHISKY_SUB_KEYS as readonly string[]).includes(subFromUrl ?? '')
+    ? (subFromUrl as string)
+    : (tab === 'whisky' ? 'single_malt' : '')
 
-  return { tab, view, query: queryFromUrl }
+  return { tab, view, query: queryFromUrl, sub }
 }
 
 export default async function MenuPage({
@@ -84,6 +90,7 @@ export default async function MenuPage({
         initialTab={initialState.tab}
         initialView={initialState.view}
         initialQuery={initialState.query}
+        initialSub={initialState.sub}
       />
     </div>
   )
