@@ -245,7 +245,7 @@ export default function MenuCalculatorModal({
                             <button
                               type="button"
                               onClick={() => addLine(item, opt)}
-                              className="text-xs px-2 py-1 rounded-md border whitespace-nowrap"
+                              className="text-xs font-bold px-2 py-1 rounded-md border whitespace-nowrap"
                               style={{
                                 color: '#C9A227',
                                 borderColor: 'rgba(201,162,39,0.4)',
@@ -300,9 +300,9 @@ export default function MenuCalculatorModal({
                           </span>
                         )}
                       </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--foreground)', opacity: 0.55 }}>
+                      <p className="text-xs font-bold mt-0.5" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
                         {l.unitPrice.toLocaleString()}원 × {l.quantity} ={' '}
-                        <span style={{ color: '#C9A227', opacity: 0.95 }}>
+                        <span style={{ color: '#C9A227', opacity: 1 }}>
                           {(l.unitPrice * l.quantity).toLocaleString()}원
                         </span>
                       </p>
