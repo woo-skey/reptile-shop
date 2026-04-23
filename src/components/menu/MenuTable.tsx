@@ -103,7 +103,7 @@ function NameCell({ item }: { item: MenuItem }) {
         </span>
       ) : null}
 
-      <span className="truncate">{item.name}</span>
+      <span className="break-words">{item.name}</span>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import MenuTabs from '@/components/menu/MenuTabs'
 import MenuTable from '@/components/menu/MenuTable'
 import MenuAddModalButton from '@/components/menu/MenuAddModalButton'
 import MenuRowOptions from '@/components/menu/MenuRowOptions'
+import MenuCalculatorModal from '@/components/menu/MenuCalculatorModal'
 import EventDetailModal, { type EventDetailModalItem } from '@/components/event/EventDetailModal'
 import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
@@ -69,6 +70,7 @@ export default function MenuClientPage({
   const [orderSaving, setOrderSaving] = useState(false)
   const [orderError, setOrderError] = useState('')
   const [detailItem, setDetailItem] = useState<EventDetailModalItem | null>(null)
+  const [calcOpen, setCalcOpen] = useState(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingOrderRef = useRef<{ category: MenuTabCategory; items: MenuItem[] } | null>(null)
   const savingRef = useRef(false)
@@ -358,6 +360,14 @@ export default function MenuClientPage({
             순서 저장 중...
           </span>
         )}
+        <button
+          type="button"
+          onClick={() => setCalcOpen(true)}
+          className="text-xs px-3 py-1.5 rounded-lg border"
+          style={{ color: '#C9A227', borderColor: 'rgba(201, 162, 39, 0.45)' }}
+        >
+          계산기
+        </button>
         {isAdmin && <MenuAddModalButton category={activeTab} onCreated={handleItemCreated} />}
       </div>
 
@@ -431,6 +441,11 @@ export default function MenuClientPage({
       </div>
 
       <EventDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
+      <MenuCalculatorModal
+        items={menuItems}
+        isOpen={calcOpen}
+        onClose={() => setCalcOpen(false)}
+      />
     </>
   )
 }
