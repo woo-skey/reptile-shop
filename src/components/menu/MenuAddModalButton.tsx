@@ -296,6 +296,7 @@ export default function MenuAddModalButton({
             aria-labelledby={titleId}
             tabIndex={-1}
             className="glass-modal w-full max-w-xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 md:p-7"
+            style={{ backgroundColor: 'var(--background)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
