@@ -104,17 +104,16 @@ textarea {
   border-color: rgba(201, 162, 39, 0.15);
 }
 
-/* 모달 전용 - 뒷 배경 컨텐츠가 비치지 않도록 거의 불투명 */
+/* 모달 전용 - 뒷 배경 컨텐츠가 완전히 가려지도록 불투명 */
 .glass-modal {
-  background: rgba(245, 240, 232, 0.97);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: #F5F0E8;
   border: 1px solid rgba(201, 162, 39, 0.35);
   border-radius: 0.75rem;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
 }
 
 :root.dark .glass-modal {
-  background: rgba(26, 26, 15, 0.97);
+  background-color: #1A1A0F;
   border-color: rgba(201, 162, 39, 0.3);
 }
 
