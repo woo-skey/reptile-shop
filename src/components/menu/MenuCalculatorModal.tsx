@@ -144,10 +144,10 @@ export default function MenuCalculatorModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="glass-modal w-full max-w-4xl max-h-[calc(100vh-3rem)] overflow-y-auto p-4 sm:p-6 bg-[#F5F0E8] dark:bg-[#1A1A0F]"
+        className="glass-modal w-full max-w-4xl h-[calc(100vh-3rem)] sm:h-[85vh] sm:max-h-[720px] flex flex-col overflow-hidden p-4 sm:p-6 bg-[#F5F0E8] dark:bg-[#1A1A0F]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5 shrink-0">
           <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
             <span style={{ color: '#C9A227' }}>·</span> 메뉴 계산기
           </h3>
@@ -162,10 +162,10 @@ export default function MenuCalculatorModal({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-          <section className="flex flex-col min-w-0">
+        <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden md:grid md:grid-cols-2 md:gap-5 md:items-stretch flex flex-col gap-5">
+          <section className="flex flex-col min-w-0 md:min-h-0 md:h-full">
             <div
-              className="flex flex-wrap gap-1.5 mb-3"
+              className="flex flex-wrap gap-1.5 mb-3 shrink-0"
               role="tablist"
               aria-label="카테고리 선택"
             >
@@ -205,12 +205,12 @@ export default function MenuCalculatorModal({
               placeholder="메뉴 검색"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="glass-input w-full px-3 py-2 text-sm mb-3"
+              className="glass-input w-full px-3 py-2 text-sm mb-3 shrink-0"
               style={{ color: 'var(--foreground)' }}
             />
 
             <div
-              className="max-h-[45vh] md:max-h-[55vh] overflow-y-auto pr-1 divide-y"
+              className="md:flex-1 md:min-h-0 md:overflow-y-auto pr-1 divide-y"
               style={{ borderColor: 'rgba(201,162,39,0.08)' }}
             >
               {visibleItems.length === 0 ? (
@@ -231,22 +231,29 @@ export default function MenuCalculatorModal({
                       >
                         {item.name}
                       </span>
-                      <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                         {options.map((opt, oi) => (
-                          <button
-                            key={oi}
-                            type="button"
-                            onClick={() => addLine(item, opt)}
-                            className="text-xs px-2 py-1 rounded-md border whitespace-nowrap"
-                            style={{
-                              color: '#C9A227',
-                              borderColor: 'rgba(201,162,39,0.4)',
-                            }}
-                          >
-                            {opt.suffix
-                              ? `${opt.suffix} ${opt.price.toLocaleString()}원`
-                              : `${opt.price.toLocaleString()}원`}
-                          </button>
+                          <div key={oi} className="flex items-center gap-1.5">
+                            {opt.suffix && (
+                              <span
+                                className="text-xs whitespace-nowrap"
+                                style={{ color: 'var(--foreground)', opacity: 0.6 }}
+                              >
+                                {opt.suffix}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => addLine(item, opt)}
+                              className="text-xs px-2 py-1 rounded-md border whitespace-nowrap"
+                              style={{
+                                color: '#C9A227',
+                                borderColor: 'rgba(201,162,39,0.4)',
+                              }}
+                            >
+                              {opt.price.toLocaleString()}원
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -256,8 +263,8 @@ export default function MenuCalculatorModal({
             </div>
           </section>
 
-          <section className="flex flex-col min-w-0">
-            <div className="flex items-center justify-between mb-3">
+          <section className="flex flex-col min-w-0 md:min-h-0 md:h-full">
+            <div className="flex items-center justify-between mb-3 shrink-0">
               <h4 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
                 선택한 메뉴 ({lines.length})
               </h4>
@@ -274,7 +281,7 @@ export default function MenuCalculatorModal({
             </div>
 
             <div
-              className="max-h-[45vh] md:max-h-[50vh] overflow-y-auto pr-1 divide-y"
+              className="md:flex-1 md:min-h-0 md:overflow-y-auto pr-1 divide-y"
               style={{ borderColor: 'rgba(201,162,39,0.1)' }}
             >
               {lines.length === 0 ? (
@@ -341,7 +348,7 @@ export default function MenuCalculatorModal({
             </div>
 
             <div
-              className="mt-4 pt-3 flex items-center justify-between"
+              className="mt-4 pt-3 flex items-center justify-between shrink-0"
               style={{ borderTop: '1px solid rgba(201, 162, 39, 0.3)' }}
             >
               <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
