@@ -19,6 +19,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
 const previewImageUrl = siteUrl ? `${siteUrl}/reptile_icon.jpg` : '/reptile_icon.jpg'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl ?? 'http://localhost:3000'),
   title: '파충류가게',
   description: '파충류가게 단골들의 공간',
   openGraph: {

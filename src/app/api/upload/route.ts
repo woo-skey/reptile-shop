@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 const MAX_UPLOAD_SIZE_BYTES = 8 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set([
@@ -33,8 +34,8 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
@@ -84,10 +85,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const adminClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const adminClient = createSupabaseClient(getSupabaseUrl(), getSupabaseServiceRoleKey())
 
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_')
   const path = `${user.id}/${Date.now()}_${safeFilename}`
