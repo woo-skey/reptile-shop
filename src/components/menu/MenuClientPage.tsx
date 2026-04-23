@@ -332,10 +332,10 @@ export default function MenuClientPage({
                 role="tab"
                 aria-selected={active}
                 onClick={() => setActiveSub(key)}
-                className="text-xs px-3 py-1.5 rounded-md border transition-all"
+                className="text-xs font-bold px-3 py-1.5 rounded-md border transition-all"
                 style={
                   active
-                    ? { backgroundColor: '#456132', color: '#F5F0E8', borderColor: '#C9A227', fontWeight: 600 }
+                    ? { backgroundColor: '#456132', color: '#F5F0E8', borderColor: '#C9A227' }
                     : { color: 'var(--foreground)', borderColor: 'rgba(201, 162, 39, 0.35)', opacity: 0.75 }
                 }
               >

@@ -103,7 +103,7 @@ function NameCell({ item }: { item: MenuItem }) {
         </span>
       ) : null}
 
-      <span className="break-words">{item.name}</span>
+      <span className="break-keep">{item.name}</span>
     </div>
   )
 }
@@ -157,7 +157,7 @@ function Row({
       {cells.map((c, i) => (
         <td
           key={i}
-          className="py-3 px-2 md:px-3 align-top text-xs sm:text-sm break-words"
+          className="py-3 px-2 md:px-3 align-top text-xs sm:text-sm break-keep"
           style={{ color: 'var(--foreground)', opacity: c == null || c === '' ? 0.35 : 0.85 }}
         >
           {c ?? '-'}

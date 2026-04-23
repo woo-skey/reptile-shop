@@ -226,7 +226,7 @@ export default function MenuCalculatorModal({
                       className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
                     >
                       <span
-                        className="flex-1 min-w-0 break-words"
+                        className="flex-1 min-w-0 break-keep"
                         style={{ color: 'var(--foreground)', opacity: 0.9 }}
                       >
                         {item.name}
@@ -292,7 +292,7 @@ export default function MenuCalculatorModal({
                 lines.map((l) => (
                   <div key={l.key} className="flex items-start gap-2 py-2.5">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm break-words" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
+                      <p className="text-sm break-keep" style={{ color: 'var(--foreground)', opacity: 0.9 }}>
                         {l.name}
                         {l.suffix && (
                           <span className="text-xs ml-1" style={{ color: '#C9A227', opacity: 0.85 }}>

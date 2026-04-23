@@ -67,7 +67,7 @@ export default function EventGridCard({
 
       <div className="p-3 sm:p-4 flex-1 text-left">
         <h3
-          className="text-sm sm:text-base font-semibold break-words text-left"
+          className="text-sm sm:text-base font-semibold break-keep text-left"
           style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
         >
           {title}
@@ -81,7 +81,7 @@ export default function EventGridCard({
 
         {description && (
           <p
-            className="text-xs sm:text-sm mt-2 break-words whitespace-pre-line text-left"
+            className="text-xs sm:text-sm mt-2 break-keep whitespace-pre-line text-left"
             style={{
               color: 'var(--foreground)',
               opacity: 0.78,

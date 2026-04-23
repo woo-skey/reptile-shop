@@ -49,7 +49,7 @@ function MenuTabs({
                 backgroundColor: active ? '#456132' : 'transparent',
                 color: active ? '#F5F0E8' : 'rgba(245, 240, 232, 0.55)',
                 borderColor: active ? '#C9A227' : 'rgba(201, 162, 39, 0.2)',
-                fontWeight: active ? 600 : 400,
+                fontWeight: 700,
               }}
             >
               {label}

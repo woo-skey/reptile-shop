@@ -85,7 +85,7 @@ export default function EventDetailModal({
           <div className="mb-3">
             <h3
               id={titleId}
-              className="text-lg font-semibold break-words"
+              className="text-lg font-semibold break-keep"
               style={{ color: 'var(--foreground)', lineHeight: 1.35 }}
             >
               {item.title}
@@ -99,7 +99,7 @@ export default function EventDetailModal({
           )}
 
           <p
-            className="text-sm whitespace-pre-line break-words"
+            className="text-sm whitespace-pre-line break-keep"
             style={{ color: 'var(--foreground)', opacity: 0.82, lineHeight: 1.6 }}
           >
             {item.content?.trim() || '내용이 없습니다.'}
