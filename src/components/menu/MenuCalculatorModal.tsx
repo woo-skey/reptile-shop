@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDialog } from '@/hooks/useDialog'
 import type { MenuCategory, MenuItem } from '@/types'
@@ -65,7 +65,24 @@ export default function MenuCalculatorModal({
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [lines, setLines] = useState<LineItem[]>([])
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState<MenuCategory | 'all'>('all')
+  const [category, setCategory] = useState<MenuCategory>('food')
+
+  const availableCategories = useMemo(() => {
+    const set = new Set<MenuCategory>()
+    for (const item of items) {
+      if (item.category === 'event' || item.category === 'event_post') continue
+      if (getPriceOptions(item).length === 0) continue
+      set.add(item.category)
+    }
+    return CATEGORY_ORDER.filter((cat) => set.has(cat))
+  }, [items])
+
+  useEffect(() => {
+    if (availableCategories.length === 0) return
+    if (!availableCategories.includes(category)) {
+      setCategory(availableCategories[0])
+    }
+  }, [availableCategories, category])
 
   const { dialogRef, titleId } = useDialog({
     isOpen,
@@ -73,28 +90,16 @@ export default function MenuCalculatorModal({
     initialFocusRef: closeButtonRef,
   })
 
-  const groupedSelectable = useMemo(() => {
+  const visibleItems = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const matchesQuery = (item: MenuItem) => {
+    return items.filter((item) => {
+      if (item.category !== category) return false
+      if (getPriceOptions(item).length === 0) return false
       if (!q) return true
       const src = [item.name, item.description]
       return src.some((s) => typeof s === 'string' && s.toLowerCase().includes(q))
-    }
-
-    const groups: Record<string, MenuItem[]> = {}
-    for (const item of items) {
-      if (item.category === 'event' || item.category === 'event_post') continue
-      if (getPriceOptions(item).length === 0) continue
-      if (category !== 'all' && item.category !== category) continue
-      if (!matchesQuery(item)) continue
-      if (!groups[item.category]) groups[item.category] = []
-      groups[item.category].push(item)
-    }
-
-    return CATEGORY_ORDER
-      .filter((cat) => groups[cat]?.length)
-      .map((cat) => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, items: groups[cat] }))
-  }, [items, search, category])
+    })
+  }, [items, category, search])
 
   const addLine = (item: MenuItem, option: PriceOption) => {
     const key = `${item.id}::${option.suffix}`
@@ -159,80 +164,94 @@ export default function MenuCalculatorModal({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
           <section className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2 mb-3">
-              <input
-                type="search"
-                placeholder="메뉴 검색"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="glass-input flex-1 min-w-0 px-3 py-2 text-sm"
-                style={{ color: 'var(--foreground)' }}
-              />
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as MenuCategory | 'all')}
-                className="glass-input px-2 py-2 text-xs shrink-0"
-                style={{ color: 'var(--foreground)' }}
-              >
-                <option value="all">전체</option>
-                {CATEGORY_ORDER.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {CATEGORY_LABELS[cat]}
-                  </option>
-                ))}
-              </select>
+            <div
+              className="flex flex-wrap gap-1.5 mb-3"
+              role="tablist"
+              aria-label="카테고리 선택"
+            >
+              {availableCategories.map((cat) => {
+                const active = category === cat
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setCategory(cat)}
+                    className="text-xs px-2.5 py-1 rounded-md border transition-all"
+                    style={
+                      active
+                        ? {
+                            backgroundColor: '#456132',
+                            color: '#F5F0E8',
+                            borderColor: '#C9A227',
+                            fontWeight: 600,
+                          }
+                        : {
+                            color: 'var(--foreground)',
+                            borderColor: 'rgba(201, 162, 39, 0.3)',
+                            opacity: 0.75,
+                          }
+                    }
+                  >
+                    {CATEGORY_LABELS[cat] ?? cat}
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="max-h-[50vh] md:max-h-[55vh] overflow-y-auto pr-1 space-y-4">
-              {groupedSelectable.length === 0 ? (
+            <input
+              type="search"
+              placeholder="메뉴 검색"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="glass-input w-full px-3 py-2 text-sm mb-3"
+              style={{ color: 'var(--foreground)' }}
+            />
+
+            <div
+              className="max-h-[45vh] md:max-h-[55vh] overflow-y-auto pr-1 divide-y"
+              style={{ borderColor: 'rgba(201,162,39,0.08)' }}
+            >
+              {visibleItems.length === 0 ? (
                 <p className="text-center text-sm py-8" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
                   조건에 맞는 메뉴가 없습니다.
                 </p>
               ) : (
-                groupedSelectable.map(({ cat, label, items: catItems }) => (
-                  <div key={cat}>
-                    <p
-                      className="text-xs font-semibold mb-2 uppercase tracking-wider"
-                      style={{ color: '#C9A227' }}
+                visibleItems.map((item) => {
+                  const options = getPriceOptions(item)
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
                     >
-                      {label}
-                    </p>
-                    <div className="divide-y" style={{ borderColor: 'rgba(201,162,39,0.08)' }}>
-                      {catItems.map((item) => {
-                        const options = getPriceOptions(item)
-                        return (
-                          <div
-                            key={item.id}
-                            className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                      <span
+                        className="flex-1 min-w-0 break-words"
+                        style={{ color: 'var(--foreground)', opacity: 0.9 }}
+                      >
+                        {item.name}
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                        {options.map((opt, oi) => (
+                          <button
+                            key={oi}
+                            type="button"
+                            onClick={() => addLine(item, opt)}
+                            className="text-xs px-2 py-1 rounded-md border whitespace-nowrap"
+                            style={{
+                              color: '#C9A227',
+                              borderColor: 'rgba(201,162,39,0.4)',
+                            }}
                           >
-                            <span
-                              className="flex-1 min-w-0 break-words"
-                              style={{ color: 'var(--foreground)', opacity: 0.9 }}
-                            >
-                              {item.name}
-                            </span>
-                            <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
-                              {options.map((opt, oi) => (
-                                <button
-                                  key={oi}
-                                  type="button"
-                                  onClick={() => addLine(item, opt)}
-                                  className="text-xs px-2 py-1 rounded-md border whitespace-nowrap"
-                                  style={{
-                                    color: '#C9A227',
-                                    borderColor: 'rgba(201,162,39,0.4)',
-                                  }}
-                                >
-                                  {opt.suffix ? `${opt.suffix} ${opt.price.toLocaleString()}원` : `${opt.price.toLocaleString()}원`}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      })}
+                            {opt.suffix
+                              ? `${opt.suffix} ${opt.price.toLocaleString()}원`
+                              : `${opt.price.toLocaleString()}원`}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </section>
