@@ -46,7 +46,7 @@ export async function DELETE(
       .maybeSingle(),
     serverClient
       .from('posts')
-      .select('id, author_id')
+      .select('id, author_id, image_urls')
       .eq('id', postId)
       .maybeSingle(),
   ])
@@ -81,6 +81,13 @@ export async function DELETE(
 
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 })
+  }
+
+  const imagePaths = Array.isArray(post.image_urls)
+    ? post.image_urls.filter((path): path is string => typeof path === 'string' && path.length > 0)
+    : []
+  if (imagePaths.length > 0) {
+    await adminClient.storage.from('post-images').remove(imagePaths)
   }
 
   return NextResponse.json({ success: true })

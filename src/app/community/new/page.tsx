@@ -71,8 +71,9 @@ export default function NewPostPage() {
     setError('')
     setLoading(true)
 
+    let imagePaths: string[] = []
     try {
-      const imagePaths = images.length > 0 ? await uploadImages() : []
+      imagePaths = images.length > 0 ? await uploadImages() : []
 
       const supabase = createClient()
       const { error: insertError } = await supabase.from('posts').insert({
@@ -89,6 +90,10 @@ export default function NewPostPage() {
 
       router.push('/community')
     } catch (err) {
+      if (imagePaths.length > 0) {
+        const supabase = createClient()
+        await supabase.storage.from('post-images').remove(imagePaths)
+      }
       setError(err instanceof Error ? err.message : '게시글 작성에 실패했습니다.')
       setLoading(false)
     }

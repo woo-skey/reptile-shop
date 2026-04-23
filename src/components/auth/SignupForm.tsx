@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/
+
 export default function SignupForm() {
   const router = useRouter()
   const [form, setForm] = useState({ displayName: '', username: '', password: '', confirmPassword: '' })
@@ -23,8 +25,8 @@ export default function SignupForm() {
       setError('비밀번호가 일치하지 않습니다.')
       return
     }
-    if (form.username.length < 3) {
-      setError('아이디는 3자 이상이어야 합니다.')
+    if (!USERNAME_PATTERN.test(form.username)) {
+      setError('아이디는 영문/숫자/언더스코어(_)만 사용하여 3~20자로 입력해주세요.')
       return
     }
     if (form.password.length < 6) {

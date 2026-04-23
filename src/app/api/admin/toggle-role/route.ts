@@ -54,6 +54,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '잘못된 권한 값입니다.' }, { status: 400 })
   }
 
+  if (userId === user.id && newRole !== 'admin') {
+    return NextResponse.json(
+      { error: '본인의 관리자 권한은 스스로 해제할 수 없습니다.' },
+      { status: 400 }
+    )
+  }
+
   // service_role로 업데이트 (RLS 우회)
   const adminClient = createSupabaseClient(getSupabaseUrl(), getSupabaseServiceRoleKey())
 

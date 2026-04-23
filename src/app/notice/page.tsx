@@ -6,6 +6,8 @@ import type { Post } from '@/types'
 const PAGE_SIZE = 12
 const PAGE_WINDOW = 5
 
+export const revalidate = 60
+
 const toPositiveInt = (value: string | string[] | undefined, fallback = 1) => {
   const raw = Array.isArray(value) ? value[0] : value
   const parsed = Number.parseInt(raw ?? String(fallback), 10)
