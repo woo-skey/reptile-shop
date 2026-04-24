@@ -172,6 +172,42 @@ export default function MenuCalculatorModal({
 
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
+  const totalSection = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+          총 합계
+        </span>
+        <span className="text-lg font-bold" style={{ color: '#C9A227' }}>
+          {total.toLocaleString()}원
+        </span>
+      </div>
+
+      {lines.length > 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+            style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+          >
+            {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
+          </button>
+          {canShare && (
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+              style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
+            >
+              공유
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   if (!isOpen || typeof document === 'undefined') return null
 
   return createPortal(
@@ -390,42 +426,19 @@ export default function MenuCalculatorModal({
             </div>
 
             <div
-              className="mt-4 pt-3 shrink-0 space-y-2"
+              className="mt-4 pt-3 shrink-0 hidden md:block"
               style={{ borderTop: '1px solid rgba(201, 162, 39, 0.3)' }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                  총 합계
-                </span>
-                <span className="text-lg font-bold" style={{ color: '#C9A227' }}>
-                  {total.toLocaleString()}원
-                </span>
-              </div>
-
-              {lines.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
-                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
-                  >
-                    {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
-                  </button>
-                  {canShare && (
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
-                      style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
-                    >
-                      공유
-                    </button>
-                  )}
-                </div>
-              )}
+              {totalSection}
             </div>
           </section>
+        </div>
+
+        <div
+          className="mt-3 pt-3 shrink-0 md:hidden"
+          style={{ borderTop: '1px solid rgba(201, 162, 39, 0.3)' }}
+        >
+          {totalSection}
         </div>
       </div>
     </div>,
