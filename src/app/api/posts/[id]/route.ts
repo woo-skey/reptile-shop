@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -46,7 +47,7 @@ export async function DELETE(
       .maybeSingle(),
     serverClient
       .from('posts')
-      .select('id, author_id, image_urls')
+      .select('id, author_id, type, image_urls')
       .eq('id', postId)
       .maybeSingle(),
   ])
@@ -89,6 +90,9 @@ export async function DELETE(
   if (imagePaths.length > 0) {
     await adminClient.storage.from('post-images').remove(imagePaths)
   }
+
+  revalidatePath('/')
+  if (post.type === 'notice') revalidatePath('/notice')
 
   return NextResponse.json({ success: true })
 }
@@ -213,6 +217,9 @@ export async function PATCH(
       await adminClient.storage.from('post-images').remove(removed)
     }
   }
+
+  revalidatePath('/')
+  if (post.type === 'notice') revalidatePath('/notice')
 
   return NextResponse.json({ success: true })
 }
