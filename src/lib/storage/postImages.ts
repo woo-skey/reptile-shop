@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 const PUBLIC_MARKER = '/storage/v1/object/public/post-images/'
 const SIGNED_MARKER = '/storage/v1/object/sign/post-images/'
 
-const extractPostImagePath = (rawValue: string): string | null => {
+export const extractPostImagePath = (rawValue: string): string | null => {
   const value = rawValue.trim()
   if (!value) return null
 

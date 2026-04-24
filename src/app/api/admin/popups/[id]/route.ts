@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { extractPostImagePath } from '@/lib/storage/postImages'
+
+const removePostImageByUrl = async (client: SupabaseClient, url: string | null | undefined) => {
+  if (!url) return
+  const path = extractPostImagePath(url)
+  if (!path) return
+  await client.storage.from('post-images').remove([path])
+}
 
 const toTrimmedString = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
@@ -127,6 +135,16 @@ export async function PATCH(
     return NextResponse.json({ error: 'No fields to update.' }, { status: 400 })
   }
 
+  let previousImageUrl: string | null = null
+  if (Object.prototype.hasOwnProperty.call(updatePayload, 'image_url')) {
+    const { data: current } = await admin.adminClient
+      .from('popups')
+      .select('image_url')
+      .eq('id', popupId)
+      .maybeSingle()
+    previousImageUrl = (current?.image_url as string | null | undefined) ?? null
+  }
+
   const { data, error } = await admin.adminClient
     .from('popups')
     .update(updatePayload)
@@ -136,6 +154,10 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (previousImageUrl && previousImageUrl !== updatePayload.image_url) {
+    await removePostImageByUrl(admin.adminClient, previousImageUrl)
   }
 
   return NextResponse.json({ success: true, popup: data })
@@ -154,6 +176,12 @@ export async function DELETE(
     return NextResponse.json({ error: 'Popup id is required.' }, { status: 400 })
   }
 
+  const { data: existing } = await admin.adminClient
+    .from('popups')
+    .select('image_url')
+    .eq('id', popupId)
+    .maybeSingle()
+
   const { error } = await admin.adminClient
     .from('popups')
     .delete()
@@ -162,6 +190,8 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  await removePostImageByUrl(admin.adminClient, (existing?.image_url as string | null | undefined) ?? null)
 
   return NextResponse.json({ success: true })
 }

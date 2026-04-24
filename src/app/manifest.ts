@@ -12,9 +12,9 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       {
         src: '/reptile_icon.jpg',
-        sizes: '512x512',
+        sizes: '320x320',
         type: 'image/jpeg',
-        purpose: 'maskable',
+        purpose: 'any',
       },
     ],
   }
