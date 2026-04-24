@@ -9,10 +9,10 @@ export default async function AdminDashboard() {
     { count: commentCount },
     { count: noticeCount },
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('posts').select('*', { count: 'exact', head: true }).eq('type', 'community'),
-    supabase.from('comments').select('*', { count: 'exact', head: true }),
-    supabase.from('posts').select('*', { count: 'exact', head: true }).eq('type', 'notice'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('type', 'community'),
+    supabase.from('comments').select('id', { count: 'exact', head: true }),
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('type', 'notice'),
   ])
 
   const stats = [

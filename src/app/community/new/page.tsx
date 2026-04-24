@@ -91,8 +91,15 @@ export default function NewPostPage() {
       router.push('/community')
     } catch (err) {
       if (imagePaths.length > 0) {
-        const supabase = createClient()
-        await supabase.storage.from('post-images').remove(imagePaths)
+        await Promise.all(
+          imagePaths.map((p) =>
+            fetch('/api/upload', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: p }),
+            }).catch(() => {})
+          )
+        )
       }
       setError(err instanceof Error ? err.message : '게시글 작성에 실패했습니다.')
       setLoading(false)

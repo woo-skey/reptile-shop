@@ -6,7 +6,7 @@ export default async function AdminStoreInfoPage() {
   const supabase = await createClient()
   const { data } = await supabase
     .from('store_info')
-    .select('*')
+    .select('key, address, phone, business_hours, closed_days, instagram_url, kakao_url, map_url, extra_note, hero_image_url, updated_at')
     .eq('key', 'main')
     .maybeSingle()
 

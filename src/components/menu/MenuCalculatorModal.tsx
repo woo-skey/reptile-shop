@@ -236,7 +236,7 @@ export default function MenuCalculatorModal({
             className="text-xs px-2 py-1 rounded border"
             style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(201,162,39,0.3)' }}
           >
-            Close
+            닫기
           </button>
         </div>
 
