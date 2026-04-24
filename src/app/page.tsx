@@ -106,6 +106,7 @@ export default async function HomePage() {
         image_url: await toRenderablePostImageUrl(activePopup.image_url, storageAdminClient),
       }
     : null
+  const heroImageUrl = await toRenderablePostImageUrl(storeInfo?.hero_image_url, storageAdminClient) ?? MAIN_HERO_IMAGE
 
   return (
     <>
@@ -119,7 +120,7 @@ export default async function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={MAIN_HERO_IMAGE}
+              src={heroImageUrl}
               alt="메인 배너"
               className="w-full h-full object-cover object-center"
             />

@@ -84,6 +84,7 @@ export interface StoreInfo {
   kakao_url: string | null
   map_url: string | null
   extra_note: string | null
+  hero_image_url: string | null
   updated_at: string
 }
 

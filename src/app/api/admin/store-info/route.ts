@@ -4,6 +4,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
+import { extractPostImagePath } from '@/lib/storage/postImages'
 
 const STORE_INFO_KEY = 'main'
 
@@ -16,6 +17,7 @@ const FIELDS = [
   'kakao_url',
   'map_url',
   'extra_note',
+  'hero_image_url',
 ] as const
 
 type StoreInfoField = typeof FIELDS[number]
@@ -72,12 +74,29 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: '수정할 항목이 없습니다.' }, { status: 400 })
   }
 
+  let previousHero: string | null = null
+  if (Object.prototype.hasOwnProperty.call(updatePayload, 'hero_image_url')) {
+    const { data: current } = await admin.adminClient
+      .from('store_info')
+      .select('hero_image_url')
+      .eq('key', STORE_INFO_KEY)
+      .maybeSingle()
+    previousHero = (current?.hero_image_url as string | null | undefined) ?? null
+  }
+
   const { error } = await admin.adminClient
     .from('store_info')
     .upsert({ key: STORE_INFO_KEY, ...updatePayload }, { onConflict: 'key' })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  if (previousHero && previousHero !== updatePayload.hero_image_url) {
+    const path = extractPostImagePath(previousHero)
+    if (path) {
+      await admin.adminClient.storage.from('post-images').remove([path])
+    }
   }
 
   revalidatePath('/')
