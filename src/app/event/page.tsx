@@ -1,5 +1,5 @@
 import { createPublicClient } from '@/lib/supabase/public-server'
-import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
+import { createPostImagesAdminClient, toRenderablePostImageUrlsBatch } from '@/lib/storage/postImages'
 import EventClientPage from '@/components/event/EventClientPage'
 import type { MenuItem } from '@/types'
 
@@ -19,15 +19,13 @@ export default async function EventPage() {
   const rawItems = (data ?? []) as MenuItem[]
   const storageAdminClient = createPostImagesAdminClient()
 
-  const items = await Promise.all(
-    rawItems.map(async (item) => {
-      const imageUrl = await toRenderablePostImageUrl(item.image_url ?? item.note, storageAdminClient)
-      return {
-        ...item,
-        image_url: imageUrl,
-      }
-    })
-  )
+  const sourceImages = rawItems.map((item) => item.image_url ?? item.note)
+  const resolvedUrls = await toRenderablePostImageUrlsBatch(sourceImages, storageAdminClient)
+
+  const items = rawItems.map((item, i) => ({
+    ...item,
+    image_url: resolvedUrls[i],
+  }))
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">

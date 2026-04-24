@@ -40,17 +40,13 @@ export default async function CommunityPostEditPage({ params }: { params: Promis
     ? post.image_urls.filter((v): v is string => typeof v === 'string' && v.length > 0)
     : []
 
-  const signedImages = await Promise.all(
-    initialImagePaths.map(async (path) => {
-      const { data } = await supabase.storage
-        .from('post-images')
-        .createSignedUrl(path, 3600)
-      return { path, url: data?.signedUrl ?? null }
-    })
-  )
-  const initialImages = signedImages.filter(
-    (img): img is { path: string; url: string } => Boolean(img.url)
-  )
+  const { data: signedData } = initialImagePaths.length
+    ? await supabase.storage.from('post-images').createSignedUrls(initialImagePaths, 3600)
+    : { data: [] as Array<{ path?: string | null; signedUrl?: string | null }> }
+
+  const initialImages = (signedData ?? [])
+    .map((entry) => ({ path: entry.path ?? '', url: entry.signedUrl ?? null }))
+    .filter((img): img is { path: string; url: string } => Boolean(img.path && img.url))
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">

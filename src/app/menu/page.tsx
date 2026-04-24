@@ -1,5 +1,5 @@
 import { createPublicClient } from '@/lib/supabase/public-server'
-import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/storage/postImages'
+import { createPostImagesAdminClient, toRenderablePostImageUrlsBatch } from '@/lib/storage/postImages'
 import MenuClientPage from '@/components/menu/MenuClientPage'
 import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import type { MenuItem } from '@/types'
@@ -57,19 +57,15 @@ export default async function MenuPage({
   const rawItems = (data ?? []) as MenuItem[]
   const storageAdminClient = createPostImagesAdminClient()
 
-  const items = await Promise.all(
-    rawItems.map(async (item) => {
-      const sourceImage = item.category === 'event'
-        ? (item.image_url ?? item.note)
-        : item.image_url
-
-      const imageUrl = await toRenderablePostImageUrl(sourceImage, storageAdminClient)
-      return {
-        ...item,
-        image_url: imageUrl,
-      }
-    })
+  const sourceImages = rawItems.map((item) =>
+    item.category === 'event' ? (item.image_url ?? item.note) : item.image_url
   )
+  const resolvedUrls = await toRenderablePostImageUrlsBatch(sourceImages, storageAdminClient)
+
+  const items = rawItems.map((item, i) => ({
+    ...item,
+    image_url: resolvedUrls[i],
+  }))
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">

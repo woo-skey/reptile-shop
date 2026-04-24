@@ -68,3 +68,60 @@ export const toRenderablePostImageUrl = async (
   if (error || !data?.signedUrl) return value
   return data.signedUrl
 }
+
+// Batch variant: signs many paths in a single Supabase request instead of N.
+// Returns an array aligned to the input — entries that don't need signing
+// (null, local paths, external URLs) are passed through unchanged.
+export const toRenderablePostImageUrlsBatch = async (
+  rawValues: Array<string | null | undefined>,
+  adminClient: SupabaseClient | null
+): Promise<Array<string | null>> => {
+  const resolved: Array<string | null> = new Array(rawValues.length).fill(null)
+  const pathsToSign: string[] = []
+  const pathIndexByValue = new Map<number, string>()
+
+  for (let i = 0; i < rawValues.length; i++) {
+    const raw = rawValues[i]
+    if (!raw) {
+      resolved[i] = null
+      continue
+    }
+    const value = raw.trim()
+    if (!value) {
+      resolved[i] = null
+      continue
+    }
+    if (value.startsWith('/')) {
+      resolved[i] = value
+      continue
+    }
+    const path = extractPostImagePath(value)
+    if (!path || !adminClient) {
+      resolved[i] = value
+      continue
+    }
+    resolved[i] = value
+    pathIndexByValue.set(i, path)
+    pathsToSign.push(path)
+  }
+
+  if (!adminClient || pathsToSign.length === 0) return resolved
+
+  const { data, error } = await adminClient.storage
+    .from('post-images')
+    .createSignedUrls(pathsToSign, 60 * 60 * 24)
+
+  if (error || !data) return resolved
+
+  const signedByPath = new Map<string, string>()
+  for (const entry of data) {
+    if (entry.path && entry.signedUrl) signedByPath.set(entry.path, entry.signedUrl)
+  }
+
+  for (const [index, path] of pathIndexByValue.entries()) {
+    const signed = signedByPath.get(path)
+    if (signed) resolved[index] = signed
+  }
+
+  return resolved
+}

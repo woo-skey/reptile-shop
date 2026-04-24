@@ -31,16 +31,14 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser()
 
   const imageUrls = post.image_urls?.length
-    ? (
-        await Promise.all(
-          post.image_urls.map(async (path) => {
-            const { data } = await supabase.storage
-              .from('post-images')
-              .createSignedUrl(path, 3600)
-            return data?.signedUrl ?? null
-          })
-        )
-      ).filter((url): url is string => Boolean(url))
+    ? await (async () => {
+        const { data } = await supabase.storage
+          .from('post-images')
+          .createSignedUrls(post.image_urls, 3600)
+        return (data ?? [])
+          .map((entry) => entry.signedUrl)
+          .filter((url): url is string => Boolean(url))
+      })()
     : []
 
   const canManage = user?.id === post.author_id

@@ -203,7 +203,8 @@ export default function MenuCalculatorModal({
           <button
             type="button"
             onClick={handleCopy}
-            className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+            disabled={copyStatus !== 'idle'}
+            className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
             style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
           >
             {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
@@ -212,7 +213,8 @@ export default function MenuCalculatorModal({
             <button
               type="button"
               onClick={handleShare}
-              className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+              disabled={copyStatus !== 'idle'}
+              className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
               style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
             >
               공유
