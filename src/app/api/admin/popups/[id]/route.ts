@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -160,6 +161,7 @@ export async function PATCH(
     await removePostImageByUrl(admin.adminClient, previousImageUrl)
   }
 
+  revalidatePath('/')
   return NextResponse.json({ success: true, popup: data })
 }
 
@@ -193,5 +195,6 @@ export async function DELETE(
 
   await removePostImageByUrl(admin.adminClient, (existing?.image_url as string | null | undefined) ?? null)
 
+  revalidatePath('/')
   return NextResponse.json({ success: true })
 }

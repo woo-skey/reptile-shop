@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDialog } from '@/hooks/useDialog'
 import type { MenuCategory, MenuItem } from '@/types'
@@ -127,6 +127,21 @@ export default function MenuCalculatorModal({
   const total = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0)
 
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const copyStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (copyStatusTimerRef.current) clearTimeout(copyStatusTimerRef.current)
+    }
+  }, [])
+
+  const scheduleCopyStatusReset = () => {
+    if (copyStatusTimerRef.current) clearTimeout(copyStatusTimerRef.current)
+    copyStatusTimerRef.current = setTimeout(() => {
+      setCopyStatus('idle')
+      copyStatusTimerRef.current = null
+    }, 1800)
+  }
 
   const buildShareText = () => {
     if (lines.length === 0) return ''
@@ -148,10 +163,10 @@ export default function MenuCalculatorModal({
     try {
       await navigator.clipboard.writeText(text)
       setCopyStatus('copied')
-      setTimeout(() => setCopyStatus('idle'), 1800)
+      scheduleCopyStatusReset()
     } catch {
       setCopyStatus('failed')
-      setTimeout(() => setCopyStatus('idle'), 1800)
+      scheduleCopyStatusReset()
     }
   }
 

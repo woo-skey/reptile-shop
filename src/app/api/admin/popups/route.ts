@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -115,5 +116,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  revalidatePath('/')
   return NextResponse.json({ success: true, popup: data })
 }
