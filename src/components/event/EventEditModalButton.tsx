@@ -94,8 +94,9 @@ export default function EventEditModalButton({
     setError('')
     setLoading(true)
 
+    let uploadedImageUrl: string | null = null
     try {
-      const uploadedImageUrl = await uploadImage()
+      uploadedImageUrl = await uploadImage()
       const payload = {
         id: item.id,
         category: 'event_post',
@@ -121,6 +122,9 @@ export default function EventEditModalButton({
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: '이벤트 수정에 실패했습니다.' }))
+        if (uploadedImageUrl) {
+          fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+        }
         setError(data.error ?? '이벤트 수정에 실패했습니다.')
         setLoading(false)
         return
@@ -137,6 +141,9 @@ export default function EventEditModalButton({
 
       close()
     } catch (err) {
+      if (uploadedImageUrl) {
+        fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+      }
       setError(err instanceof Error ? err.message : '이벤트 수정에 실패했습니다.')
       setLoading(false)
     }

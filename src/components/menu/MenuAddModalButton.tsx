@@ -220,10 +220,11 @@ export default function MenuAddModalButton({
     setError('')
     setLoading(true)
 
+    let uploadedUrl: string | null = null
     try {
-      const uploadedPath = supportsImage ? await uploadImage() : null
+      uploadedUrl = supportsImage ? await uploadImage() : null
       const imageUrl = supportsImage
-        ? (uploadedPath || toClientPostImageUrl(form.image_url) || form.image_url || null)
+        ? (uploadedUrl || toClientPostImageUrl(form.image_url) || form.image_url || null)
         : null
 
       const res = await fetch('/api/admin/menu-items', {
@@ -251,6 +252,9 @@ export default function MenuAddModalButton({
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: '등록에 실패했습니다.' }))
+        if (uploadedUrl) {
+          fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedUrl }) }).catch(() => {})
+        }
         setError(data.error ?? '등록에 실패했습니다.')
         setLoading(false)
         return
@@ -264,6 +268,9 @@ export default function MenuAddModalButton({
       reset()
       close()
     } catch (err) {
+      if (uploadedUrl) {
+        fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedUrl }) }).catch(() => {})
+      }
       setError(err instanceof Error ? err.message : '등록에 실패했습니다.')
       setLoading(false)
     }

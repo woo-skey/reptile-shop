@@ -117,10 +117,13 @@ export default function PostEditForm({
         const data = await response.json().catch(() => ({ error: '게시글 수정에 실패했습니다.' }))
         setError(data.error ?? '게시글 수정에 실패했습니다.')
         if (uploadedPaths.length > 0) {
-          // best-effort: 방금 업로드한 파일이 DB에 못 붙으면 정리 (client RLS에 따라 실패 가능)
-          const { createClient } = await import('@/lib/supabase/client')
-          const supabase = createClient()
-          await supabase.storage.from('post-images').remove(uploadedPaths).catch(() => {})
+          await Promise.all(uploadedPaths.map(p =>
+            fetch('/api/upload', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: p }),
+            }).catch(() => {})
+          ))
         }
         setLoading(false)
         return
@@ -130,9 +133,13 @@ export default function PostEditForm({
       router.refresh()
     } catch (err) {
       if (uploadedPaths.length > 0) {
-        const { createClient } = await import('@/lib/supabase/client')
-        const supabase = createClient()
-        await supabase.storage.from('post-images').remove(uploadedPaths).catch(() => {})
+        await Promise.all(uploadedPaths.map(p =>
+          fetch('/api/upload', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: p }),
+          }).catch(() => {})
+        ))
       }
       setError(err instanceof Error ? err.message : '네트워크 오류로 게시글 수정에 실패했습니다.')
       setLoading(false)

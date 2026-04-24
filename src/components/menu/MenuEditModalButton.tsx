@@ -114,8 +114,8 @@ export default function MenuEditModalButton({
     })
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: 'Image upload 준비에 실패했습니다.' }))
-      throw new Error(data.error ?? 'Image upload 준비에 실패했습니다.')
+      const data = await res.json().catch(() => ({ error: '이미지 업로드 준비에 실패했습니다.' }))
+      throw new Error(data.error ?? '이미지 업로드 준비에 실패했습니다.')
     }
 
     const { signedUrl, path } = await res.json()
@@ -126,7 +126,7 @@ export default function MenuEditModalButton({
     })
 
     if (!uploadRes.ok) {
-      throw new Error('Image upload에 실패했습니다.')
+      throw new Error('이미지 업로드에 실패했습니다.')
     }
 
     return toClientPostImageUrl(path as string)
@@ -137,10 +137,11 @@ export default function MenuEditModalButton({
     setError('')
     setLoading(true)
 
+    let uploadedUrl: string | null = null
     try {
-      const uploadedPath = supportsImage ? await uploadImage() : null
+      uploadedUrl = supportsImage ? await uploadImage() : null
       const imageUrl = supportsImage
-        ? (uploadedPath || toClientPostImageUrl(form.image_url) || form.image_url || null)
+        ? (uploadedUrl || toClientPostImageUrl(form.image_url) || form.image_url || null)
         : null
 
       const payload = {
@@ -168,8 +169,11 @@ export default function MenuEditModalButton({
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: 'Update failed.' }))
-        setError(data.error ?? 'Update failed.')
+        const data = await res.json().catch(() => ({ error: '수정에 실패했습니다.' }))
+        if (uploadedUrl) {
+          fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedUrl }) }).catch(() => {})
+        }
+        setError(data.error ?? '수정에 실패했습니다.')
         setLoading(false)
         return
       }
@@ -194,13 +198,16 @@ export default function MenuEditModalButton({
 
       close()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed.')
+      if (uploadedUrl) {
+        fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedUrl }) }).catch(() => {})
+      }
+      setError(err instanceof Error ? err.message : '수정에 실패했습니다.')
       setLoading(false)
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('Delete this menu item?')) return
+    if (!confirm('이 메뉴를 삭제하시겠습니까?')) return
 
     setError('')
     setDeleting(true)
@@ -213,8 +220,8 @@ export default function MenuEditModalButton({
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: 'Delete failed.' }))
-        setError(data.error ?? 'Delete failed.')
+        const data = await res.json().catch(() => ({ error: '삭제에 실패했습니다.' }))
+        setError(data.error ?? '삭제에 실패했습니다.')
         setDeleting(false)
         return
       }
@@ -222,7 +229,7 @@ export default function MenuEditModalButton({
       onDeleted?.(item.id)
       close()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed.')
+      setError(err instanceof Error ? err.message : '삭제에 실패했습니다.')
       setDeleting(false)
     }
   }
@@ -237,7 +244,7 @@ export default function MenuEditModalButton({
         className="text-xs px-2.5 py-1 rounded-md border"
         style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
       >
-        Edit
+        수정
       </button>
 
       {open && typeof document !== 'undefined' && createPortal(
@@ -257,7 +264,7 @@ export default function MenuEditModalButton({
           >
             <div className="flex items-center justify-between mb-5">
               <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-                Edit Menu
+                메뉴 수정
               </h3>
               <button
                 ref={closeButtonRef}
@@ -266,14 +273,14 @@ export default function MenuEditModalButton({
                 className="text-xs px-2 py-1 rounded border"
                 style={{ color: 'var(--foreground)', opacity: 0.6, borderColor: 'rgba(255,255,255,0.2)' }}
               >
-                Close
+                닫기
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  Category
+                  카테고리
                 </label>
                 <select
                   value={form.category}
@@ -292,7 +299,7 @@ export default function MenuEditModalButton({
               {supportsImage && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    Image
+                    이미지
                   </label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <button
@@ -301,7 +308,7 @@ export default function MenuEditModalButton({
                       className="px-3 py-1.5 text-xs rounded-md border"
                       style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
                     >
-                      Choose file
+                      파일 선택
                     </button>
                     <input
                       ref={fileRef}
@@ -311,7 +318,7 @@ export default function MenuEditModalButton({
                       onChange={handleImageChange}
                     />
                     <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-                      or image URL
+                      또는 이미지 URL 입력
                     </span>
                   </div>
                   <input
@@ -326,7 +333,7 @@ export default function MenuEditModalButton({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={preview || form.image_url}
-                      alt="preview"
+                      alt="미리보기"
                       className="mt-2 w-20 h-20 object-cover rounded"
                       style={{ border: '1px solid rgba(201,162,39,0.3)' }}
                     />
@@ -337,7 +344,7 @@ export default function MenuEditModalButton({
               {needsSub && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    {currentCategory === 'cocktail' ? '가격 (예: 12000)' : 'Subcategory'}
+                    {currentCategory === 'cocktail' ? '가격 (예: 12000)' : '서브 카테고리'}
                   </label>
                   {subOptions.length > 0 ? (
                     <select
@@ -346,7 +353,7 @@ export default function MenuEditModalButton({
                       className={inputCls}
                       style={{ color: 'var(--foreground)' }}
                     >
-                      <option value="">Select</option>
+                      <option value="">선택</option>
                       {subOptions.map((s) => (
                         <option key={s} value={s}>
                           {s}
@@ -368,7 +375,7 @@ export default function MenuEditModalButton({
 
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  Name *
+                  이름 *
                 </label>
                 <input
                   required
@@ -382,7 +389,7 @@ export default function MenuEditModalButton({
 
               <div>
                 <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                  Description
+                  설명
                 </label>
                 <textarea
                   value={form.description}
@@ -396,7 +403,7 @@ export default function MenuEditModalButton({
               {needsNote && (
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    Note
+                    비고
                   </label>
                   <input
                     type="text"
@@ -412,7 +419,7 @@ export default function MenuEditModalButton({
                 {needsAbv && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                      ABV (%)
+                      도수 (%)
                     </label>
                     <input
                       type="number"
@@ -428,7 +435,7 @@ export default function MenuEditModalButton({
                 {needsVol && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                      Volume (ml)
+                      용량 (ml)
                     </label>
                     <input
                       type="number"
@@ -443,7 +450,7 @@ export default function MenuEditModalButton({
                 {needsPrice && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                      Price (KRW)
+                      가격 (원)
                     </label>
                     <input
                       type="number"
@@ -458,7 +465,7 @@ export default function MenuEditModalButton({
                 {needsGlass && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                      1 Glass (KRW)
+                      1 Glass (원)
                     </label>
                     <input
                       type="number"
@@ -473,7 +480,7 @@ export default function MenuEditModalButton({
                 {needsGlass && (
                   <div>
                     <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                      1 Bottle (KRW)
+                      1 Bottle (원)
                     </label>
                     <input
                       type="number"
@@ -487,7 +494,7 @@ export default function MenuEditModalButton({
 
                 <div>
                   <label className={labelCls} style={{ color: 'var(--foreground)' }}>
-                    Sort Order
+                    정렬 순서
                   </label>
                   <input
                     type="number"
@@ -526,7 +533,7 @@ export default function MenuEditModalButton({
                   onChange={(e) => set('is_available', e.target.checked)}
                 />
                 <label htmlFor={`modal-avail-${item.id}`} className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.75 }}>
-                  Visible
+                  노출
                 </label>
               </div>
 
@@ -539,7 +546,7 @@ export default function MenuEditModalButton({
                   className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
                   style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
                 >
-                  {loading ? 'Saving...' : 'Save'}
+                  {loading ? '저장 중...' : '저장'}
                 </button>
                 <button
                   type="button"
@@ -548,7 +555,7 @@ export default function MenuEditModalButton({
                   className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
                   style={{ color: 'rgba(239,68,68,0.95)', border: '1px solid rgba(239,68,68,0.35)' }}
                 >
-                  {deleting ? 'Deleting...' : 'Delete'}
+                  {deleting ? '삭제 중...' : '삭제'}
                 </button>
                 <button
                   type="button"
@@ -557,7 +564,7 @@ export default function MenuEditModalButton({
                   className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm disabled:opacity-50"
                   style={{ color: 'var(--foreground)', opacity: 0.6, border: '1px solid rgba(255,255,255,0.15)' }}
                 >
-                  Cancel
+                  취소
                 </button>
               </div>
             </form>

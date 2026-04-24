@@ -25,8 +25,8 @@ const formatPrice = (item: MenuItem) => {
   if (item.price != null) return `${item.price.toLocaleString()}원`
 
   const parts: string[] = []
-  if (item.price_glass != null) parts.push(`Glass ${item.price_glass.toLocaleString()}원`)
-  if (item.price_bottle != null) parts.push(`Bottle ${item.price_bottle.toLocaleString()}원`)
+  if (item.price_glass != null) parts.push(`잔 ${item.price_glass.toLocaleString()}원`)
+  if (item.price_bottle != null) parts.push(`병 ${item.price_bottle.toLocaleString()}원`)
   return parts.join(' / ')
 }
 

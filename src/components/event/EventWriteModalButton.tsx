@@ -82,8 +82,9 @@ export default function EventWriteModalButton({
     setError('')
     setLoading(true)
 
+    let uploadedImageUrl: string | null = null
     try {
-      const uploadedImageUrl = await uploadImage()
+      uploadedImageUrl = await uploadImage()
       const payload = {
         category: 'event_post',
         name: title,
@@ -108,6 +109,9 @@ export default function EventWriteModalButton({
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: '이벤트 등록에 실패했습니다.' }))
+        if (uploadedImageUrl) {
+          fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+        }
         setError(data.error ?? '이벤트 등록에 실패했습니다.')
         setLoading(false)
         return
@@ -128,6 +132,9 @@ export default function EventWriteModalButton({
       setSortOrder('0')
       setIsAvailable(true)
     } catch (err) {
+      if (uploadedImageUrl) {
+        fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+      }
       setError(err instanceof Error ? err.message : '이벤트 등록에 실패했습니다.')
       setLoading(false)
     }

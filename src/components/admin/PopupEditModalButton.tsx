@@ -84,8 +84,9 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
     setError('')
     setLoading(true)
 
+    let uploadedImageUrl: string | null = null
     try {
-      const uploadedImageUrl = await uploadImage()
+      uploadedImageUrl = await uploadImage()
       const finalImageUrl = uploadedImageUrl || imageUrl || null
 
       const response = await fetch(`/api/admin/popups/${popup.id}`, {
@@ -101,6 +102,9 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: '팝업 수정에 실패했습니다.' }))
+        if (uploadedImageUrl) {
+          fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+        }
         setError(data.error ?? '팝업 수정에 실패했습니다.')
         setLoading(false)
         return
@@ -109,6 +113,9 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
       close()
       router.refresh()
     } catch (err) {
+      if (uploadedImageUrl) {
+        fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: uploadedImageUrl }) }).catch(() => {})
+      }
       setError(err instanceof Error ? err.message : '팝업 수정에 실패했습니다.')
       setLoading(false)
     }
