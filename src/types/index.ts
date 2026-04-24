@@ -74,6 +74,19 @@ export interface HomeNoticeBanner {
   updated_at: string
 }
 
+export interface StoreInfo {
+  key: string
+  address: string | null
+  phone: string | null
+  business_hours: string | null
+  closed_days: string | null
+  instagram_url: string | null
+  kakao_url: string | null
+  map_url: string | null
+  extra_note: string | null
+  updated_at: string
+}
+
 export type BannerAlign = 'left' | 'center' | 'right'
 export type BannerTextSize = 'md' | 'lg' | 'xl'
 

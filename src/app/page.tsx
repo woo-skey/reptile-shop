@@ -4,7 +4,8 @@ import { createPostImagesAdminClient, toRenderablePostImageUrl } from '@/lib/sto
 import { HOME_NOTICE_TEXT_SIZE_CLASS, parseHomeNoticeMeta } from '@/lib/homeNoticeMeta'
 import HomePopup from '@/components/HomePopup'
 import GuestSignupLink from '@/components/home/GuestSignupLink'
-import type { BannerAlign, HomeNoticeBanner, Post, MenuItem } from '@/types'
+import StoreInfoSection from '@/components/home/StoreInfoSection'
+import type { BannerAlign, HomeNoticeBanner, Post, MenuItem, StoreInfo } from '@/types'
 
 const MENU_LABELS: Record<string, string> = {
   food: 'Food',
@@ -40,6 +41,7 @@ export default async function HomePage() {
     { data: mainMenuItems },
     { data: activePopup },
     { data: homeNoticeData, error: homeNoticeError },
+    { data: storeInfoData },
   ] = await Promise.all([
     supabase
       .from('posts')
@@ -79,12 +81,18 @@ export default async function HomePage() {
       .select('key, title, content, created_at, updated_at')
       .eq('key', HOME_NOTICE_KEY)
       .maybeSingle(),
+    supabase
+      .from('store_info')
+      .select('*')
+      .eq('key', 'main')
+      .maybeSingle(),
   ])
 
   const posts = (recentPosts ?? []) as unknown as Post[]
   const notices = (recentNotices ?? []) as unknown as Post[]
   const events = (eventItems ?? []) as unknown as MenuItem[]
   const menus = (mainMenuItems ?? []) as unknown as MenuItem[]
+  const storeInfo = (storeInfoData ?? null) as StoreInfo | null
   const homeNotice = homeNoticeError
     ? null
     : ((homeNoticeData ?? null) as HomeNoticeBanner | null)
@@ -293,6 +301,8 @@ export default async function HomePage() {
             )}
           </div>
         </section>
+
+        <StoreInfoSection info={storeInfo} />
 
         <GuestSignupLink />
       </div>

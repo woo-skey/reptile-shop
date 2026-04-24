@@ -63,7 +63,18 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
               <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
-          {isAdmin && <DeletePostButton postId={notice.id} redirectTo="/notice" />}
+          {isAdmin && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href={`/notice/${notice.id}/edit`}
+                className="text-xs px-3 py-1.5 rounded-md border"
+                style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
+              >
+                수정
+              </Link>
+              <DeletePostButton postId={notice.id} redirectTo="/notice" />
+            </div>
+          )}
         </div>
 
         <div

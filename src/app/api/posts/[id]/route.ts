@@ -105,11 +105,21 @@ export async function PATCH(
   }
 
   const body = await request.json().catch(() => ({}))
-  const title = typeof body.title === 'string' ? body.title.trim() : ''
-  const content = typeof body.content === 'string' ? body.content.trim() : ''
+  const hasTitle = Object.prototype.hasOwnProperty.call(body, 'title')
+  const hasContent = Object.prototype.hasOwnProperty.call(body, 'content')
+  const hasIsPinned = Object.prototype.hasOwnProperty.call(body, 'is_pinned')
+  const title = hasTitle && typeof body.title === 'string' ? body.title.trim() : ''
+  const content = hasContent && typeof body.content === 'string' ? body.content.trim() : ''
+  const isPinned = hasIsPinned ? Boolean(body.is_pinned) : null
 
-  if (!title || !content) {
-    return NextResponse.json({ error: '제목과 내용을 입력해주세요.' }, { status: 400 })
+  if (hasTitle && !title) {
+    return NextResponse.json({ error: '제목을 입력해주세요.' }, { status: 400 })
+  }
+  if (hasContent && !content) {
+    return NextResponse.json({ error: '내용을 입력해주세요.' }, { status: 400 })
+  }
+  if (!hasTitle && !hasContent && !hasIsPinned) {
+    return NextResponse.json({ error: '수정할 항목이 없습니다.' }, { status: 400 })
   }
 
   const serverClient = await createServerClient()
@@ -147,14 +157,22 @@ export async function PATCH(
     return NextResponse.json({ error: '게시글을 찾을 수 없습니다.' }, { status: 404 })
   }
 
-  if (post.type !== 'community') {
-    return NextResponse.json({ error: '커뮤니티 게시글만 수정할 수 있습니다.' }, { status: 400 })
-  }
-
   const isAdmin = profile?.role === 'admin'
   const isOwner = post.author_id === user.id
-  if (!isAdmin && !isOwner) {
-    return NextResponse.json({ error: '수정 권한이 없습니다.' }, { status: 403 })
+
+  if (post.type === 'notice') {
+    if (!isAdmin) {
+      return NextResponse.json({ error: '공지는 관리자만 수정할 수 있습니다.' }, { status: 403 })
+    }
+  } else if (post.type === 'community') {
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json({ error: '수정 권한이 없습니다.' }, { status: 403 })
+    }
+    if (hasIsPinned) {
+      return NextResponse.json({ error: '커뮤니티 게시글은 고정할 수 없습니다.' }, { status: 400 })
+    }
+  } else {
+    return NextResponse.json({ error: '지원하지 않는 게시글 유형입니다.' }, { status: 400 })
   }
 
   const adminClient = createAdminClient()
@@ -162,9 +180,14 @@ export async function PATCH(
     return NextResponse.json({ error: '서버 설정이 올바르지 않습니다.' }, { status: 500 })
   }
 
+  const updatePayload: Record<string, unknown> = {}
+  if (hasTitle) updatePayload.title = title
+  if (hasContent) updatePayload.content = content
+  if (hasIsPinned) updatePayload.is_pinned = isPinned
+
   const { error: updateError } = await adminClient
     .from('posts')
-    .update({ title, content })
+    .update(updatePayload)
     .eq('id', postId)
 
   if (updateError) {

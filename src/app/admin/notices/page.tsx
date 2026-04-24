@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DeletePostButton from '@/components/community/DeletePostButton'
+import ToggleNoticePinButton from '@/components/admin/ToggleNoticePinButton'
 import type { Post } from '@/types'
 
 export default async function AdminNoticesPage() {
@@ -46,10 +47,18 @@ export default async function AdminNoticesPage() {
                   {notice.title}
                 </Link>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs hidden sm:inline" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
                   {new Date(notice.created_at).toLocaleDateString('ko-KR')}
                 </span>
+                <ToggleNoticePinButton postId={notice.id} initialPinned={notice.is_pinned} />
+                <Link
+                  href={`/notice/${notice.id}/edit`}
+                  className="text-xs px-2.5 py-1 rounded-md border shrink-0"
+                  style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.35)' }}
+                >
+                  수정
+                </Link>
                 <DeletePostButton postId={notice.id} redirectTo="/admin/notices" />
               </div>
             </div>
