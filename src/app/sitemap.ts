@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { createPublicClient } from '@/lib/supabase/public-server'
 
+export const revalidate = 3600
+
 type PostRow = {
   id: string
   type: 'community' | 'notice'
