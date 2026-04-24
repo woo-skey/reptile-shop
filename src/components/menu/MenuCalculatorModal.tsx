@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDialog } from '@/hooks/useDialog'
 import type { MenuCategory, MenuItem } from '@/types'
@@ -76,13 +76,9 @@ export default function MenuCalculatorModal({
     }
     return CATEGORY_ORDER.filter((cat) => set.has(cat))
   }, [items])
-
-  useEffect(() => {
-    if (availableCategories.length === 0) return
-    if (!availableCategories.includes(category)) {
-      setCategory(availableCategories[0])
-    }
-  }, [availableCategories, category])
+  const activeCategory = availableCategories.includes(category)
+    ? category
+    : (availableCategories[0] ?? 'food')
 
   const { dialogRef, titleId } = useDialog({
     isOpen,
@@ -93,13 +89,13 @@ export default function MenuCalculatorModal({
   const visibleItems = useMemo(() => {
     const q = search.trim().toLowerCase()
     return items.filter((item) => {
-      if (item.category !== category) return false
+      if (item.category !== activeCategory) return false
       if (getPriceOptions(item).length === 0) return false
       if (!q) return true
       const src = [item.name, item.description]
       return src.some((s) => typeof s === 'string' && s.toLowerCase().includes(q))
     })
-  }, [items, category, search])
+  }, [items, activeCategory, search])
 
   const addLine = (item: MenuItem, option: PriceOption) => {
     const key = `${item.id}::${option.suffix}`
@@ -216,7 +212,7 @@ export default function MenuCalculatorModal({
               aria-label="카테고리 선택"
             >
               {availableCategories.map((cat) => {
-                const active = category === cat
+                const active = activeCategory === cat
                 return (
                   <button
                     key={cat}

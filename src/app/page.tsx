@@ -100,13 +100,20 @@ export default async function HomePage() {
   const homeNoticeMeta = parseHomeNoticeMeta(homeNotice?.title)
   const storageAdminClient = createPostImagesAdminClient()
 
+  const [popupImageUrl, heroImageUrl] = await Promise.all([
+    activePopup
+      ? toRenderablePostImageUrl(activePopup.image_url, storageAdminClient)
+      : Promise.resolve(null),
+    toRenderablePostImageUrl(storeInfo?.hero_image_url, storageAdminClient),
+  ])
+
   const popup = activePopup
     ? {
         ...activePopup,
-        image_url: await toRenderablePostImageUrl(activePopup.image_url, storageAdminClient),
+        image_url: popupImageUrl,
       }
     : null
-  const heroImageUrl = await toRenderablePostImageUrl(storeInfo?.hero_image_url, storageAdminClient) ?? MAIN_HERO_IMAGE
+  const resolvedHeroImageUrl = heroImageUrl ?? MAIN_HERO_IMAGE
 
   return (
     <>
@@ -120,7 +127,7 @@ export default async function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={heroImageUrl}
+              src={resolvedHeroImageUrl}
               alt="메인 배너"
               className="w-full h-full object-cover object-center"
             />

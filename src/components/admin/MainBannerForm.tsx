@@ -2,9 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const DEFAULT_FALLBACK = '/reptile_image.png'
+
+type PatchHeroResponse = {
+  heroImageUrl: string | null
+  renderableHeroImageUrl: string | null
+}
 
 export default function MainBannerForm({
   initialImageUrl,
@@ -28,6 +32,11 @@ export default function MainBannerForm({
       if (preview) URL.revokeObjectURL(preview)
     }
   }, [preview])
+
+  useEffect(() => {
+    setCurrentUrl(initialImageUrl)
+    setCurrentRenderable(initialRenderableUrl)
+  }, [initialImageUrl, initialRenderableUrl])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
@@ -64,7 +73,15 @@ export default function MainBannerForm({
     return path
   }
 
-  const patchHero = async (value: string | null) => {
+  const cleanupUpload = async (path: string) => {
+    await fetch('/api/upload', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    }).catch(() => undefined)
+  }
+
+  const patchHero = async (value: string | null): Promise<PatchHeroResponse> => {
     const res = await fetch('/api/admin/store-info', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -73,6 +90,12 @@ export default function MainBannerForm({
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: '저장에 실패했습니다.' }))
       throw new Error(data.error ?? '저장에 실패했습니다.')
+    }
+
+    const data = await res.json().catch(() => null) as PatchHeroResponse | null
+    return {
+      heroImageUrl: data?.heroImageUrl ?? value ?? null,
+      renderableHeroImageUrl: data?.renderableHeroImageUrl ?? null,
     }
   }
 
@@ -88,9 +111,14 @@ export default function MainBannerForm({
 
     try {
       const path = await uploadFile(newFile)
-      await patchHero(path)
-      setCurrentUrl(path)
-      setCurrentRenderable(toClientPostImageUrl(path) ?? path)
+      try {
+        const data = await patchHero(path)
+        setCurrentUrl(data.heroImageUrl)
+        setCurrentRenderable(data.renderableHeroImageUrl || preview || DEFAULT_FALLBACK)
+      } catch (err) {
+        await cleanupUpload(path)
+        throw err
+      }
       if (preview) URL.revokeObjectURL(preview)
       setPreview('')
       setNewFile(null)
@@ -113,9 +141,9 @@ export default function MainBannerForm({
     setMessage('')
 
     try {
-      await patchHero(null)
-      setCurrentUrl(null)
-      setCurrentRenderable(null)
+      const data = await patchHero(null)
+      setCurrentUrl(data.heroImageUrl)
+      setCurrentRenderable(data.renderableHeroImageUrl)
       setMessage('기본 배너로 되돌렸습니다.')
       router.refresh()
     } catch (err) {

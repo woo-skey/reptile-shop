@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
+import { extractPostImagePath } from '@/lib/storage/postImages'
 
 const MAX_UPLOAD_SIZE_BYTES = 8 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set([
@@ -28,6 +29,13 @@ const toNumber = (value: unknown) => {
     if (Number.isFinite(parsed)) return parsed
   }
   return null
+}
+
+const toOwnedPath = (userId: string, rawValue: unknown) => {
+  if (typeof rawValue !== 'string') return null
+  const path = extractPostImagePath(rawValue)
+  if (!path) return null
+  return path.startsWith(`${userId}/`) ? path : null
 }
 
 export async function POST(request: NextRequest) {
@@ -99,4 +107,47 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ signedUrl: data.signedUrl, path })
+}
+
+export async function DELETE(request: NextRequest) {
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => ({})) as Record<string, unknown>
+  const path = toOwnedPath(user.id, body.path)
+
+  if (!path) {
+    return NextResponse.json({ error: 'A valid owned upload path is required.' }, { status: 400 })
+  }
+
+  const adminClient = createSupabaseClient(getSupabaseUrl(), getSupabaseServiceRoleKey())
+  const { error } = await adminClient.storage.from('post-images').remove([path])
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
 }

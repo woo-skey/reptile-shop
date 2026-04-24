@@ -4,7 +4,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
-import { extractPostImagePath } from '@/lib/storage/postImages'
+import { extractPostImagePath, toRenderablePostImageUrl } from '@/lib/storage/postImages'
 
 const STORE_INFO_KEY = 'main'
 
@@ -100,5 +100,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   revalidatePath('/')
-  return NextResponse.json({ success: true })
+  const heroImageUrl = Object.prototype.hasOwnProperty.call(updatePayload, 'hero_image_url')
+    ? (updatePayload.hero_image_url ?? null)
+    : previousHero
+  const renderableHeroImageUrl = heroImageUrl
+    ? await toRenderablePostImageUrl(heroImageUrl, admin.adminClient)
+    : null
+
+  return NextResponse.json({ success: true, heroImageUrl, renderableHeroImageUrl })
 }
