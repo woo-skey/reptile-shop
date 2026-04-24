@@ -4,6 +4,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'r
 import { createPortal } from 'react-dom'
 import type { MenuCategory, MenuItem } from '@/types'
 import { useDialog } from '@/hooks/useDialog'
+import { useDialogs } from '@/components/providers/DialogProvider'
 import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const CATEGORIES: { value: MenuCategory; label: string }[] = [
@@ -41,6 +42,7 @@ export default function MenuEditModalButton({
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const dialogs = useDialogs()
 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
@@ -207,7 +209,8 @@ export default function MenuEditModalButton({
   }
 
   const handleDelete = async () => {
-    if (!confirm('이 메뉴를 삭제하시겠습니까?')) return
+    const ok = await dialogs.confirm({ message: '이 메뉴를 삭제하시겠습니까?', variant: 'danger' })
+    if (!ok) return
 
     setError('')
     setDeleting(true)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useDialogs } from '@/components/providers/DialogProvider'
 import { HOME_NOTICE_TEXT_SIZE_CLASS } from '@/lib/homeNoticeMeta'
 import type { BannerAlign, BannerTextSize } from '@/types'
 
@@ -31,6 +32,7 @@ export default function HomeNoticeBannerForm({
   initialAlign: BannerAlign
   initialSize: BannerTextSize
 }) {
+  const dialogs = useDialogs()
   const clearSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [content, setContent] = useState(initialContent)
@@ -83,7 +85,8 @@ export default function HomeNoticeBannerForm({
   }
 
   const handleHide = async () => {
-    if (!confirm('메인 공지 배너를 숨기시겠습니까?')) return
+    const ok = await dialogs.confirm({ message: '메인 공지 배너를 숨기시겠습니까?', variant: 'danger' })
+    if (!ok) return
 
     setError('')
     setSaved(false)

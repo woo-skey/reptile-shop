@@ -3,6 +3,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import type { MenuItem } from '@/types'
 import { useDialog } from '@/hooks/useDialog'
+import { useDialogs } from '@/components/providers/DialogProvider'
 import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 const normalizeImageUrl = (raw?: string | null) => {
@@ -22,6 +23,7 @@ export default function EventEditModalButton({
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const dialogs = useDialogs()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(item.name)
   const [content, setContent] = useState(item.description ?? '')
@@ -150,7 +152,8 @@ export default function EventEditModalButton({
   }
 
   const handleDelete = async () => {
-    if (!confirm('이 이벤트를 삭제하시겠습니까?')) return
+    const ok = await dialogs.confirm({ message: '이 이벤트를 삭제하시겠습니까?', variant: 'danger' })
+    if (!ok) return
     setError('')
     setDeleting(true)
 

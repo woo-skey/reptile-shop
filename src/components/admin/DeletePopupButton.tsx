@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 
 export default function DeletePopupButton({ popupId }: { popupId: string }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('이 팝업을 삭제할까요?')) return
+    const ok = await dialogs.confirm({ message: '이 팝업을 삭제할까요?', variant: 'danger' })
+    if (!ok) return
     setLoading(true)
 
     try {
@@ -18,7 +21,7 @@ export default function DeletePopupButton({ popupId }: { popupId: string }) {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: '팝업 삭제에 실패했습니다.' }))
-        alert(data.error ?? '팝업 삭제에 실패했습니다.')
+        await dialogs.alert(data.error ?? '팝업 삭제에 실패했습니다.')
         setLoading(false)
         return
       }
@@ -26,7 +29,7 @@ export default function DeletePopupButton({ popupId }: { popupId: string }) {
       router.refresh()
       setLoading(false)
     } catch {
-      alert('네트워크 오류로 팝업 삭제에 실패했습니다.')
+      await dialogs.alert('네트워크 오류로 팝업 삭제에 실패했습니다.')
       setLoading(false)
     }
   }

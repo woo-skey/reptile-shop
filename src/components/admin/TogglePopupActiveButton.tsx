@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 
 export default function TogglePopupActiveButton({
   popupId,
@@ -11,6 +12,7 @@ export default function TogglePopupActiveButton({
   initialActive: boolean
 }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const [isActive, setIsActive] = useState(initialActive)
   const [loading, setLoading] = useState(false)
 
@@ -28,7 +30,7 @@ export default function TogglePopupActiveButton({
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: '상태 변경에 실패했습니다.' }))
-        alert(data.error ?? '상태 변경에 실패했습니다.')
+        await dialogs.alert(data.error ?? '상태 변경에 실패했습니다.')
         setLoading(false)
         return
       }
@@ -37,7 +39,7 @@ export default function TogglePopupActiveButton({
       router.refresh()
       setLoading(false)
     } catch {
-      alert('네트워크 오류로 상태 변경에 실패했습니다.')
+      await dialogs.alert('네트워크 오류로 상태 변경에 실패했습니다.')
       setLoading(false)
     }
   }

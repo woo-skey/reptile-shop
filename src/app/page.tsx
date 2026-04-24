@@ -83,7 +83,7 @@ export default async function HomePage() {
       .maybeSingle(),
     supabase
       .from('store_info')
-      .select('*')
+      .select('key, address, phone, business_hours, closed_days, instagram_url, kakao_url, map_url, extra_note, hero_image_url, updated_at')
       .eq('key', 'main')
       .maybeSingle(),
   ])

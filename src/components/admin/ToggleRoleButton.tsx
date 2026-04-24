@@ -2,15 +2,21 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 import type { UserRole } from '@/types'
 
 export default function ToggleRoleButton({ userId, currentRole }: { userId: string; currentRole: UserRole }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleToggle = async () => {
-    if (!confirm(currentRole === 'admin' ? '관리자 권한을 해제하시겠습니까?' : '관리자로 지정하시겠습니까?')) return
+    const ok = await dialogs.confirm({
+      message: currentRole === 'admin' ? '관리자 권한을 해제하시겠습니까?' : '관리자로 지정하시겠습니까?',
+      variant: currentRole === 'admin' ? 'danger' : 'default',
+    })
+    if (!ok) return
     setLoading(true)
     setError('')
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 
 const DEFAULT_FALLBACK = '/reptile_image.png'
 
@@ -18,6 +19,7 @@ export default function MainBannerForm({
   initialRenderableUrl: string | null
 }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const fileRef = useRef<HTMLInputElement>(null)
   const [currentUrl, setCurrentUrl] = useState<string | null>(initialImageUrl)
   const [currentRenderable, setCurrentRenderable] = useState<string | null>(initialRenderableUrl)
@@ -134,7 +136,11 @@ export default function MainBannerForm({
 
   const handleReset = async () => {
     if (!currentUrl) return
-    if (!confirm('기본 배너 이미지로 되돌리시겠습니까? 현재 업로드된 이미지는 삭제됩니다.')) return
+    const ok = await dialogs.confirm({
+      message: '기본 배너 이미지로 되돌리시겠습니까? 현재 업로드된 이미지는 삭제됩니다.',
+      variant: 'danger',
+    })
+    if (!ok) return
 
     setLoading(true)
     setError('')

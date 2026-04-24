@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 import { Suspense } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { DialogProvider } from '@/components/providers/DialogProvider'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import './globals.css'
@@ -58,20 +59,22 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
-            <Suspense
-              fallback={
-                <header
-                  className="sticky top-0 z-50 border-b h-14"
-                  style={{ backgroundColor: 'rgba(26, 26, 15, 0.85)', borderColor: 'rgba(201, 162, 39, 0.2)' }}
-                />
-              }
-            >
-              <Header />
-            </Suspense>
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
+            <DialogProvider>
+              <Suspense
+                fallback={
+                  <header
+                    className="sticky top-0 z-50 border-b h-14"
+                    style={{ backgroundColor: 'rgba(26, 26, 15, 0.85)', borderColor: 'rgba(201, 162, 39, 0.2)' }}
+                  />
+                }
+              >
+                <Header />
+              </Suspense>
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </DialogProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

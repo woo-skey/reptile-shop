@@ -21,7 +21,7 @@ export default async function MyPage() {
   const [{ data: profileData }, { data: postsData }, { data: commentsData }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('*')
+      .select('id, username, display_name, role, created_at')
       .eq('id', user.id)
       .single(),
     supabase

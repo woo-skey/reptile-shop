@@ -2,13 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 
 export default function DeletePostButton({ postId, redirectTo }: { postId: string; redirectTo: string }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const [loading, setLoading] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('게시글을 삭제하시겠습니까?')) return
+    const ok = await dialogs.confirm({ message: '게시글을 삭제하시겠습니까?', variant: 'danger' })
+    if (!ok) return
     setLoading(true)
 
     try {
@@ -18,13 +21,13 @@ export default function DeletePostButton({ postId, redirectTo }: { postId: strin
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: '게시글 삭제에 실패했습니다.' }))
-        alert(data.error ?? '게시글 삭제에 실패했습니다.')
+        await dialogs.alert(data.error ?? '게시글 삭제에 실패했습니다.')
         return
       }
 
       router.push(redirectTo)
     } catch {
-      alert('네트워크 오류로 게시글 삭제에 실패했습니다.')
+      await dialogs.alert('네트워크 오류로 게시글 삭제에 실패했습니다.')
     } finally {
       setLoading(false)
     }

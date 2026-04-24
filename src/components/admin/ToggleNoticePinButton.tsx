@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDialogs } from '@/components/providers/DialogProvider'
 
 export default function ToggleNoticePinButton({
   postId,
@@ -11,6 +12,7 @@ export default function ToggleNoticePinButton({
   initialPinned: boolean
 }) {
   const router = useRouter()
+  const dialogs = useDialogs()
   const [pinned, setPinned] = useState(initialPinned)
   const [loading, setLoading] = useState(false)
 
@@ -28,7 +30,7 @@ export default function ToggleNoticePinButton({
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: '고정 설정에 실패했습니다.' }))
-        alert(data.error ?? '고정 설정에 실패했습니다.')
+        await dialogs.alert(data.error ?? '고정 설정에 실패했습니다.')
         setLoading(false)
         return
       }
@@ -36,7 +38,7 @@ export default function ToggleNoticePinButton({
       setPinned(next)
       router.refresh()
     } catch {
-      alert('네트워크 오류로 고정 설정에 실패했습니다.')
+      await dialogs.alert('네트워크 오류로 고정 설정에 실패했습니다.')
     } finally {
       setLoading(false)
     }
