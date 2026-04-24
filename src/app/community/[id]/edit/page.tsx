@@ -22,7 +22,7 @@ export default async function CommunityPostEditPage({ params }: { params: Promis
       .maybeSingle(),
     supabase
       .from('posts')
-      .select('id, author_id, type, title, content')
+      .select('id, author_id, type, title, content, image_urls')
       .eq('id', id)
       .eq('type', 'community')
       .maybeSingle(),
@@ -30,11 +30,27 @@ export default async function CommunityPostEditPage({ params }: { params: Promis
 
   if (!postData) notFound()
 
-  const post = postData as Pick<Post, 'id' | 'author_id' | 'title' | 'content'>
+  const post = postData as Pick<Post, 'id' | 'author_id' | 'title' | 'content' | 'image_urls'>
   const canEdit = post.author_id === user.id || profile?.role === 'admin'
   if (!canEdit) {
     redirect(`/community/${id}`)
   }
+
+  const initialImagePaths = Array.isArray(post.image_urls)
+    ? post.image_urls.filter((v): v is string => typeof v === 'string' && v.length > 0)
+    : []
+
+  const signedImages = await Promise.all(
+    initialImagePaths.map(async (path) => {
+      const { data } = await supabase.storage
+        .from('post-images')
+        .createSignedUrl(path, 3600)
+      return { path, url: data?.signedUrl ?? null }
+    })
+  )
+  const initialImages = signedImages.filter(
+    (img): img is { path: string; url: string } => Boolean(img.url)
+  )
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -58,6 +74,7 @@ export default async function CommunityPostEditPage({ params }: { params: Promis
           postId={post.id}
           initialTitle={post.title}
           initialContent={post.content}
+          initialImages={initialImages}
         />
       </div>
     </div>

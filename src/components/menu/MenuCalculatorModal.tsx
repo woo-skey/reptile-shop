@@ -130,6 +130,52 @@ export default function MenuCalculatorModal({
 
   const total = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0)
 
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+  const buildShareText = () => {
+    if (lines.length === 0) return ''
+    const itemLines = lines.map((l) => {
+      const label = l.suffix ? `${l.name} (${l.suffix})` : l.name
+      return `· ${label} × ${l.quantity} = ${(l.unitPrice * l.quantity).toLocaleString()}원`
+    })
+    return [
+      '[파충류가게 메뉴 계산]',
+      ...itemLines,
+      '------',
+      `합계: ${total.toLocaleString()}원`,
+    ].join('\n')
+  }
+
+  const handleCopy = async () => {
+    const text = buildShareText()
+    if (!text) return
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopyStatus('copied')
+      setTimeout(() => setCopyStatus('idle'), 1800)
+    } catch {
+      setCopyStatus('failed')
+      setTimeout(() => setCopyStatus('idle'), 1800)
+    }
+  }
+
+  const handleShare = async () => {
+    const text = buildShareText()
+    if (!text) return
+    const shareData: ShareData = { title: '파충류가게 메뉴 계산', text }
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share(shareData)
+        return
+      }
+    } catch {
+      // 사용자가 공유 취소 또는 브라우저 제한 → 복사로 fallback
+    }
+    await handleCopy()
+  }
+
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
   if (!isOpen || typeof document === 'undefined') return null
 
   return createPortal(
@@ -348,15 +394,40 @@ export default function MenuCalculatorModal({
             </div>
 
             <div
-              className="mt-4 pt-3 flex items-center justify-between shrink-0"
+              className="mt-4 pt-3 shrink-0 space-y-2"
               style={{ borderTop: '1px solid rgba(201, 162, 39, 0.3)' }}
             >
-              <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                총 합계
-              </span>
-              <span className="text-lg font-bold" style={{ color: '#C9A227' }}>
-                {total.toLocaleString()}원
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                  총 합계
+                </span>
+                <span className="text-lg font-bold" style={{ color: '#C9A227' }}>
+                  {total.toLocaleString()}원
+                </span>
+              </div>
+
+              {lines.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+                    style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
+                  >
+                    {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
+                  </button>
+                  {canShare && (
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border"
+                      style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
+                    >
+                      공유
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         </div>

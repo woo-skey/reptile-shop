@@ -108,9 +108,17 @@ export async function PATCH(
   const hasTitle = Object.prototype.hasOwnProperty.call(body, 'title')
   const hasContent = Object.prototype.hasOwnProperty.call(body, 'content')
   const hasIsPinned = Object.prototype.hasOwnProperty.call(body, 'is_pinned')
+  const hasImageUrls = Object.prototype.hasOwnProperty.call(body, 'image_urls')
   const title = hasTitle && typeof body.title === 'string' ? body.title.trim() : ''
   const content = hasContent && typeof body.content === 'string' ? body.content.trim() : ''
   const isPinned = hasIsPinned ? Boolean(body.is_pinned) : null
+  const imageUrls: string[] | null = hasImageUrls
+    ? (Array.isArray(body.image_urls)
+        ? (body.image_urls as unknown[])
+            .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+            .slice(0, 4)
+        : [])
+    : null
 
   if (hasTitle && !title) {
     return NextResponse.json({ error: '제목을 입력해주세요.' }, { status: 400 })
@@ -118,7 +126,7 @@ export async function PATCH(
   if (hasContent && !content) {
     return NextResponse.json({ error: '내용을 입력해주세요.' }, { status: 400 })
   }
-  if (!hasTitle && !hasContent && !hasIsPinned) {
+  if (!hasTitle && !hasContent && !hasIsPinned && !hasImageUrls) {
     return NextResponse.json({ error: '수정할 항목이 없습니다.' }, { status: 400 })
   }
 
@@ -140,7 +148,7 @@ export async function PATCH(
       .maybeSingle(),
     serverClient
       .from('posts')
-      .select('id, author_id, type')
+      .select('id, author_id, type, image_urls')
       .eq('id', postId)
       .maybeSingle(),
   ])
@@ -184,6 +192,7 @@ export async function PATCH(
   if (hasTitle) updatePayload.title = title
   if (hasContent) updatePayload.content = content
   if (hasIsPinned) updatePayload.is_pinned = isPinned
+  if (hasImageUrls && imageUrls) updatePayload.image_urls = imageUrls
 
   const { error: updateError } = await adminClient
     .from('posts')
@@ -192,6 +201,17 @@ export async function PATCH(
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
+
+  if (hasImageUrls && imageUrls) {
+    const prev = Array.isArray(post.image_urls)
+      ? (post.image_urls as unknown[]).filter((v): v is string => typeof v === 'string' && v.length > 0)
+      : []
+    const nextSet = new Set(imageUrls)
+    const removed = prev.filter((p) => !nextSet.has(p))
+    if (removed.length > 0) {
+      await adminClient.storage.from('post-images').remove(removed)
+    }
   }
 
   return NextResponse.json({ success: true })

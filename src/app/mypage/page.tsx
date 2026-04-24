@@ -1,7 +1,16 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import DisplayNameEditor from '@/components/mypage/DisplayNameEditor'
 import type { Post, Profile } from '@/types'
+
+type MyCommentRow = {
+  id: string
+  content: string
+  created_at: string
+  post_id: string
+  posts: { id: string; type: 'community' | 'notice'; title: string } | null
+}
 
 export default async function MyPage() {
   const supabase = await createClient()
@@ -9,21 +18,28 @@ export default async function MyPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profileData }, { data: postsData }, { data: commentsData }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('posts')
+      .select('id, title, created_at, type')
+      .eq('author_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('comments')
+      .select('id, content, created_at, post_id, posts(id, type, title)')
+      .eq('author_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50),
+  ])
 
   const profile = profileData as Profile
-
-  const { data: postsData } = await supabase
-    .from('posts')
-    .select('id, title, created_at, type')
-    .eq('author_id', user.id)
-    .order('created_at', { ascending: false })
-
   const posts = (postsData ?? []) as unknown as Post[]
+  const comments = (commentsData ?? []) as unknown as MyCommentRow[]
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -42,10 +58,8 @@ export default async function MyPage() {
           >
             {profile?.display_name?.[0] ?? '?'}
           </div>
-          <div>
-            <p className="font-semibold text-base" style={{ color: 'var(--foreground)' }}>
-              {profile?.display_name}
-            </p>
+          <div className="min-w-0">
+            <DisplayNameEditor initialName={profile?.display_name ?? ''} />
             <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.5 }}>
               @{profile?.username}
             </p>
@@ -58,7 +72,7 @@ export default async function MyPage() {
         </div>
       </div>
 
-      <div>
+      <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
             <span style={{ color: '#C9A227' }}>·</span> 내 게시글 ({posts.length})
@@ -96,7 +110,7 @@ export default async function MyPage() {
                   >
                     {post.type === 'notice' ? '공지' : '커뮤니티'}
                   </span>
-                  <span className="text-sm truncate" style={{ color: 'var(--foreground)', opacity: 0.85 }}>
+                  <span className="text-sm break-keep" style={{ color: 'var(--foreground)', opacity: 0.85 }}>
                     {post.title}
                   </span>
                 </div>
@@ -105,6 +119,51 @@ export default async function MyPage() {
                 </span>
               </Link>
             ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+            <span style={{ color: '#C9A227' }}>·</span> 내 댓글 ({comments.length})
+          </h2>
+        </div>
+
+        {comments.length === 0 ? (
+          <div className="glass-card py-10 text-center">
+            <p className="text-sm" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
+              작성한 댓글이 없습니다.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {comments.map((c) => {
+              const post = c.posts
+              const href = post ? `/${post.type}/${post.id}` : '#'
+              return (
+                <Link
+                  key={c.id}
+                  href={href}
+                  className="glass-card block px-5 py-3.5 hover:border-[rgba(201,162,39,0.4)] transition-all"
+                >
+                  <p className="text-sm break-keep" style={{ color: 'var(--foreground)', opacity: 0.85 }}>
+                    {c.content}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2 text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
+                    {post ? (
+                      <span className="break-keep">↳ {post.title}</span>
+                    ) : (
+                      <span>(삭제된 게시글)</span>
+                    )}
+                    <span>·</span>
+                    <span>
+                      {new Date(c.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>
