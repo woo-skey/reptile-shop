@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/layout/NotificationBell'
 
 type NavLink = {
   href: string
@@ -86,6 +87,7 @@ export default function Header() {
             <div className="w-16 h-6 rounded-md animate-pulse" style={{ backgroundColor: 'rgba(201,162,39,0.1)' }} />
           ) : user ? (
             <>
+              <NotificationBell />
               <Link
                 href="/mypage"
                 className="hidden md:block text-sm"

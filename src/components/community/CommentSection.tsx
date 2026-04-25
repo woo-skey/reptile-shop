@@ -153,9 +153,19 @@ export default function CommentSection({ postId, initialComments, currentUserId 
             <div key={comment.id} className="flex items-start gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium" style={{ color: '#C9A227' }}>
-                    {comment.profiles?.display_name}
-                  </span>
+                  {comment.profiles?.username ? (
+                    <Link
+                      href={`/u/${comment.profiles.username}`}
+                      className="text-xs font-medium hover:underline"
+                      style={{ color: '#C9A227' }}
+                    >
+                      {comment.profiles.display_name ?? comment.profiles.username}
+                    </Link>
+                  ) : (
+                    <span className="text-xs font-medium" style={{ color: '#C9A227' }}>
+                      {comment.profiles?.display_name ?? '알 수 없음'}
+                    </span>
+                  )}
                   <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.3 }}>
                     {new Date(comment.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                   </span>

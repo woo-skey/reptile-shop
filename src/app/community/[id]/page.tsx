@@ -44,6 +44,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
   const canManage = user?.id === post.author_id
   const authorName = post.profiles?.display_name ?? post.profiles?.username ?? '알 수 없음'
+  const authorUsername = post.profiles?.username ?? null
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -54,7 +55,13 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
               {post.title}
             </h1>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
-              <span>{authorName}</span>
+              {authorUsername ? (
+                <Link href={`/u/${authorUsername}`} className="hover:underline">
+                  {authorName}
+                </Link>
+              ) : (
+                <span>{authorName}</span>
+              )}
               <span>·</span>
               <span>{new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>

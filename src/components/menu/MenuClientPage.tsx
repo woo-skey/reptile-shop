@@ -71,6 +71,7 @@ export default function MenuClientPage({
   const [orderError, setOrderError] = useState('')
   const [detailItem, setDetailItem] = useState<EventDetailModalItem | null>(null)
   const [calcOpen, setCalcOpen] = useState(false)
+  const [calcPrefill, setCalcPrefill] = useState<Array<{ name: string; suffix: string; unitPrice: number; quantity: number }> | undefined>(undefined)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingOrderRef = useRef<{ category: MenuTabCategory; items: MenuItem[] } | null>(null)
   const savingRef = useRef(false)
@@ -96,6 +97,34 @@ export default function MenuClientPage({
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const calcParam = params.get('calc')
+    if (!calcParam) return
+    try {
+      const parsed = JSON.parse(decodeURIComponent(calcParam)) as unknown
+      if (
+        Array.isArray(parsed) &&
+        parsed.every(
+          (l): l is { name: string; suffix: string; unitPrice: number; quantity: number } =>
+            !!l && typeof l === 'object' &&
+            typeof (l as Record<string, unknown>).name === 'string' &&
+            typeof (l as Record<string, unknown>).unitPrice === 'number' &&
+            typeof (l as Record<string, unknown>).quantity === 'number'
+        )
+      ) {
+        setCalcPrefill(parsed)
+        setCalcOpen(true)
+      }
+    } catch {
+      // ignore malformed
+    } finally {
+      params.delete('calc')
+      const qs = params.toString()
+      window.history.replaceState(null, '', qs ? `/menu?${qs}` : '/menu')
     }
   }, [])
 
@@ -444,7 +473,11 @@ export default function MenuClientPage({
       <MenuCalculatorModal
         items={menuItems}
         isOpen={calcOpen}
-        onClose={() => setCalcOpen(false)}
+        onClose={() => {
+          setCalcOpen(false)
+          setCalcPrefill(undefined)
+        }}
+        prefillLines={calcPrefill}
       />
     </>
   )

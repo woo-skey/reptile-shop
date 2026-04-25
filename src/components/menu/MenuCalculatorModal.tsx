@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDialog } from '@/hooks/useDialog'
+import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import type { MenuCategory, MenuItem } from '@/types'
 
 type PriceOption = { suffix: string; price: number }
@@ -53,19 +55,44 @@ const getPriceOptions = (item: MenuItem): PriceOption[] => {
   return options
 }
 
+type PrefillLine = {
+  name: string
+  suffix: string
+  unitPrice: number
+  quantity: number
+}
+
 export default function MenuCalculatorModal({
   items,
   isOpen,
   onClose,
+  prefillLines,
 }: {
   items: MenuItem[]
   isOpen: boolean
   onClose: () => void
+  prefillLines?: PrefillLine[]
 }) {
+  const { user } = useAuth()
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const [lines, setLines] = useState<LineItem[]>([])
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<MenuCategory>('food')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle')
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (!prefillLines || prefillLines.length === 0) return
+    setLines(
+      prefillLines.map((l, idx) => ({
+        key: `prefill-${idx}-${l.name}-${l.suffix}`,
+        name: l.name,
+        suffix: l.suffix,
+        unitPrice: l.unitPrice,
+        quantity: l.quantity,
+      }))
+    )
+  }, [isOpen, prefillLines])
 
   const availableCategories = useMemo(() => {
     const set = new Set<MenuCategory>()
@@ -187,6 +214,25 @@ export default function MenuCalculatorModal({
 
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
+  const handleSaveOrder = async () => {
+    if (!user || lines.length === 0 || saveStatus === 'saving') return
+    setSaveStatus('saving')
+    const supabase = createClient()
+    const payload = lines.map((l) => ({
+      name: l.name,
+      suffix: l.suffix,
+      unitPrice: l.unitPrice,
+      quantity: l.quantity,
+    }))
+    const { error } = await supabase.from('order_history').insert({
+      user_id: user.id,
+      items: payload,
+      total,
+    })
+    setSaveStatus(error ? 'failed' : 'saved')
+    setTimeout(() => setSaveStatus('idle'), 2000)
+  }
+
   const totalSection = (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -199,28 +245,41 @@ export default function MenuCalculatorModal({
       </div>
 
       {lines.length > 0 && (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleCopy}
-            disabled={copyStatus !== 'idle'}
-            className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
-            style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
-          >
-            {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
-          </button>
-          {canShare && (
+        <>
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleShare}
+              onClick={handleCopy}
               disabled={copyStatus !== 'idle'}
               className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
-              style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
+              style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
             >
-              공유
+              {copyStatus === 'copied' ? '복사됨' : copyStatus === 'failed' ? '복사 실패' : '주문 텍스트 복사'}
+            </button>
+            {canShare && (
+              <button
+                type="button"
+                onClick={handleShare}
+                disabled={copyStatus !== 'idle'}
+                className="flex-1 text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
+                style={{ color: '#F5F0E8', backgroundColor: '#456132', borderColor: '#C9A227' }}
+              >
+                공유
+              </button>
+            )}
+          </div>
+          {user && (
+            <button
+              type="button"
+              onClick={handleSaveOrder}
+              disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+              className="w-full text-xs font-semibold px-3 py-2 rounded-md border disabled:opacity-60"
+              style={{ color: 'var(--foreground)', borderColor: 'rgba(201,162,39,0.3)', opacity: 0.85 }}
+            >
+              {saveStatus === 'saving' ? '저장 중...' : saveStatus === 'saved' ? '저장됨 · 마이페이지에서 확인' : saveStatus === 'failed' ? '저장 실패' : '주문 기록에 저장'}
             </button>
           )}
-        </div>
+        </>
       )}
     </div>
   )

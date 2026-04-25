@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DisplayNameEditor from '@/components/mypage/DisplayNameEditor'
+import OrderHistoryList, { type OrderHistoryRow } from '@/components/mypage/OrderHistoryList'
 import type { Post, Profile } from '@/types'
 
 type MyCommentRow = {
@@ -18,7 +19,7 @@ export default async function MyPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profileData }, { data: postsData }, { data: commentsData }] = await Promise.all([
+  const [{ data: profileData }, { data: postsData }, { data: commentsData }, { data: ordersData }] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, username, display_name, role, created_at')
@@ -36,11 +37,18 @@ export default async function MyPage() {
       .eq('author_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50),
+    supabase
+      .from('order_history')
+      .select('id, items, total, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50),
   ])
 
   const profile = profileData as Profile
   const posts = (postsData ?? []) as unknown as Post[]
   const comments = (commentsData ?? []) as unknown as MyCommentRow[]
+  const orders = (ordersData ?? []) as unknown as OrderHistoryRow[]
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -122,6 +130,15 @@ export default async function MyPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+            <span style={{ color: '#C9A227' }}>·</span> 주문 기록 ({orders.length})
+          </h2>
+        </div>
+        <OrderHistoryList initialOrders={orders} />
       </div>
 
       <div>
