@@ -287,7 +287,7 @@ const formatPhotoPrice = (item: MenuItem) => {
 const formatCardDate = (date: string) => {
   const parsed = new Date(date)
   if (Number.isNaN(parsed.getTime())) return null
-  return parsed.toLocaleDateString('ko-KR', {
+  return parsed.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', 
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

@@ -42,7 +42,7 @@ export default async function AdminPostsPage() {
                 <p className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
                   {post.profiles?.display_name}
                   <span className="mx-1.5">·</span>
-                  {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                 </p>
               </div>
               <DeletePostButton postId={post.id} redirectTo="/admin/posts" />

@@ -59,7 +59,7 @@ export default async function AdminPopupPage() {
                 </p>
 
                 <p className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.3 }}>
-                  {new Date(popup.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(popup.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                 </p>
               </div>
 

@@ -229,7 +229,7 @@ export default async function HomePage() {
                       )}
                     </div>
                     <span className="text-xs shrink-0 ml-4" style={{ color: '#C9A227', opacity: 0.9 }}>
-                      {new Date(item.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      {new Date(item.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                     </span>
                   </Link>
                 ))}
@@ -265,7 +265,7 @@ export default async function HomePage() {
                       {post.title}
                     </span>
                     <span className="text-xs shrink-0 ml-4" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                      {new Date(post.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      {new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                     </span>
                   </Link>
                 ))}
@@ -301,7 +301,7 @@ export default async function HomePage() {
                       {notice.title}
                     </span>
                     <span className="text-xs shrink-0 ml-4" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                      {new Date(notice.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      {new Date(notice.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                     </span>
                   </Link>
                 ))}

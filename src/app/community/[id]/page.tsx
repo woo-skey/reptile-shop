@@ -25,6 +25,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
     .select('*, profiles(display_name, username)')
     .eq('post_id', id)
     .order('created_at', { ascending: true })
+    .limit(500)
 
   const comments = (commentData ?? []) as unknown as Comment[]
 
@@ -55,7 +56,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
               <span>{authorName}</span>
               <span>·</span>
-              <span>{new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span>{new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
           {canManage && (

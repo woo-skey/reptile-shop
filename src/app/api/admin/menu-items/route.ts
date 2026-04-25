@@ -30,7 +30,7 @@ const VALID_CATEGORIES: MenuCategory[] = [
 
 const WINE_SUBS = new Set(['red', 'white', 'sparkling'])
 const WHISKY_SUBS = new Set(['single_malt', 'blended', 'bourbon', 'tennessee'])
-const MENU_REVALIDATE_PATHS = ['/', '/menu', '/event']
+const MENU_REVALIDATE_PATHS = ['/', '/menu', '/event', '/admin/menu']
 
 const isImageColumnMissingError = (message: string) => {
   const normalized = message.toLowerCase()

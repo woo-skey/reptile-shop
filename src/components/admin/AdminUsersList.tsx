@@ -81,7 +81,7 @@ export default function AdminUsersList({ users }: { users: Profile[] }) {
                   </span>
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-                  {new Date(u.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(u.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                   {u.role === 'admin' && (
                     <span className="ml-2" style={{ color: '#C9A227' }}>관리자</span>
                   )}

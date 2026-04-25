@@ -60,7 +60,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
             <div className="flex items-center gap-2 text-xs mt-2" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
               <span>{authorName}</span>
               <span>·</span>
-              <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}</span>
             </div>
           </div>
           {isAdmin && (

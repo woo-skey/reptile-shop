@@ -9,6 +9,7 @@ export default async function AdminUsersPage() {
     .from('profiles')
     .select('id, username, display_name, role, created_at')
     .order('created_at', { ascending: false })
+    .limit(1000)
 
   const users = (data ?? []) as Profile[]
 

@@ -28,7 +28,8 @@ export default async function MyPage() {
       .from('posts')
       .select('id, title, created_at, type')
       .eq('author_id', user.id)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(100),
     supabase
       .from('comments')
       .select('id, content, created_at, post_id, posts(id, type, title)')
@@ -66,7 +67,7 @@ export default async function MyPage() {
             <p className="text-xs mt-1" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
               {profile?.role === 'admin' ? '관리자' : '단골'}
               <span className="mx-1.5">·</span>
-              {new Date(profile?.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 가입
+              {new Date(profile?.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })} 가입
             </p>
           </div>
         </div>
@@ -115,7 +116,7 @@ export default async function MyPage() {
                   </span>
                 </div>
                 <span className="text-xs ml-4 shrink-0" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-                  {new Date(post.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  {new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                 </span>
               </Link>
             ))}
@@ -158,7 +159,7 @@ export default async function MyPage() {
                     )}
                     <span>·</span>
                     <span>
-                      {new Date(c.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      {new Date(c.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 </Link>

@@ -115,7 +115,7 @@ export default async function CommunityPage({
                   </span>
                   <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.25 }}>·</span>
                   <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
-                    {new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    {new Date(post.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
                 </div>
               </Link>

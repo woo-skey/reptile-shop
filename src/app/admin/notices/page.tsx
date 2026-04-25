@@ -13,6 +13,7 @@ export default async function AdminNoticesPage() {
     .eq('type', 'notice')
     .order('is_pinned', { ascending: false })
     .order('created_at', { ascending: false })
+    .limit(500)
 
   const notices = (data ?? []) as unknown as Post[]
 
@@ -49,7 +50,7 @@ export default async function AdminNoticesPage() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-xs hidden sm:inline" style={{ color: 'var(--foreground)', opacity: 0.35 }}>
-                  {new Date(notice.created_at).toLocaleDateString('ko-KR')}
+                  {new Date(notice.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                 </span>
                 <ToggleNoticePinButton postId={notice.id} initialPinned={notice.is_pinned} />
                 <Link

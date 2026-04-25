@@ -9,7 +9,7 @@ import EventGridCard from '@/components/event/EventGridCard'
 import type { MenuItem } from '@/types'
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('ko-KR', {
+  new Date(date).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', 
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

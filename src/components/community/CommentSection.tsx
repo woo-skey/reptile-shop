@@ -157,7 +157,7 @@ export default function CommentSection({ postId, initialComments, currentUserId 
                     {comment.profiles?.display_name}
                   </span>
                   <span className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.3 }}>
-                    {new Date(comment.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                    {new Date(comment.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric' })}
                   </span>
                 </div>
                 {editingId === comment.id ? (

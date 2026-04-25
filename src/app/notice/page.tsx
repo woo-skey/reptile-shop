@@ -112,7 +112,7 @@ export default async function NoticePage({
                 <div className="flex items-center gap-2 text-xs mt-1.5" style={{ color: 'var(--foreground)', opacity: 0.4 }}>
                   <span>{(notice.profiles as unknown as { display_name: string })?.display_name}</span>
                   <span>·</span>
-                  <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span>{new Date(notice.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
               </Link>
             ))}
