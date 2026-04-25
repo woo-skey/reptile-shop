@@ -10,6 +10,7 @@ import MenuCalculatorModal from '@/components/menu/MenuCalculatorModal'
 import EventDetailModal, { type EventDetailModalItem } from '@/components/event/EventDetailModal'
 import { TAB_LABELS, type MenuTabCategory, type ViewMode } from '@/components/menu/MenuTypes'
 import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import type { MenuItem } from '@/types'
 
 const TAB_KEYS = Object.keys(TAB_LABELS) as MenuTabCategory[]
@@ -60,8 +61,9 @@ export default function MenuClientPage({
   initialSub: string
 }) {
   const router = useRouter()
-  const { isAdmin } = useAuth()
+  const { user, isAdmin } = useAuth()
   const [menuItems, setMenuItems] = useState<MenuItem[]>(items)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set())
   const [activeTab, setActiveTab] = useState<MenuTabCategory>(initialTab)
   const [viewMode, setViewMode] = useState<ViewMode>(initialView)
   const [searchQuery, setSearchQuery] = useState(initialQuery)
@@ -99,6 +101,65 @@ export default function MenuClientPage({
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setFavoriteIds(new Set())
+      return
+    }
+    let cancelled = false
+    const supabase = createClient()
+    void supabase
+      .from('menu_favorites')
+      .select('menu_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        if (cancelled) return
+        const ids = (data ?? []).map((r) => (r as { menu_id: string }).menu_id)
+        setFavoriteIds(new Set(ids))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user])
+
+  const toggleFavorite = async (menuId: string) => {
+    if (!user) return
+    const isFav = favoriteIds.has(menuId)
+    setFavoriteIds((prev) => {
+      const next = new Set(prev)
+      if (isFav) next.delete(menuId)
+      else next.add(menuId)
+      return next
+    })
+
+    const supabase = createClient()
+    if (isFav) {
+      const { error } = await supabase
+        .from('menu_favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('menu_id', menuId)
+      if (error) {
+        setFavoriteIds((prev) => {
+          const next = new Set(prev)
+          next.add(menuId)
+          return next
+        })
+      }
+    } else {
+      const { error } = await supabase
+        .from('menu_favorites')
+        .insert({ user_id: user.id, menu_id: menuId })
+      if (error) {
+        setFavoriteIds((prev) => {
+          const next = new Set(prev)
+          next.delete(menuId)
+          return next
+        })
+      }
+    }
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -446,6 +507,8 @@ export default function MenuClientPage({
           onItemUpdated={handleItemUpdated}
           onItemDeleted={handleItemDeleted}
           onItemPreview={handleItemPreview}
+          favoriteIds={user ? favoriteIds : null}
+          onToggleFavorite={user ? toggleFavorite : undefined}
           dragContext={
             canDragRows
               ? {
