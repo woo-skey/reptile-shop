@@ -155,10 +155,12 @@ export default function MenuCalculatorModal({
 
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle')
   const copyStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (copyStatusTimerRef.current) clearTimeout(copyStatusTimerRef.current)
+      if (saveStatusTimerRef.current) clearTimeout(saveStatusTimerRef.current)
     }
   }, [])
 
@@ -230,7 +232,11 @@ export default function MenuCalculatorModal({
       total,
     })
     setSaveStatus(error ? 'failed' : 'saved')
-    setTimeout(() => setSaveStatus('idle'), 2000)
+    if (saveStatusTimerRef.current) clearTimeout(saveStatusTimerRef.current)
+    saveStatusTimerRef.current = setTimeout(() => {
+      setSaveStatus('idle')
+      saveStatusTimerRef.current = null
+    }, 2000)
   }
 
   const totalSection = (

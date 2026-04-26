@@ -60,7 +60,11 @@ export default function NotificationBell() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         (payload) => {
-          setItems((prev) => [payload.new as Notification, ...prev].slice(0, 20))
+          const incoming = payload.new as Notification
+          setItems((prev) => {
+            if (prev.some((n) => n.id === incoming.id)) return prev
+            return [incoming, ...prev].slice(0, 20)
+          })
         }
       )
       .subscribe()

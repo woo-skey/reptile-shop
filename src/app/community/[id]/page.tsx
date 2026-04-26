@@ -56,7 +56,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
             </h1>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--foreground)', opacity: 0.45 }}>
               {authorUsername ? (
-                <Link href={`/u/${authorUsername}`} className="hover:underline">
+                <Link href={`/u/${encodeURIComponent(authorUsername)}`} className="hover:underline">
                   {authorName}
                 </Link>
               ) : (

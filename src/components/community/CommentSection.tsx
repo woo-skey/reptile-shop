@@ -155,7 +155,7 @@ export default function CommentSection({ postId, initialComments, currentUserId 
                 <div className="flex items-center gap-2 mb-1">
                   {comment.profiles?.username ? (
                     <Link
-                      href={`/u/${comment.profiles.username}`}
+                      href={`/u/${encodeURIComponent(comment.profiles.username)}`}
                       className="text-xs font-medium hover:underline"
                       style={{ color: '#C9A227' }}
                     >
