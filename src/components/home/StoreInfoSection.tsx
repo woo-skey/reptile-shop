@@ -30,7 +30,7 @@ export default function StoreInfoSection({ info }: { info: StoreInfo | null }) {
   return (
     <section className="glass-card p-5 md:p-6">
       <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--foreground)' }}>
-        <span style={{ color: '#C9A227' }}>·</span> 매장 정보
+        <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 매장 정보
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">

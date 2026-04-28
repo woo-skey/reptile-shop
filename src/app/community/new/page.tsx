@@ -68,6 +68,13 @@ export default function NewPostPage() {
     e.preventDefault()
     if (!user) return
 
+    const trimmedTitle = title.trim()
+    const trimmedContent = content.trim()
+    if (!trimmedTitle || !trimmedContent) {
+      setError('제목과 내용을 입력해주세요.')
+      return
+    }
+
     setError('')
     setLoading(true)
 
@@ -79,8 +86,8 @@ export default function NewPostPage() {
       const { error: insertError } = await supabase.from('posts').insert({
         author_id: user.id,
         type: 'community',
-        title,
-        content,
+        title: trimmedTitle,
+        content: trimmedContent,
         image_urls: imagePaths,
       })
 
@@ -123,6 +130,7 @@ export default function NewPostPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="제목을 입력하세요"
+            maxLength={120}
             className="glass-input w-full px-4 py-2.5 text-sm"
             style={{ color: 'var(--foreground)' }}
           />
@@ -138,6 +146,7 @@ export default function NewPostPage() {
             onChange={(e) => setContent(e.target.value)}
             placeholder="내용을 입력하세요"
             rows={8}
+            maxLength={5000}
             className="glass-input w-full px-4 py-3 text-sm resize-none"
             style={{ color: 'var(--foreground)' }}
           />

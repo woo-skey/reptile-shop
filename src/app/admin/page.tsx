@@ -160,7 +160,7 @@ export default async function AdminDashboard() {
 
       <div>
         <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
-          <span style={{ color: '#C9A227' }}>·</span> 최근 게시글 5건
+          <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 최근 게시글 5건
         </h3>
         <div className="glass-card divide-y divide-[rgba(201,162,39,0.1)]">
           {recentTop.length === 0 ? (

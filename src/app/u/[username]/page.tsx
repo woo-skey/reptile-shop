@@ -95,7 +95,7 @@ export default async function UserProfilePage({
 
       <div className="mb-8">
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
-          <span style={{ color: '#C9A227' }}>·</span> 게시글 ({posts.length})
+          <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 게시글 ({posts.length})
         </h2>
         {posts.length === 0 ? (
           <div className="glass-card py-10 text-center">
@@ -125,7 +125,7 @@ export default async function UserProfilePage({
 
       <div>
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
-          <span style={{ color: '#C9A227' }}>·</span> 댓글 ({comments.length})
+          <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 댓글 ({comments.length})
         </h2>
         {comments.length === 0 ? (
           <div className="glass-card py-8 text-center">

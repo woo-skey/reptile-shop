@@ -74,8 +74,8 @@ const getDisplayImage = (item: MenuItem) => {
 
 function Table({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
-    <div>
-      <table className="w-full table-fixed text-sm border-collapse">
+    <div className="overflow-x-auto -mx-2 sm:mx-0">
+      <table className="w-full sm:table-fixed text-sm border-collapse min-w-[640px] sm:min-w-0">
         <thead>
           <tr style={{ borderBottom: '1px solid rgba(201,162,39,0.25)' }}>
             {headers.map((h, i) => (

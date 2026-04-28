@@ -92,6 +92,12 @@ export default function PostEditForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    const trimmedTitle = title.trim()
+    const trimmedContent = content.trim()
+    if (!trimmedTitle || !trimmedContent) {
+      setError('제목과 내용을 입력해주세요.')
+      return
+    }
     setError('')
     setLoading(true)
 
@@ -107,8 +113,8 @@ export default function PostEditForm({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
-          content,
+          title: trimmedTitle,
+          content: trimmedContent,
           image_urls: nextImageUrls,
         }),
       })

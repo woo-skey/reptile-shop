@@ -116,7 +116,7 @@ export default async function MyPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-            <span style={{ color: '#C9A227' }}>·</span> 내 게시글 ({posts.length})
+            <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 내 게시글 ({posts.length})
           </h2>
         </div>
 
@@ -167,7 +167,7 @@ export default async function MyPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-            <span style={{ color: '#C9A227' }}>·</span> 즐겨찾는 메뉴 ({favoriteList.length})
+            <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 즐겨찾는 메뉴 ({favoriteList.length})
           </h2>
         </div>
 
@@ -217,7 +217,7 @@ export default async function MyPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-            <span style={{ color: '#C9A227' }}>·</span> 주문 기록 ({orders.length})
+            <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 주문 기록 ({orders.length})
           </h2>
         </div>
         <OrderHistoryList initialOrders={orders} />
@@ -226,7 +226,7 @@ export default async function MyPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-            <span style={{ color: '#C9A227' }}>·</span> 내 댓글 ({comments.length})
+            <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 내 댓글 ({comments.length})
           </h2>
         </div>
 

@@ -120,6 +120,7 @@ export default async function HomePage() {
       <HomePopup popup={popup} />
 
       <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+        <h1 className="sr-only">파충류가게 - 단골들의 공간</h1>
         <section>
           <div
             className="w-full aspect-[5/1] overflow-hidden border-y"
@@ -156,7 +157,7 @@ export default async function HomePage() {
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                <span style={{ color: '#C9A227' }}>·</span> 인기메뉴
+                <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 인기메뉴
               </h2>
               <Link href="/menu" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
@@ -197,7 +198,7 @@ export default async function HomePage() {
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                <span style={{ color: '#C9A227' }}>·</span> 이벤트
+                <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 이벤트
               </h2>
               <Link href="/event" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
@@ -240,7 +241,7 @@ export default async function HomePage() {
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                <span style={{ color: '#C9A227' }}>·</span> 최근 게시글
+                <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 최근 게시글
               </h2>
               <Link href="/community" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +
@@ -276,7 +277,7 @@ export default async function HomePage() {
           <div className="glass-card p-5 md:p-6 h-[280px] flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
-                <span style={{ color: '#C9A227' }}>·</span> 공지사항
+                <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 공지사항
               </h2>
               <Link href="/notice" className="text-lg font-bold leading-none" style={{ color: '#C9A227', opacity: 0.85 }}>
                 +

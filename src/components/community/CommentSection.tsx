@@ -235,17 +235,28 @@ export default function CommentSection({ postId, initialComments, currentUserId 
       </div>
 
       {actionError && (
-        <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg mb-4">{actionError}</p>
+        <p
+          role="alert"
+          aria-live="polite"
+          className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg mb-4"
+        >
+          {actionError}
+        </p>
       )}
 
       {/* 댓글 입력 */}
       {currentUserId ? (
         <form onSubmit={handleSubmit} className="flex gap-2">
+          <label htmlFor="new-comment-input" className="sr-only">
+            댓글 입력
+          </label>
           <input
+            id="new-comment-input"
             type="text"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="댓글을 입력하세요"
+            maxLength={500}
             className="glass-input flex-1 px-3 py-2 text-sm"
             style={{ color: 'var(--foreground)' }}
           />

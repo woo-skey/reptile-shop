@@ -309,7 +309,7 @@ export default function MenuCalculatorModal({
       >
         <div className="flex items-center justify-between mb-5 shrink-0">
           <h3 id={titleId} className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-            <span style={{ color: '#C9A227' }}>·</span> 메뉴 계산기
+            <span aria-hidden="true" style={{ color: '#C9A227' }}>·</span> 메뉴 계산기
           </h3>
           <button
             ref={closeButtonRef}
@@ -467,26 +467,28 @@ export default function MenuCalculatorModal({
                         </span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
                         onClick={() => adjustQty(l.key, -1)}
-                        className="w-6 h-6 rounded border text-xs leading-none"
+                        className="w-9 h-9 rounded border text-base leading-none"
                         style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
                         aria-label="수량 감소"
                       >
                         −
                       </button>
                       <span
-                        className="w-6 text-center text-xs"
+                        className="w-7 text-center text-sm"
                         style={{ color: 'var(--foreground)' }}
+                        aria-live="polite"
+                        aria-label={`수량 ${l.quantity}`}
                       >
                         {l.quantity}
                       </span>
                       <button
                         type="button"
                         onClick={() => adjustQty(l.key, 1)}
-                        className="w-6 h-6 rounded border text-xs leading-none"
+                        className="w-9 h-9 rounded border text-base leading-none"
                         style={{ color: '#C9A227', borderColor: 'rgba(201,162,39,0.4)' }}
                         aria-label="수량 증가"
                       >
@@ -495,8 +497,8 @@ export default function MenuCalculatorModal({
                       <button
                         type="button"
                         onClick={() => removeLine(l.key)}
-                        className="ml-1 w-6 h-6 text-sm leading-none"
-                        style={{ color: 'rgba(239,68,68,0.65)' }}
+                        className="ml-0.5 w-9 h-9 text-lg leading-none"
+                        style={{ color: 'rgba(239,68,68,0.7)' }}
                         aria-label="항목 삭제"
                       >
                         ×

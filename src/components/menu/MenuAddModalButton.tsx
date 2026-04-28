@@ -475,7 +475,7 @@ export default function MenuAddModalButton({
                       도수 (%)
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       step="0.1"
                       value={form.abv}
                       onChange={(e) => set('abv', e.target.value)}
@@ -491,7 +491,7 @@ export default function MenuAddModalButton({
                       용량 (ml)
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       value={form.volume_ml}
                       onChange={(e) => set('volume_ml', e.target.value)}
                       className={inputCls}
@@ -506,7 +506,7 @@ export default function MenuAddModalButton({
                       가격 (원)
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       value={form.price}
                       onChange={(e) => set('price', e.target.value)}
                       className={inputCls}
@@ -521,7 +521,7 @@ export default function MenuAddModalButton({
                       1 Glass (원)
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       value={form.price_glass}
                       onChange={(e) => set('price_glass', e.target.value)}
                       className={inputCls}
@@ -536,7 +536,7 @@ export default function MenuAddModalButton({
                       1 Bottle (원)
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       value={form.price_bottle}
                       onChange={(e) => set('price_bottle', e.target.value)}
                       className={inputCls}
@@ -550,7 +550,7 @@ export default function MenuAddModalButton({
                     정렬 순서
                   </label>
                   <input
-                    type="number"
+                    type="number" min={0}
                     value={form.sort_order}
                     onChange={(e) => set('sort_order', e.target.value)}
                     className={inputCls}
@@ -564,7 +564,7 @@ export default function MenuAddModalButton({
                       인기메뉴 순서
                     </label>
                     <input
-                      type="number"
+                      type="number" min={0}
                       value={form.popular_order}
                       onChange={(e) => set('popular_order', e.target.value)}
                       placeholder="비우면 인기메뉴 제외"
