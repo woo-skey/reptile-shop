@@ -52,24 +52,56 @@ export default function NotificationBell() {
       setItems([])
       return
     }
-    void load()
+
     const supabase = createClient()
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const incoming = payload.new as Notification
-          setItems((prev) => {
-            if (prev.some((n) => n.id === incoming.id)) return prev
-            return [incoming, ...prev].slice(0, 20)
-          })
-        }
-      )
-      .subscribe()
-    return () => {
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    let cancelled = false
+
+    const subscribe = () => {
+      if (channel || cancelled) return
+      channel = supabase
+        .channel(`notifications:${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            const incoming = payload.new as Notification
+            setItems((prev) => {
+              if (prev.some((n) => n.id === incoming.id)) return prev
+              return [incoming, ...prev].slice(0, 20)
+            })
+          }
+        )
+        .subscribe()
+    }
+
+    const teardown = () => {
+      if (!channel) return
       void supabase.removeChannel(channel)
+      channel = null
+    }
+
+    const handleVisibility = () => {
+      if (cancelled) return
+      if (document.visibilityState === 'visible') {
+        void load()
+        subscribe()
+      } else {
+        teardown()
+      }
+    }
+
+    // 초기 로드는 visible 상태에서만 — 백그라운드 탭에서 불필요한 fetch/connection 방지
+    if (document.visibilityState === 'visible') {
+      void load()
+      subscribe()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      cancelled = true
+      document.removeEventListener('visibilitychange', handleVisibility)
+      teardown()
     }
   }, [user, load])
 
