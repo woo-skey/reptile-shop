@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import type { MenuItem } from '@/types'
+import { validateImageFile } from '@/lib/validation/upload'
 import { useDialog } from '@/hooks/useDialog'
 import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
@@ -42,10 +43,19 @@ export default function EventWriteModalButton({
   }, [preview])
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (preview) URL.revokeObjectURL(preview)
     const file = e.target.files?.[0]
+    if (file) {
+      const invalid = validateImageFile(file)
+      if (invalid) {
+        setError(invalid.message)
+        e.target.value = ''
+        return
+      }
+    }
+    if (preview) URL.revokeObjectURL(preview)
     setImageFile(file ?? null)
     setPreview(file ? URL.createObjectURL(file) : '')
+    setError('')
   }
 
   const uploadImage = async () => {

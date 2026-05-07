@@ -176,6 +176,8 @@ export default function CommentSection({ postId, initialComments, currentUserId 
                       type="text"
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
+                      maxLength={500}
+                      aria-label="댓글 수정"
                       className="glass-input w-full px-3 py-2 text-sm"
                       style={{ color: 'var(--foreground)' }}
                     />

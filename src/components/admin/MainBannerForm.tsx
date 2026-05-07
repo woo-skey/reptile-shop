@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDialogs } from '@/components/providers/DialogProvider'
+import { validateImageFile } from '@/lib/validation/upload'
 
 const DEFAULT_FALLBACK = '/reptile_image.png'
 
@@ -42,6 +43,14 @@ export default function MainBannerForm({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
+    if (file) {
+      const invalid = validateImageFile(file)
+      if (invalid) {
+        setError(invalid.message)
+        e.target.value = ''
+        return
+      }
+    }
     if (preview) URL.revokeObjectURL(preview)
     setNewFile(file)
     setPreview(file ? URL.createObjectURL(file) : '')

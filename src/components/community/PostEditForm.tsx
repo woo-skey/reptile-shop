@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { validateImageFile } from '@/lib/validation/upload'
 
 type ExistingImage = { path: string; url: string }
 type NewImage = { file: File; previewUrl: string; localId: string }
@@ -41,12 +42,21 @@ export default function PostEditForm({
     if (files.length === 0) return
     const allowed = Math.max(0, MAX_IMAGES - totalCount)
     const slice = files.slice(0, allowed)
+    for (const f of slice) {
+      const invalid = validateImageFile(f)
+      if (invalid) {
+        setError(invalid.message)
+        if (fileRef.current) fileRef.current.value = ''
+        return
+      }
+    }
     const additions: NewImage[] = slice.map((file) => ({
       file,
       previewUrl: URL.createObjectURL(file),
       localId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     }))
     setNewImages((prev) => [...prev, ...additions])
+    setError('')
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -163,6 +173,7 @@ export default function PostEditForm({
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          maxLength={120}
           className="glass-input w-full px-4 py-2.5 text-sm"
           style={{ color: 'var(--foreground)' }}
         />
@@ -177,6 +188,7 @@ export default function PostEditForm({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={8}
+          maxLength={5000}
           className="glass-input w-full px-4 py-3 text-sm resize-none"
           style={{ color: 'var(--foreground)' }}
         />

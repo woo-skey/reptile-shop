@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
+import { validateImageFile } from '@/lib/validation/upload'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -23,9 +24,19 @@ export default function NewPostPage() {
   }, [previews])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []).slice(0, 4)
-    setImages(files)
-    setPreviews(files.map((f) => URL.createObjectURL(f)))
+    const incoming = Array.from(e.target.files ?? []).slice(0, 4)
+    for (const f of incoming) {
+      const invalid = validateImageFile(f)
+      if (invalid) {
+        setError(invalid.message)
+        if (fileRef.current) fileRef.current.value = ''
+        return
+      }
+    }
+    previews.forEach((url) => URL.revokeObjectURL(url))
+    setError('')
+    setImages(incoming)
+    setPreviews(incoming.map((f) => URL.createObjectURL(f)))
   }
 
   const uploadSingleImage = async (file: File): Promise<string> => {

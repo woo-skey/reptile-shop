@@ -49,10 +49,16 @@ export default function SignupForm() {
     })
 
     if (signUpError) {
-      if (signUpError.message.includes('already registered')) {
+      const raw = signUpError.message.toLowerCase()
+      if (raw.includes('already registered') || raw.includes('user already')) {
         setError('이미 사용 중인 아이디입니다.')
+      } else if (raw.includes('password')) {
+        setError('비밀번호 형식이 올바르지 않습니다.')
+      } else if (raw.includes('rate limit') || raw.includes('too many')) {
+        setError('잠시 후 다시 시도해주세요.')
       } else {
-        setError(signUpError.message)
+        // 내부 fake email 패턴이 노출되지 않도록 사용자에겐 일반 메시지만 노출
+        setError('회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.')
       }
       setLoading(false)
       return

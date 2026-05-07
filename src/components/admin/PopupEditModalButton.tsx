@@ -4,6 +4,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'r
 import { useRouter } from 'next/navigation'
 import type { Popup } from '@/types'
 import { useDialog } from '@/hooks/useDialog'
+import { validateImageFile } from '@/lib/validation/upload'
 import { toClientPostImageUrl } from '@/lib/storage/postImagesClient'
 
 export default function PopupEditModalButton({ popup }: { popup: Popup }) {
@@ -40,10 +41,19 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
   }, [preview])
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (preview) URL.revokeObjectURL(preview)
     const file = e.target.files?.[0]
+    if (file) {
+      const invalid = validateImageFile(file)
+      if (invalid) {
+        setError(invalid.message)
+        e.target.value = ''
+        return
+      }
+    }
+    if (preview) URL.revokeObjectURL(preview)
     setImageFile(file ?? null)
     setPreview(file ? URL.createObjectURL(file) : '')
+    setError('')
   }
 
   const uploadImage = async () => {
@@ -172,6 +182,7 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  maxLength={120}
                   className="glass-input w-full px-3 py-2 text-sm"
                   style={{ color: 'var(--foreground)' }}
                 />
@@ -185,6 +196,7 @@ export default function PopupEditModalButton({ popup }: { popup: Popup }) {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={6}
+                  maxLength={2000}
                   className="glass-input w-full px-3 py-2 text-sm resize-none"
                   style={{ color: 'var(--foreground)' }}
                 />
