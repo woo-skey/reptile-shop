@@ -96,7 +96,9 @@ export async function POST(request: NextRequest) {
   const adminClient = createSupabaseClient(getSupabaseUrl(), getSupabaseServiceRoleKey())
 
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_')
-  const path = `${user.id}/${Date.now()}_${safeFilename}`
+  // 동시 업로드가 같은 ms에 들어와도 충돌하지 않도록 랜덤 suffix 추가
+  const randomSuffix = crypto.randomUUID().slice(0, 8)
+  const path = `${user.id}/${Date.now()}_${randomSuffix}_${safeFilename}`
 
   const { data, error } = await adminClient.storage
     .from('post-images')

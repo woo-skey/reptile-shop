@@ -1,7 +1,32 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { Post, Profile } from '@/types'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>
+}): Promise<Metadata> {
+  const { username } = await params
+  const cleanUsername = decodeURIComponent(username).trim()
+  if (!cleanUsername) return { title: '프로필 - 파충류가게' }
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('display_name, username')
+    .eq('username', cleanUsername)
+    .maybeSingle()
+  if (!data) return { title: '프로필 - 파충류가게' }
+  const name = data.display_name ?? data.username
+  const title = `${name} (@${data.username}) - 파충류가게`
+  return {
+    title,
+    description: `${name}님의 프로필`,
+    robots: { index: false, follow: true },
+  }
+}
 
 type ProfileCommentRow = {
   id: string
@@ -65,7 +90,7 @@ export default async function UserProfilePage({
   const comments = (commentsData ?? []) as unknown as ProfileCommentRow[]
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="glass-card px-6 py-6 mb-6">
         <div className="flex items-center gap-4">
           <div

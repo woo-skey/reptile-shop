@@ -60,6 +60,13 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
             <DialogProvider>
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-3 focus:py-2 focus:rounded focus:text-sm focus:font-medium"
+                style={{ backgroundColor: '#456132', color: '#F5F0E8', border: '1px solid #C9A227' }}
+              >
+                본문으로 건너뛰기
+              </a>
               <Suspense
                 fallback={
                   <header
@@ -70,7 +77,7 @@ export default function RootLayout({
               >
                 <Header />
               </Suspense>
-              <main className="flex-1">
+              <main id="main-content" className="flex-1">
                 {children}
               </main>
               <Footer />

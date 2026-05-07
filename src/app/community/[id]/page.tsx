@@ -1,9 +1,34 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import CommentSection from '@/components/community/CommentSection'
 import DeletePostButton from '@/components/community/DeletePostButton'
 import type { Post, Comment, Profile } from '@/types'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('posts')
+    .select('title, content')
+    .eq('id', id)
+    .eq('type', 'community')
+    .maybeSingle()
+  if (!data) return { title: '게시글 - 파충류가게' }
+  const title = `${data.title} - 파충류가게`
+  const description = (data.content ?? '').replace(/\s+/g, ' ').slice(0, 150)
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: 'article' },
+    twitter: { card: 'summary', title, description },
+  }
+}
 
 export default async function PostDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
